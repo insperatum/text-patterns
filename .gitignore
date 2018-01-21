@@ -1,1 +1,2 @@
-/conda_environment/
+/envs/
+/__pycache__/
