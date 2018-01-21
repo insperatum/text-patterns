@@ -36,6 +36,7 @@ dependencies:
 - pytorch=0.3.0=py36_cuda0.0_cudnn0.0h57b1bc9_4
 - torchvision=0.2.0=py36hf5eb7ec_1
 - pip:
+  - pyyaml==3.12
   - torch==0.3.0.post4
 prefix: /Users/lbh/Documents/text-patterns/conda_environment
 
