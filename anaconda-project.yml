@@ -21,7 +21,8 @@ description:
 # In the commands section, list your runnable scripts, notebooks, and other code.
 # Use `anaconda-project add-command` to add commands.
 #
-commands: {robustfill: {unix: python robustfill.py, env_spec: default}}
+commands: {robustfill: {unix: python robustfill.py, env_spec: default}, python: {
+    unix: python, env_spec: default}}
 #
 # In the variables section, list any environment variables your code depends on.
 # Use `anaconda-project add-variable` to add variables.
@@ -46,6 +47,7 @@ downloads: {}
 #
 packages:
 - pytorch
+- matplotlib
 #
 # In the channels section, list any Conda channel URLs to be searched
 # for packages.
@@ -56,7 +58,7 @@ packages:
 #    - mychannel
 #
 channels:
-- https://conda.anaconda.org/pytorch 
+- https://conda.anaconda.org/pytorch
 #
 # In the platforms section, list platforms the project should work on
 # Examples: "linux-64", "osx-64", "win-64"
