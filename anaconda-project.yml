@@ -21,8 +21,11 @@ description:
 # In the commands section, list your runnable scripts, notebooks, and other code.
 # Use `anaconda-project add-command` to add commands.
 #
-commands: {regex-dream: {unix: python -u regex_dream.py, env_spec: default}, python: {
-    unix: python -u, env_spec: default}}
+commands: {
+  dream: {unix: python -u regex_dream.py, env_spec: default},
+  demo:        {unix: python -u demo.py, env_spec: default},
+  python:      {unix: python -u, env_spec: default}
+}
 #
 # In the variables section, list any environment variables your code depends on.
 # Use `anaconda-project add-variable` to add variables.
