@@ -19,13 +19,13 @@ class RobustFill(nn.Module):
     - give n_examples as input to FC
     """
     
-    def __init__(self, vocab_size=128, hidden_size=512, embedding_size=128, cell_type="LSTM"):
+    def __init__(self, v_input=128, v_output=128, hidden_size=512, embedding_size=128, cell_type="LSTM"):
         super(RobustFill, self).__init__()
         self.h_encoder_size = hidden_size
         self.h_decoder_size = hidden_size
         self.embedding_size = embedding_size
-        self.v_input = vocab_size # Number of tokens in input vocabulary
-        self.v_output = vocab_size # Number of tokens in output vocabulary
+        self.v_input = v_input # Number of tokens in input vocabulary
+        self.v_output = v_output # Number of tokens in output vocabulary
 
         self.cell_type=cell_type
         if cell_type=='GRU':
@@ -154,7 +154,7 @@ def stringsToTensor(vocab_size, strings):
     :param strings: batch of strings
     """
     maxlen = max(len(s) for s in strings)
-    t = torch.ones(1 if maxlen==0 else maxlen, len(strings)).long()*vocab_size
+    t = torch.ones(1 if maxlen==0 else maxlen+1, len(strings)).long()*vocab_size
     for i in range(len(strings)):
         s = strings[i]
         if len(s)>0: t[:len(s), i] = torch.LongTensor([ord(x) for x in s])

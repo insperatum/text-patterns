@@ -17,10 +17,15 @@ import regex
 import util
 
 print("Loading models")
-models = [torch.load('./models/' + d.name) for d in os.scandir('models')]
+models = []
+for d in os.scandir('models'):
+	print(d.name)
+	models.append(torch.load('./models/' + d.name))
+models = [models[-1]]
 if torch.cuda.is_available():
 	torch.set_default_tensor_type('torch.cuda.FloatTensor')
 	for m in models: m['net'].cuda()
+
 # models = [m for m in models if m['args'].hidden_size == 250]
 
 while True:

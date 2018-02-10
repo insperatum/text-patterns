@@ -37,11 +37,18 @@ maxParses=100
 class RegexException(Exception):
     pass
 
-def humanreadable(s):
+def humanreadable(s, char_map=None):
 	for char in _:
 		s = s.replace(char, '\\' + char)
 		s = s.replace(_[char], char)
-	s = ''.join(x if x in string.printable and x not in "\n\x0b\x0c" else '�' for x in s)
+	def readable(x):
+		if ord(x)>=128:
+			return "<" + char_map(x) + ">"
+		elif x in string.printable and x not in "\n\x0b\x0c":
+			return x
+		else:
+			return '�'
+	s = ''.join(readable(x) for x in s)
 	return s
 
 def listify(p):
@@ -65,7 +72,7 @@ def listify(p):
 	return consumed
 
 
-def match(s, p, debug=False):
+def match(s, p, lib_score=None, debug=False):
 	if type(s) is str: s = list(s)
 	if type(p) is str: p = listify(p)
 
@@ -134,11 +141,20 @@ def match(s, p, debug=False):
 				return []
 		elif type(p[0]) is list:
 			return matchInner(s, p[0] + p[1:], partial)
-		else:
+		elif p[0] in allchars:
 			if len(s)>0 and p[0]==s[0]:
 				return matchInner(s[1:], p[1:], partial)
 			else:
 				return []
+		else:
+			out = []
+			for i in range(1, len(s)+1):
+				score = lib_score(p[0], "".join(s[:i]))
+				# print("Scored " + "".join(s[:i]) + " with " + str(score))
+				if score > float("-inf"):
+					for logp, rem in matchInner(s[i:], p[1:], partial):
+						out.append((logp + score, rem))
+			return out
 	try:
 		paths = matchInner(s, p, False)
 	except RecursionError:
@@ -152,7 +168,7 @@ def match(s, p, debug=False):
 
 
 
-def sample(p, debug=False):
+def sample(p, lib_sample=None, debug=False):
 	if type(p) is str: p = listify(p)
 
 	def sampleInner(p):
@@ -187,26 +203,31 @@ def sample(p, debug=False):
 			return random.choice(charclass) + sampleInner(p[1:])
 		elif type(p[0]) is list:
 			return sampleInner(p[0] + p[1:])
-		else:
+		elif p[0] in allchars:
 			return p[0] + sampleInner(p[1:])
+		else:
+			return lib_sample(p[0])  + sampleInner(p[1:])
 	
 	return sampleInner(p)
 
 
-def new(T='S'):
+def new(lib_chars='', T='S'):
 	r = random.random()
 	if T=='S':
-		return new('T') + (new('S') if r<0.5 else '')
+		return new(lib_chars, 'T') + (new(lib_chars, 'S') if r<0.5 else '')
 	elif T=='T':
 		if r<0.7:
-			return new('X')
+			return new(lib_chars, 'X')
 		elif r<0.9:
-			return new('X') + _[random.choice('*+?')]
+			return new(lib_chars, 'X') + _[random.choice('*+?')]
 		else:
-			return new('X') + _['|'] + new('X')
+			return new(lib_chars, 'X') + _['|'] + new(lib_chars, 'X')
 	elif T=='X':
 		if r<0.6:
-			return random.choice(string.ascii_letters + string.digits + whitespace + string.punctuation)
+			if r<0.4 or len(lib_chars)==0:
+				return random.choice(string.ascii_letters + string.digits + whitespace + string.punctuation)
+			else:
+				return random.choice(lib_chars)
 		elif r<0.9:
 			return random.choice(list(shorthandClasses.keys()))
 		else:
