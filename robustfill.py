@@ -10,10 +10,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import random
 
-
 class RobustFill(nn.Module):
     """
     Todo:
+    - Beam search
     - check if this is right? attend during P->FC rather than during softmax->P?
     - allow length 0 inputs/outputs
     - give n_examples as input to FC
@@ -48,6 +48,35 @@ class RobustFill(nn.Module):
         self.output_SOS[:, -1] = 1
         self.output_SOS = Parameter(self.output_SOS)
 
+    def remove_output(self, output_idx):
+        """
+        Remove the output primitive at index output_idx
+        """
+        self.v_output -= 1
+        self.output_SOS.data = self.output_SOS.data[:, 1:]
+
+        self.V.weight.data = torch.cat([self.V.weight.data[:output_idx], self.V.weight.data[output_idx+1:]], dim=0)
+        self.V.bias.data = torch.cat([self.V.bias.data[:output_idx], self.V.bias.data[output_idx+1:]], dim=0)
+        self.V.out_features -= 1
+
+        self.decoder_cell.weight_ih.data = torch.cat([self.decoder_cell.weight_ih.data[:, :output_idx], self.decoder_cell.weight_ih.data[:, output_idx+1:]], dim=1)
+        self.decoder_cell.input_size -= 1
+
+    def append_output(self):
+        """
+        Add a new possible output primitive
+        """
+        self.v_output += 1
+        self.output_SOS.data = torch.cat([torch.zeros(1,1), self.output_SOS.data], dim=1)
+
+        self.V.weight.data = torch.cat([self.V.weight.data[:-1], torch.zeros(1, self.V.weight.size(1)), self.V.weight.data[-1:]], dim=0)
+        self.V.bias.data = torch.cat([self.V.bias.data[:-1], torch.zeros(1), self.V.bias.data[-1:]], dim=0)
+        self.V.out_features += 1
+
+        self.decoder_cell.weight_ih.data = torch.cat([self.decoder_cell.weight_ih.data[:, :-1],
+                                                      torch.zeros(self.decoder_cell.weight_ih.data.size(0), 1),
+                                                      self.decoder_cell.weight_ih.data[:, -1:]], dim=1)
+        self.decoder_cell.input_size += 1
 
     def encoder_get_init(self, batch_size):
         if self.cell_type=="GRU": return self.encoder_init.repeat(batch_size, 1)
@@ -80,7 +109,7 @@ class RobustFill(nn.Module):
         n_examples = len(inputs)
         max_length_input = [inputs[j].size(0) for j in range(n_examples)]
         batch_size = inputs[0].size(1)
-        max_length_output = target.size(0) if target is not None else 20
+        max_length_output = target.size(0) if target is not None else 10
 
         score = Variable(torch.zeros(batch_size))
         inputs_scatter = [Variable(torch.zeros(max_length_input[j], batch_size, self.v_input+1).scatter_(2, inputs[j][:, :, None], 1)) for j in range(n_examples)] # n_examples * (max_length_input * batch_size * v_input+1)
