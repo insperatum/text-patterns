@@ -11,16 +11,20 @@ Training/Proposals:
 - [ ] Train NN in parallel, on a separate machine?
 - [ ] Repropose on existing concept 
 - [ ] Given a valid inferred regex, parse examples with that regex, choose a matching subgroup, and run inference on that parse
+
 Library:
 - [ ] When removing library item, delete other redundant items that are only referenced by it
 - [ ] Dirichlet distribution over concepts
+
 Network:
 - [ ] Bidirectional
 - [ ] Beam search
 - [ ] Check Robustfill should attend during P->FC rather than during softmax->P?
 - [ ] give n_examples as input to FC
+
 Trace:
-- [ ] Clean up CRPRegexConcept. Currently concepts not in baseConcepts don't get scored in addConcept and CRPconcept has no prior on whether it has regex or CRP inside
+- [ ] Clean up CRPRegexConcept. Currently concepts not in baseConcepts don't get scored in addConcept and CRPconcept has no prior on 
+whether it has regex or CRP inside
 - [X] Rich concepts get richer (DP?)
 - [ ] Move all model logic out of trace.py
 - [ ] Make it clearer which functions mutate, and also when a returned trace is clean/dirty
@@ -30,6 +34,7 @@ Trace:
 - [ ] CRPConcept: If there are existing tables with some value, sample rather than choosing the first
 - [ ] ErrorConcept to allow errors?
 - [ ] Replace TempDict and TempList with https://pythonhosted.org/pysistence/
+
 Regex:
 - [ ] Replace namedtuples with attrs
 - [ ] use separate bracket types for each function?
