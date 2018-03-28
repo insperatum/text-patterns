@@ -9,18 +9,19 @@ import util
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from robustfill import RobustFill, tensorToStrings, stringsToTensor
+from network import Network
 import random
 import argparse
-import regex
+import regex2 as regex
 from datetime import datetime
 import pickle
 import model
 import copy
 import math
-from collections import Counter
 import numpy as np
 import time
+from collections import Counter
+
 data_maxsize=1000000
 expected_num_concepts = 100
 
@@ -51,7 +52,7 @@ expected_num_concepts = 100
 if torch.cuda.is_available(): torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
 # Argument
-default_name = "dirichlet_dream"
+default_name = "dirichlet"
 if 'SLURM_JOB_NAME' in os.environ: default_name += "_" + os.environ['SLURM_JOB_NAME']
 parser = argparse.ArgumentParser()
 parser.add_argument('--name', type=str, default=default_name)
@@ -64,6 +65,8 @@ parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--hidden_size', type=int, default=512)
 parser.add_argument('--embedding_size', type=int, default=128)
 parser.add_argument('--mode', type=str, default="synthesis") # "synthesis" or "induction"
+parser.add_argument('--debug', dest='debug', action='store_true')
+parser.set_defaults(debug=False)
 args = parser.parse_args()
 
 # Files to save:
@@ -72,60 +75,46 @@ os.makedirs("results", exist_ok = True)
 modelfile = 'models/' + args.name + '.pt'
 plotfile = 'results/' + args.name + '.png'
 
-# Load/create model+state
+# Optimiser
 def createOptimiser(net):
 	return torch.optim.Adam(net.parameters(), lr=0.001)
+
+
+# Load/create model+state
 try:
 	print("Loading model ", modelfile)
 	M = model.load(modelfile)
 	net = M['net']
-	# args = M['args']
+	args = M['args']
 	state = M['state']
-	library = M['library']
-	data_concepts = M['data_concepts']
+	trace = M['trace']
 	opt = createOptimiser(net)
 	opt.load_state_dict(M['optstate'])
 
 	rand = np.random.RandomState()
 	rand.seed(0)
-	data = [rand.choice(x['data'], size=min(data_maxsize, len(x['data'])), replace=False) for x in pickle.load(open(M['data_file'], 'rb'))]
+	data = [rand.choice(x['data'], size=min(data_maxsize, len(x['data'])), replace=False).tolist() for x in pickle.load(open(M['data_file'], 'rb'))]
+	if args.debug: data = data[:100]
 	rand.shuffle(data)
-	data_counts = [Counter(d) for d in data]
 except FileNotFoundError:
 	rand = np.random.RandomState()
 	rand.seed(0)
-	data = [rand.choice(x['data'], size=min(data_maxsize, len(x['data'])), replace=False) for x in pickle.load(open(args.data_file, 'rb'))]
+	data = [rand.choice(x['data'], size=min(data_maxsize, len(x['data'])), replace=False).tolist() for x in pickle.load(open(args.data_file, 'rb'))]
+	if args.debug: data = data[:100]
 	rand.shuffle(data)
-	data_counts = [Counter(d) for d in data]
-
-	v_input = 128
-	v_output = 128 + 1 #Initialise library with size 1
 
 	M = {}
-	M['net'] = net = RobustFill(v_input=v_input, v_output=v_output, hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
+	initialConcept = model.Concept(regex._['.'] + regex._['+'])
+	M['trace'] = trace = model.Trace(initialConcept=initialConcept, tasks=data)
+	M['net'] = net = Network(input_vocabulary=[chr(i) for i in range(128)],
+							 output_vocabulary=[chr(i) for i in range(128)] + trace.concepts,
+							 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
 	M['args'] = args
 	M['state'] = state = {'iteration':0, 'score':0, 'training_losses':[]}
 	M['data_file'] = args.data_file
 	M['model_file'] = modelfile
 	M['results_file'] = 'results/' + args.name + '.txt'
-	M['library'] = library = [{'base':regex._["."]+regex._["*"], 'observations':[{"task":i, "ancestors":[0], "obs":obs} for i in range(len(data)) for obs in data[i]]}]
-	M['data_concepts'] = data_concepts = [0 for i in range(len(data))] #For each data column, what concept does it belong to
 	opt = createOptimiser(net)
-
-# Data
-lib_chars = ''.join([chr(128+i) for i in range(len(library))])
-def lib_sample(char):
-	idx = ord(char)-128
-	return regex.sample(library[idx]['base'], lib_sample=lib_sample)
-def lib_score(lib_char, s, lib_depth):
-	idx = ord(lib_char)-128
-	try:
-		return regex.match(s, library[idx]['base'], lib_score=lib_score, mode="full", lib_depth=lib_depth)
-	except regex.RegexException:
-		return {"score":float("-inf"), "observations":None}
-def char_map(char):
-	idx=ord(char)-128
-	return regex.humanreadable(library[idx]['base'], char_map)
 
 # ------------------------------------------------------------------------------------------------
 
@@ -135,16 +124,16 @@ def getInstance(n_examples=1):
 	"""
 	
 	# if random.random()<1/2:
-	r = regex.new(lib_chars)
+	r = regex.new(trace.concepts)
 	# else:
 	# 	lib_idx = random.randint(0, len(library)-1)
 	# 	r = chr(lib_idx+128)
-	inputs = [regex.sample(r, lib_sample=lib_sample) for i in range(n_examples)]
+	inputs = [regex.sample(r) for i in range(n_examples)]
 
 	if args.mode == "synthesis":
 		target = r
 	elif args.mode == "induction":
-		target = regex.sample(r, lib_sample=lib_sample)
+		target = regex.sample(r)
 
 	if len(target)>args.max_length or any(len(x)>args.max_length for x in inputs):
 		return getInstance(n_examples)
@@ -157,35 +146,9 @@ def getBatch(b):
 	"""
 	n_examples = random.randint(args.min_examples, args.max_examples)
 	instances = [getInstance(n_examples) for i in range(b)]
-	inputs = [stringsToTensor(net.v_input, [x['inputs'][j] for x in instances]) for j in range(n_examples)]
-	target = stringsToTensor(net.v_output, [x['target'] for x in instances])
+	inputs = [net.inputToTensor([x['inputs'][j] for x in instances]) for j in range(n_examples)]
+	target = net.outputToTensor([x['target'] for x in instances])
 	return inputs, target
-
-
-def getPrior(r):
-	return -math.log(40)*len(r)
-
-def getLikelihoodAndObservations(r, examples):
-	"""
-	Returns (score, observations, counterexample)
-	"""
-	cnt = Counter(examples)
-	try:
-		ll = 0
-		observations = []
-		for s in cnt:
-			MAP = regex.match(s, r, lib_score=lib_score, mode="full")
-			if MAP['score'] == float('-inf'):
-				return float('-inf'), [], s
-			ll += MAP['score'] * cnt[s]
-			for _ in range(cnt[s]):
-				observations.append({"ancestors":[], "obs":s}) # TODO: Would be faster if not copying these, but then trickier to update ancestors.
-				observations += copy.deepcopy(MAP['observations'])
-		return ll, observations, None
-	except regex.RegexException:
-		return float('-inf'), [], None
-
-
 
 def refreshAdam(net):
 	global opt
@@ -193,41 +156,26 @@ def refreshAdam(net):
 	for i in range(len(opt.param_groups)):
 		opt.param_groups[i]['params'] = new_opt.param_groups[i]['params']
 
-def makeProposalOnTask(task_idx, specificProposal=None):
+def makeProposalOnTask(task_idx):
 	#Returns true if library has updated
-	global lib_chars, net
-	old_concept = data_concepts[task_idx]
+	global net
+	old_concept = trace.task_concept[task_idx]
+	print(old_concept)
 
+	unique = list(set(data[task_idx]))
+	examples = list(np.random.choice(unique, size=min(5, len(unique)), replace=False)) #example[proposal][i]
+	print("Examples:", examples)
+	proposals = []
+	for i in range(2):
+		inputs = [net.inputToTensor([example]*500) for example in examples]
+		proposals += model.Concept(net.tensorToOutput(net.sample(inputs)))
+	proposals = list(set(proposals))[:100]
+	proposals += [concept for concept in trace.concepts if concept != old_concept] #Don't propose the same thing
 	
+	moreExamples = list(np.random.choice(unique, size=20))
+	proposals = sorted(proposals, key=lambda proposal: -(model.prior(proposal.base) + trace.scoreProposal(moreExamples, proposal)))[:1]
+	print("Proposals:", proposals)
 
-	# Counterexample-driven:
-	# examples = [list(np.random.choice(unique, size=4)) for _ in range(1000)] #example[proposal][i]
-	# while True:
-	# 	inputs = [stringsToTensor(net.v_input, [e[j] for e in examples]) for j in range(len(examples[0]))]
-	# 	proposals = tensorToStrings(net.v_output, net.sample(inputs))
-	# 	if len(examples[0])>=5: break
-	# 	for j in range(len(proposals)):
-	# 		_, _, counterexample = getLikelihoodAndObservations(proposals[j], data[task_idx])
-	# 		examples[j].append( counterexample if counterexample is not None else random.choice(unique) )
-	
-	# Normal:
-	if specificProposal is None:
-		unique = list(set(data[task_idx]))
-		examples = list(np.random.choice(unique, size=min(5, len(unique)), replace=False)) #example[proposal][i]
-		print("Examples:", examples)
-		proposals = []
-		for i in range(2):
-			inputs = [stringsToTensor(net.v_input, [example]*500) for example in examples]
-			proposals += tensorToStrings(net.v_output, net.sample(inputs))
-		proposals = list(set(proposals))[:100]
-		proposals += [chr(i+128) for i in range(len(library))]
-		proposals = [r for r in proposals if r != chr(old_concept+128)] #Don't propose the same thing
-		moreExamples = list(np.random.choice(unique, size=20))
-		proposals = sorted(proposals, key=lambda r: -(getPrior(r) + getLikelihoodAndObservations(r, moreExamples)[0]))[:1]
-	else:
-		proposals = [specificProposal]
-		proposals = [r for r in proposals if r != chr(old_concept+128)] #Don't propose the same thing
-	
 	proposals = [{"regex":p} for p in proposals]
 	old_ll, old_observations, _ = getLikelihoodAndObservations(library[old_concept]['base'], data[task_idx])
 	for proposal in proposals:
@@ -291,17 +239,16 @@ def makeProposalOnTask(task_idx, specificProposal=None):
 				M['net'].remove_output(old_concept + 128)
 				M['net'] = net = copy.deepcopy(net) #So weird to have to do this!
 				refreshAdam(net)
-			lib_chars = ''.join([chr(128+i) for i in range(len(library))])
 	return libraryUpdated
 
 # Training
 print("\nTraining...")
-pretrainUntil=30000
-saveEvery=600 #seconds
-nextSave=time.time()+saveEvery
-if state['iteration']==0:
-	M['proposeAfter']=pretrainUntil
-	M['nextProposalTask']=0
+pretrainUntil = 50 if args.debug else 30000
+saveEvery = 10 if args.debug else 300 #seconds
+nextSave = time.time() + saveEvery
+if state['iteration'] == 0:
+	M['proposeAfter'] = pretrainUntil
+	M['nextProposalTask'] = 0
 for state['iteration'] in range(state['iteration']+1, 50001):
 	i = state['iteration']
 
@@ -315,7 +262,7 @@ for state['iteration'] in range(state['iteration']+1, 50001):
 	state['score'] = score.data[0]
 	print("i=%d Network score %3.3f" % (i, state['score']))
 
-	if i>M['proposeAfter'] and i%5==0:
+	if i > M['proposeAfter'] and i % 5 == 0:
 		print()
 		print("Proposing on task: %d/%d (%d instances)" % (M['nextProposalTask'], len(data), len(data[M['nextProposalTask']])))
 		libraryUpdated = makeProposalOnTask(M['nextProposalTask'])
@@ -325,8 +272,8 @@ for state['iteration'] in range(state['iteration']+1, 50001):
 			# for j in range(len(data)): makeProposalOnTask(j, chr(128+len(library)-1))
 			# M['proposeAfter'] = i+50
 
-	if i%20==0:
-		print("Library:", ", ".join([regex.humanreadable(x['base']) for x in library]))
+	if i % 20 == 0:
+		print("Library:", ", ".join([regex.humanreadable(x.base) for x in trace.concepts]))
 
 	if time.time()>nextSave:
 		plt.clf()

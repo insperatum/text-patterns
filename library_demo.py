@@ -32,7 +32,6 @@ if torch.cuda.is_available():
 data = pickle.load(open(M['data_file'], 'rb'))
 v_input = 128
 v_output = 128 + len(data)
-lib_chars = ''.join([chr(128+i) for i in range(len(data))])
 
 def lib_sample(lib_char):
 	idx = ord(lib_char)-128
