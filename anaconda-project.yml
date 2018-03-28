@@ -22,9 +22,10 @@ description:
 # Use `anaconda-project add-command` to add commands.
 #
 commands: {
-  dream: {unix: python -u regex_dream.py, env_spec: default},
-  demo:        {unix: python -u demo.py, env_spec: default},
-  python:      {unix: python -u, env_spec: default}
+#  dream: {unix: python -u regex_dream.py, env_spec: default},
+  demo:        {unix: python -u train.py --demo, env_spec: default},
+  python:      {unix: python -u, env_spec: default},
+  train: {unix: python -u train.py, env_spec: default},
 }
 #
 # In the variables section, list any environment variables your code depends on.
