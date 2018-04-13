@@ -1,0 +1,9 @@
+[submodule "RobustFill"]
+	path = RobustFill
+	url = https://github.com/insperatum/RobustFill.git
+[submodule "pinn"]
+	path = pinn
+	url = https://github.com/insperatum/pinn.git
+[submodule "pregex"]
+	path = pregex
+	url = https://github.com/insperatum/pregex.git

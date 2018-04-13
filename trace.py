@@ -6,7 +6,7 @@ import random
 from collections import namedtuple, Counter
 import numpy as np
 
-import regex
+import pregex as pre
 import model
 
 class TempList():
@@ -310,18 +310,18 @@ class RegexConcept(Concept):
 	def str(self, trace):
 		state = trace.getState(self)
 		char_map = {
-			regex.dot: ".",
-			regex.d: "\\d",
-			regex.s: "\\s",
-			regex.w: "\\w",
-			regex.l: "\\l",
-			regex.u: "\\u",
-			regex.KleeneStar: "*",
-			regex.Plus: "+",
-			regex.Maybe: "?",
-			regex.Alt: "|",
-			regex.OPEN: "(",
-			regex.CLOSE: ")"
+			pre.dot: ".",
+			pre.d: "\\d",
+			pre.s: "\\s",
+			pre.w: "\\w",
+			pre.l: "\\l",
+			pre.u: "\\u",
+			pre.KleeneStar: "*",
+			pre.Plus: "+",
+			pre.Maybe: "?",
+			pre.Alt: "|",
+			pre.OPEN: "(",
+			pre.CLOSE: ")"
 		}
 		flat = state.regex.flatten(char_map=char_map, escape_strings=True)
 		inner_str = "".join(["<" + x.str(trace) + ">" if issubclass(type(x), Concept) else str(x) for x in flat])
@@ -333,7 +333,7 @@ class RegexConcept(Concept):
 
 	def priorScore(self, trace):
 		state = trace.getState(self)
-		score = model.scoreregex(state.regex, trace.baseConcepts)
+		score = model.scoreregex(state.regex, trace)
 		conceptsReferenced = [x for x in state.regex.leafNodes() if issubclass(type(x), Concept)]
 		return score, conceptsReferenced
 
@@ -342,6 +342,7 @@ class RegexConcept(Concept):
 
 	def sample(self, trace):
 		state = trace.getState(self)
+		if not issubclass(type(state.regex), pre.Pregex): print(state)
 		regex = state.regex
 		return regex.sample(trace)
 
@@ -399,14 +400,14 @@ class RegexConcept(Concept):
 		trace.score = trace.score - observation.score
 
 		newState = RegexConcept.State(
-			regex = state.regex,
+			regex = regex,
 			observations = state.observations.set(observation, state.observations[observation]-1)
 		)
 		trace._setState(self, newState)
 		return trace
 
 
-class RegexWrapper(regex.regex):
+class RegexWrapper(pre.Pregex):
 	def __init__(self, concept):
 		self.concept = concept
 
@@ -426,7 +427,7 @@ class RegexWrapper(regex.regex):
 			new_trace = new_trace.fork()
 			score = new_trace.score - initScore
 			new_regexState = regexState._replace(trace=new_trace, observations=regexState.observations + (observation,))
-			yield regex.PartialMatch(numCharacters=numCharacters, score=score, reported_score=0, continuation=None, state=new_regexState)
+			yield pre.PartialMatch(numCharacters=numCharacters, score=score, reported_score=0, continuation=None, state=new_regexState)
 
 
 class Trace:
@@ -437,10 +438,14 @@ class Trace:
 		self.baseConcept_nReferences = {} #dict<Concept, int> number of times concept is referenced by other concepts
 		self.baseConcept_nReferences_total = 0
 
+	def logpConcept(self, c):
+		return math.log(self.baseConcept_nReferences.get(c, 0)+1) - math.log(self.baseConcept_nReferences_total + len(self.baseConcepts))
+
 	def fork(self):
 		fork = copy.copy(self)
 		fork.state = copy.copy(self.state)
 		fork.baseConcepts = copy.copy(self.baseConcepts)
+		fork.baseConcept_nReferences = copy.copy(self.baseConcept_nReferences)
 		return fork
 
 	def __repr__(self):
@@ -504,7 +509,7 @@ class Trace:
 		for c in conceptsReferenced: #Score each reference proportional to (number of existing references+1)
 			if c in self.baseConcepts: #
 				# self.score += math.log(1/len(self.baseConcepts))
-				self.score += math.log(self.baseConcept_nReferences.get(c, 0)+1) - math.log(self.baseConcept_nReferences_total + len(self.baseConcepts))
+				self.score += self.logpConcept(c)
 				self.baseConcept_nReferences_total += 1
 				self.baseConcept_nReferences[c] = self.baseConcept_nReferences.get(c, 0) + 1 
 
@@ -544,10 +549,10 @@ if __name__=="__main__":
 	import os
 
 	trace = trace()
-	trace, firstName = trace.addCRPregex(regex.create("\\w+"))
-	trace, lastName  = trace.addCRPregex(regex.create("\\w+"))
+	trace, firstName = trace.addCRPregex(pre.create("\\w+"))
+	trace, lastName  = trace.addCRPregex(pre.create("\\w+"))
 
-	regex = regex.create("f l", {"f":RegexWrapper(firstName), "l":RegexWrapper(lastName)})
+	regex = pre.create("f l", {"f":RegexWrapper(firstName), "l":RegexWrapper(lastName)})
 	trace, fullName = trace.addCRPregex(regex)
 
 
@@ -580,16 +585,16 @@ if __name__=="__main__":
 	
 	#--------
 
-	trace, observations, counterexample = trace.observe_all(firstName, ["Luke", "John", "Luke", "John"])
+	trace, observations, counterexample, p_valid = trace.observe_all(firstName, ["Luke", "John", "Luke", "John"])
 	for observation in observations:
 		trace = trace.unobserve(observation)
 	assert(abs(trace.score) < 1e-7)
 
 	#--------
 
-	trace, word = trace.addCRPregex(regex.create("\\w+"))
-	trace, sentence = trace.addCRPregex(regex.create("%( %)+\\.", {"%":RegexWrapper(word)}))
-	trace, paragraph = trace.addregex(regex.create("%( %)+", {"%":RegexWrapper(sentence)}))
+	trace, word = trace.addCRPregex(pre.create("\\w+"))
+	trace, sentence = trace.addCRPregex(pre.create("%( %)+\\.", {"%":RegexWrapper(word)}))
+	trace, paragraph = trace.addregex(pre.create("%( %)+", {"%":RegexWrapper(sentence)}))
 	trace, observation = trace.observe(paragraph, 
 		"Lorem Ipsum is simply dummy text of the printing and typesetting industry. " + \
 		"Lorem Ipsum has been the industry standard dummy text ever since the 1500s. " + \
