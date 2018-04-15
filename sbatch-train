@@ -1,6 +1,8 @@
 #!/bin/bash
 date=`date +%Y-%m-%d`
 mkdir -p "slurm-logs/$date"
-om-repeat sbatch -o slurm-logs/$date/%x-%j.out --gres=gpu:titan-x:1 --qos=tenenbaum --mem=40G -c10 --time=60 anaconda-project run train $@
-sleep 4
-watch tail -n50 slurm-logs/$date/`ls -t slurm-logs/$date | head -n1`
+if [ -z "$name" ]; then
+	om-repeat sbatch -o slurm-logs/$date/%x-%j.out --gres=gpu:titan-x:1 --qos=tenenbaum --mem=40G -c10 --time=60 anaconda-project run train $@
+else
+	om-repeat sbatch -J "$name" -o slurm-logs/$date/%x-%j.out --gres=gpu:titan-x:1 --qos=tenenbaum --mem=40G -c10 --time=60 anaconda-project run train $@
+fi

@@ -7,7 +7,6 @@ from collections import namedtuple, Counter
 import numpy as np
 
 import pregex as pre
-import model
 
 class TempList():
 	"""
@@ -111,7 +110,7 @@ class Concept:
 	def n_observations(self, trace):
 		raise NotImplementedError()
 	
-	def str(self, trace):
+	def str(self, trace, short=False):
 		return str(self)
 
 	def createState(self):
@@ -126,9 +125,24 @@ class Concept:
 
 	def priorScore(self, trace):
 		"""
-		Return score, and list of referenced concepts
+		Return score
 		"""
 		raise NotImplementedError()
+
+	def conceptsReferenced(self, trace):
+		"""
+		Return list of referenced concepts (including duplicates)
+		"""
+		raise NotImplementedError()
+
+	def uniqueConceptsReferenced(self, trace):
+		"""
+		Return a list of unique referenced concepts
+		"""
+		output = []
+		for x in self.conceptsReferenced(trace):
+			if x not in output: output.append(x)
+		return output
 
 	def observe(self, trace, value):
 		"""
@@ -166,10 +180,13 @@ class CRPConcept(Concept):
 		"""
 		pass
 
-	def str(self, trace):
+	def str(self, trace, short=False):
 		state = trace.getState(self)
+		if short:
+			return "CRP"
+		else:
+			return "CRP_" + str(trace.baseConcepts.index(self)) + ":<" + state.baseConcept.str(trace) + ">"
 		# return "(" + type(self).__name__ + "_" + str(self.id)[:5] + " " + state.baseConcept.str(trace) + ")"
-		return "CRP_" + str(trace.baseConcepts.index(self)) + ":<" + state.baseConcept.str(trace) + ">"
 
 	def createState(self, baseConcept):
 		return CRPConcept.State(baseConcept = baseConcept,
@@ -180,10 +197,11 @@ class CRPConcept(Concept):
 								)
 
 	def priorScore(self, trace):
-		score = 0
-		conceptsReferenced = [trace.getState(self).baseConcept]
-		return score, conceptsReferenced
+		return 0
 
+	def conceptsReferenced(self, trace):
+		return [trace.getState(self).baseConcept]
+		
 	def n_observations(self, trace):
 		return trace.getState(self).nCustomers
 
@@ -307,7 +325,7 @@ class RegexConcept(Concept):
 		"""
 		pass
 	
-	def str(self, trace):
+	def str(self, trace, short=False):
 		state = trace.getState(self)
 		char_map = {
 			pre.dot: ".",
@@ -324,7 +342,11 @@ class RegexConcept(Concept):
 			pre.CLOSE: ")"
 		}
 		flat = state.regex.flatten(char_map=char_map, escape_strings=True)
-		inner_str = "".join(["<" + x.str(trace) + ">" if issubclass(type(x), Concept) else str(x) for x in flat])
+		if short:
+			conceptsReferenced = self.uniqueConceptsReferenced(trace)
+			inner_str = "".join(["$%d"%conceptsReferenced.index(x) if issubclass(type(x), Concept) else str(x) for x in flat])
+		else:
+			inner_str = "".join(["<" + x.str(trace) + ">" if issubclass(type(x), Concept) else str(x) for x in flat])
 		# return "(" + type(self).__name__ + "_" + str(self.id)[:5] + " " + inner_str + ")"
 		return inner_str
 
@@ -333,9 +355,11 @@ class RegexConcept(Concept):
 
 	def priorScore(self, trace):
 		state = trace.getState(self)
-		score = model.scoreregex(state.regex, trace)
-		conceptsReferenced = [x for x in state.regex.leafNodes() if issubclass(type(x), Concept)]
-		return score, conceptsReferenced
+		return trace.model.scoreregex(state.regex, trace)
+
+	def conceptsReferenced(self, trace):
+		state = trace.getState(self)
+		return [x.concept for x in state.regex.leafNodes() if type(x) is RegexWrapper]
 
 	def n_observations(self, trace):
 		return sum(trace.getState(self).observations.values())
@@ -417,6 +441,9 @@ class RegexWrapper(pre.Pregex):
 	def flatten(self, char_map={}, escape_strings=False):
 		return [char_map.get(type(self.concept), self.concept)]
 
+	def leafNodes(self):
+		return [self]
+
 	def sample(self, regexState):
 		trace = regexState
 		return self.concept.sample(trace)
@@ -431,12 +458,13 @@ class RegexWrapper(pre.Pregex):
 
 
 class Trace:
-	def __init__(self):
+	def __init__(self, model):
 		self.score = 0
 		self.state = {} #dict<Concept, State>
 		self.baseConcepts = []
 		self.baseConcept_nReferences = {} #dict<Concept, int> number of times concept is referenced by other concepts
 		self.baseConcept_nReferences_total = 0
+		self.model = model
 
 	def logpConcept(self, c):
 		return math.log(self.baseConcept_nReferences.get(c, 0)+1) - math.log(self.baseConcept_nReferences_total + len(self.baseConcepts))
@@ -500,7 +528,8 @@ class Trace:
 		state = concept.createState(*args, **kwargs)
 		self.state[concept] = state
 		
-		prior, conceptsReferenced = concept.priorScore(self)
+		prior = concept.priorScore(self)
+		conceptsReferenced = concept.conceptsReferenced(self)
 		# print(concept.str(self), "has prior score", prior)
 		if conceptClass is RegexConcept: conceptTypePrior = math.log(0.5)
 		if conceptClass is CRPConcept: conceptTypePrior = math.log(0.001)

@@ -5,6 +5,8 @@ import numpy as np
 import pickle
 import util
 
+import render
+
 # Save/Load
 def load(file, cuda=False):
 	M = torch.load(file, map_location=lambda storage, loc: storage.cuda() if cuda else storage)
@@ -12,7 +14,7 @@ def load(file, cuda=False):
 	return M
 
 def save(M, append_str=""):
-	torch.save(M, M['model_file']+append_str)
+	torch.save(M, M['model_file'] + append_str)
 	
 	if 'trace' in M:
 		temp_file = M['results_file']+"temp"
@@ -36,13 +38,18 @@ def save(M, append_str=""):
 					else:
 						text_file.write("???\n")
 					text_file.write(", ".join(list(set([x.value for x in t]))[:30]) + "\n\n")
-		shutil.copy(temp_file, M['results_file']+append_str)
+		shutil.copy(temp_file, M['results_file']+append_str + "_results.txt")
+
+		render.saveConcepts(M, M['results_file'] + "_concepts")
+		render.saveTrainingError(M, M['results_file'] + "_plot.png")
+
 
 def saveIteration(M):
 	torch.save(M, M['model_file'] + "_" + str(M['state']['iteration']))
 
 def saveCheckpoint(M):
 	torch.save(M, M['model_file'] + "_task" + str(M['state']['current_task']))
+	render.saveConcepts(M, M['results_file'] + "_concepts" + "_task" + str(M['state']['current_task']))
 
 def loadData(file, n_examples, n_tasks):
 	rand = np.random.RandomState()

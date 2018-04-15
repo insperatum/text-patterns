@@ -8,65 +8,78 @@ import pregex as pre
 from trace import RegexWrapper
 
 CONCEPT = "CONCEPT"
-
-pConcept = 0.2
-character_classes = [pre.dot]#, pre.d, pre.s, pre.w, pre.l, pre.u]
-default_p_regex = {
-	pre.String: 0.5,
-	# pre.dot: 0.6,#0.6/6, pre.d: 0.6/6, pre.s: 0.6/6, pre.w: 0.6/6, pre.l: 0.6/6, pre.u: 0.6/6,
-	pre.Concat: 0.1,
-	pre.Alt: 0.1,
-	pre.KleeneStar: 0.2/3, pre.Plus: 0.2/3, pre.Maybe: 0.2/3
-	#Doesn't include CONCEPT
-}
-for x in character_classes: default_p_regex[x] = 0.1 / len(character_classes)
-
-
 maxDepth=2
 
-def sampleregex(trace, pConcept=pConcept, depth=0):
-	if not trace.baseConcepts: pConcept=0
-	p_regex = {**{k: p*(1-pConcept) for k,p in default_p_regex.items()}, CONCEPT: pConcept}
-	if depth==maxDepth:
-		R = pre.String
-	else:
-		items = list(p_regex.items())
-		idx = np.random.choice(range(len(items)), p=[p for k,p in items])
-		R, p = items[idx]
-		
-	if R == pre.String:
-		s = pre.Plus(pre.dot, p=0.3).sample()
-		return R(s)
-	elif R in character_classes:
-		return R
-	elif R in [pre.Concat, pre.Alt]:
-		n = geom.rvs(0.8, loc=1)
-		values = [sampleregex(trace, pConcept, depth+1) for i in range(n)]
-		return R(values)
-	elif R in [pre.KleeneStar, pre.Plus, pre.Maybe]:
-		return R(sampleregex(trace, pConcept, depth+1))
-	elif R == CONCEPT:
-		return RegexWrapper(np.random.choice(trace.baseConcepts, p=[math.exp(trace.logpConcept(c)) for c in trace.baseConcepts]))
+class RegexModel:
+	def __init__(self, pConcept=0.2, character_classes=[pre.dot]):
+		self.pConcept = pConcept
+		self.character_classes = character_classes #= [pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u]
 
-def scoreregex(r, trace, pConcept=pConcept, depth=0):
-	p_regex = {**{k: p*(1-pConcept) for k,p in default_p_regex.items()}, CONCEPT: pConcept}
-	logp_regex = {k: math.log(p) if p>0 else float("-inf") for k,p in p_regex.items()}
-	if depth==maxDepth:
-		if type(r) is pre.String:
-			return pre.Plus(pre.dot, p=0.3).match(r.arg)
+		self.p_regex_no_concepts = {
+			pre.String: 0.5,
+			pre.Concat: 0.1,
+			pre.Alt: 0.1,
+			pre.KleeneStar: 0.2/3, pre.Plus: 0.2/3, pre.Maybe: 0.2/3
+			#Doesn't include CONCEPT
+		}
+		for x in self.character_classes: self.p_regex_no_concepts[x] = 0.1 / len(self.character_classes)
+		self.logp_regex_no_concepts = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_concepts.items()}
+
+		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: pConcept}
+		self.logp_regex = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex.items()}
+
+	def sampleregex(self, trace, depth=0):
+		p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
+		logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
+		
+		if depth==maxDepth:
+			R = pre.String
 		else:
-			return float("-inf")
-	elif type(r) is RegexWrapper and r.concept in trace.baseConcepts:
-		return logp_regex[CONCEPT] + trace.logpConcept(r.concept)
-	elif r in character_classes:
-		return logp_regex[r]
-	else:
-		R = type(r)
-		p = logp_regex[R]
+			items = list(p_regex.items())
+			idx = np.random.choice(range(len(items)), p=[p for k,p in items])
+			R, p = items[idx]
+			
 		if R == pre.String:
-			return p + pre.Plus(pre.dot, p=0.3).match(r.arg)
+			s = pre.Plus(pre.dot, p=0.3).sample()
+			return R(s)
+		elif R in self.character_classes:
+			return R
 		elif R in [pre.Concat, pre.Alt]:
-			n = len(r.values)
-			return p + geom(0.8, loc=1).logpmf(n) + sum([scoreregex(s, trace, pConcept=pConcept, depth=depth+1) for s in r.values])
+			n = geom.rvs(0.8, loc=1)
+			values = [self.sampleregex(trace, depth+1) for i in range(n)]
+			return R(values)
 		elif R in [pre.KleeneStar, pre.Plus, pre.Maybe]:
-			return p + scoreregex(r.val, trace, pConcept=pConcept, depth=depth+1)
+			return R(self.sampleregex(trace, depth+1))
+		elif R == CONCEPT:
+			return RegexWrapper(np.random.choice(trace.baseConcepts, p=[math.exp(trace.logpConcept(c)) for c in trace.baseConcepts]))
+
+	def scoreregex(self, r, trace, depth=0):
+		p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
+		logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
+
+		if depth==maxDepth:
+			if type(r) is pre.String:
+				return pre.Plus(pre.dot, p=0.3).match(r.arg)
+			else:
+				return float("-inf")
+		elif type(r) is RegexWrapper and r.concept in trace.baseConcepts:
+			return logp_regex[CONCEPT] + trace.logpConcept(r.concept)
+		elif r in self.character_classes:
+			return logp_regex[r]
+		else:
+			R = type(r)
+			p = logp_regex[R]
+			if R == pre.String:
+				return p + pre.Plus(pre.dot, p=0.3).match(r.arg)
+			elif R == pre.Concat:
+				n = len(r.values)
+				return p + geom(0.8, loc=1).logpmf(n) + sum([self.scoreregex(s, trace, depth=depth+1) for s in r.values])
+			elif R == pre.Alt:
+				n = len(r.values)
+				if all(x==r.ps[0] for x in r.ps):
+					param_score = math.log(1/2)
+				else:
+					param_score = math.log(1/2) - (len(r.ps)+1) #~AIC
+				return p + geom(0.8, loc=1).logpmf(n) + param_score + sum([self.scoreregex(s, trace, depth=depth+1) for s in r.values])
+			elif R in [pre.KleeneStar, pre.Plus, pre.Maybe]:
+				return p + self.scoreregex(r.val, trace, depth=depth+1)

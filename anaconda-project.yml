@@ -21,12 +21,8 @@ description:
 # In the commands section, list your runnable scripts, notebooks, and other code.
 # Use `anaconda-project add-command` to add commands.
 #
-commands: {
-#  dream: {unix: python -u regex_dream.py, env_spec: default},
-  demo:        {unix: python -u train.py --demo, env_spec: default},
-  python:      {unix: python -u, env_spec: default},
-  train: {unix: python -u train.py, env_spec: default},
-}
+commands: {demo: {unix: python -u train.py --demo, env_spec: default}, python: {unix: python
+      -u, env_spec: default}, train: {unix: python -u train.py, env_spec: default}}
 #
 # In the variables section, list any environment variables your code depends on.
 # Use `anaconda-project add-variable` to add variables.
@@ -53,6 +49,8 @@ packages:
 - pytorch
 - matplotlib
 - scipy
+- pip:
+  - graphviz
 #
 # In the channels section, list any Conda channel URLs to be searched
 # for packages.

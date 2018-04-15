@@ -25,7 +25,7 @@ from collections import Counter, namedtuple
 import torch.multiprocessing as mp
 import queue
 
-import model
+from model import RegexModel
 import pregex as pre
 from trace import Trace, RegexWrapper
 from pinn import RobustFill
@@ -56,19 +56,21 @@ parser.add_argument('--n_examples', type=int, default=500)
 parser.add_argument('--demo', dest='demo', action='store_true')
 parser.add_argument('--debug', dest='debug', action='store_true')
 parser.add_argument('--no-train', dest='no_train', action='store_true')
-parser.add_argument('--no-cuda', dest='no-cuda', action='store_true')
-parser.set_defaults(demo=False, debug=False, no_train=False, no_cuda=False)
+parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
+parser.add_argument('--regex-primitives', dest='regex_primitives', action='store_true')
+parser.set_defaults(demo=False, debug=False, no_train=False, no_cuda=False, regex_primitives=False)
 args = parser.parse_args()
 
+character_classes=[pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u] if args.regex_primitives else [pre.dot]
 
 # ----------- Network training ------------------
 # Sample
-def getInstance(n_examples, pConcept):
+def getInstance(n_examples):
 	"""
 	Returns a single problem instance, as input/target strings
 	"""
 	while True:
-		r = model.sampleregex(M['trace'], model.pConcept)
+		r = M['trace'].model.sampleregex(M['trace'])
 		target = r.flatten()
 		inputs = ([r.sample(M['trace']) for i in range(n_examples)],)
 		if len(target)<25 and all(len(x)<25 for x in inputs): break
@@ -79,15 +81,16 @@ def getBatch(batch_size):
 	Create a batch of problem instances, as tensors
 	"""
 	n_examples = random.randint(args.min_examples, args.max_examples)
-	instances = [getInstance(n_examples, model.pConcept) for i in range(batch_size)]
+	instances = [getInstance(n_examples) for i in range(batch_size)]
 	inputs = [x['inputs'] for x in instances]
 	target = [x['target'] for x in instances]
 	return inputs, target
 
 # SGD
-def refreshRobustFill():
+def refreshVocabulary():
 	#Make sure network/optimiser are updated to current vocabulary.
 	M['net'] = M['net'].with_target_vocabulary(default_vocabulary + M['trace'].baseConcepts)
+
 
 networkCache = {}
 
@@ -107,13 +110,13 @@ def trainToConvergence():
 	while True:
 		scores.append(networkStep())
 
-		if len(scores)>2:
+		if len(scores)>50:
 			window = scores[-50:]
 			regress = stats.linregress(range(len(window)), window)
-			regress_slope = stats.linregress(range(len(window)), [window[i] - 0.005*i for i in range(len(window))])
+			regress_slope = stats.linregress(range(len(window)), [window[i] - 0.002*i for i in range(len(window))])
 			p_ratio = regress.pvalue / regress_slope.pvalue
 			# print("p ratio ", p_ratio)
-			if p_ratio > 1.2: 
+			if p_ratio > 2: 
 				break #Break when converged
 
 
@@ -198,7 +201,7 @@ def onCounterexamples(q_proposals, proposal, counterexamples, p_valid):
 		# print("Got counterexamples:", counterexamples)
 		#Deal with counter examples separately (with Alt)
 		counterexample_proposals, scores = getProposals(proposal.trace, counterexamples, depth=proposal.depth+1)
-		for counterexample_proposal in counterexample_proposals: 
+		for counterexample_proposal in counterexample_proposals[:3]: 
 			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
 				ps = [p_valid, 1-p_valid]))
@@ -206,19 +209,34 @@ def onCounterexamples(q_proposals, proposal, counterexamples, p_valid):
 		
 		#Retry by including counterexamples in support set
 		counterexample_proposals, scores = getProposals(proposal.trace, proposal.examples + tuple(counterexamples), depth=proposal.depth+1)
-		for counterexample_proposal in counterexample_proposals:
+		for counterexample_proposal in counterexample_proposals[:3]:
 			q_proposals.put(counterexample_proposal)
 
-def cpu_worker(worker_idx, q_proposals, q_counterexamples, q_solutions, task):
+def cpu_worker(worker_idx, q_proposals, q_counterexamples, q_solutions, l_active, task):
 	solutions = []
-	while(True):
+	nEvaluated = 0
+
+	while any(l_active):
 		try:
 			proposal = q_proposals.get(timeout=1)
-			print("Worker", worker_idx, "evaluating:", proposal.concept.str(proposal.trace))
-			solution = evalProposal(proposal, task, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False)
-			if solution is not None: q_solutions.put(solution)
-		except queue.Empty: break
-	q_counterexamples.put(None)
+		except queue.Empty:
+			l_active[worker_idx] = False
+			continue
+
+		l_active[worker_idx] = True
+		solution = evalProposal(proposal, task, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False)
+		nEvaluated += 1
+		if solution is not None:
+			solutions.append(solution)
+			print("(Worker %d)"%worker_idx, "Score: %3.3f,"%(solution['trace'].score-proposal.trace.score), proposal.concept.str(proposal.trace), flush=True)
+		else:
+			print("(Worker %d)"%worker_idx, "Failed:", proposal.concept.str(proposal.trace), flush=True)
+
+	q_solutions.put(
+		{"nEvaluated": nEvaluated,
+		 "nSolutions": len(solutions),
+		 "best": max(solutions, key=lambda p:p['trace'].score) if solutions else None
+		})
 
 def addTask(task_idx):
 	print("\n" + "*"*40 + "\nAdding task %d (n=%d)" % (task_idx, len(data[task_idx])))
@@ -244,39 +262,39 @@ def addTask(task_idx):
 				proposals.append(proposal)
 				proposal_strings.append(proposal_string)
 
-	q_proposals = mp.Manager().Queue()
-	q_counterexamples = mp.Manager().Queue()
-	q_solutions = mp.Manager().Queue()
-	for p in proposals: q_proposals.put(p)
-	for worker_idx in range(cpus-1):
-		mp.Process(target=cpu_worker, args=(worker_idx, q_proposals, q_counterexamples, q_solutions, data[task_idx])).start()
+	n_workers = max(1, cpus-1)
 
-	nCompleted = 0
-	while(nCompleted < cpus-1):
+	manager = mp.Manager()
+	q_proposals = manager.Queue()
+	q_counterexamples = manager.Queue()
+	q_solutions = manager.Queue()
+	l_active = manager.list([True for _ in range(n_workers)])
+	for p in proposals:
+		q_proposals.put(p)
+	for worker_idx in range(n_workers):
+		mp.Process(target=cpu_worker, args=(worker_idx, q_proposals, q_counterexamples, q_solutions, l_active, data[task_idx])).start()
+
+	while any(l_active):
 		try:
 			counterexample_args = q_counterexamples.get(timeout=1)
-			if counterexample_args is None: nCompleted += 1
-			else: onCounterexamples(q_proposals, *counterexample_args)
+			onCounterexamples(q_proposals, *counterexample_args)
 		except queue.Empty:
 			networkStep()
 
-	q_solutions.put(None)
 	solutions = []
-	while True:
+	nSolutions = 0
+	nEvaluated = 0
+	for worker_idx in range(n_workers):
 		x = q_solutions.get()
-		if x is None: break
-		else: solutions.append(x)
-	# pool = mp.Pool(cpus-1)
-	# result = pool.map(worker, ((worker_idx, q_proposals, q_counterexamples, data[task_idx], worker_net) for worker_idx in range(cpus)))
-
-	# nEvaluated = sum(nEvaluated for nEvaluated, solutions in result)
-	# solutions = [solution for nEvaluated, solutions in result for solution in solutions]
-	# print("Evaluated", nEvaluated, "proposals", "(%d solutions)"%len(solutions))
-	print(len(solutions), "solutions")
+		nEvaluated += x['nEvaluated']
+		nSolutions += x['nSolutions']
+		if x['best'] is not None: solutions.append(x['best'])
+	
+	print("Evaluated", nEvaluated, "proposals", "(%d solutions)" % nSolutions)
 	accepted = max(solutions, key=lambda p:p['trace'].score)
 	M['trace'] = accepted['trace']
 	M['task_observations'][task_idx] = accepted['observations']
-	refreshRobustFill()
+	refreshVocabulary()
 	print("Accepted proposal: " + accepted['concept'].str(accepted['trace']) + "\n")
 
 
@@ -297,13 +315,13 @@ if __name__ == "__main__":
 
 	default_vocabulary = list(string.printable) + \
 		[pre.OPEN, pre.CLOSE, pre.String, pre.Concat, pre.Alt, pre.KleeneStar, pre.Plus, pre.Maybe] + \
-		model.character_classes
+		character_classes
 
 	# Files to save:
 	os.makedirs("models", exist_ok = True)
 	os.makedirs("results", exist_ok = True)
 	modelfile = 'models/' + args.name + '.pt'
-	plotfile = 'results/' + args.name + '.png'
+	results_file = 'results/' + args.name #prefix
 	use_cuda = torch.cuda.is_available() and not args.no_cuda
 
 	# ------------- Load Model & Data --------------
@@ -328,14 +346,13 @@ if __name__ == "__main__":
 									 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
 			M['args'] = args
 			M['task_observations'] = [[] for d in range(len(data))]
-			M['trace'] = Trace()
+			M['trace'] = Trace(model=RegexModel(character_classes=character_classes))
 			print("Created new model")
 		M['data_file'] = args.data_file
 		M['model_file'] = modelfile
-		M['results_file'] = 'results/' + args.name + '.txt'
+		M['results_file'] = 'results/' + args.name
 
 	if use_cuda: M['net'].cuda()
-
 
 
 	if args.demo: # ------------ Demo -------------------
@@ -366,29 +383,15 @@ if __name__ == "__main__":
 				
 	else: # ------------------ Training -------------------
 		print("\nTraining...")
-		# saveEvery = 60 #seconds
-		# nextSave = time.time() + saveEvery
 
-		def save():
-			# global nextSave
-			plt.clf()
-			plt.plot(range(1, M['state']['iteration']+1), M['state']['network_losses'])
-			plt.xlim(xmin=0, xmax=M['state']['iteration']+1)
-			# plt.ylim(ymin=0, ymax=25)
-			plt.xlabel('iteration')
-			plt.ylabel('NLL')
-			plt.savefig(plotfile)
-			print("Saving...")
-			loader.save(M)
-			# nextSave=time.time()+saveEvery
-
-		refreshRobustFill()
+		refreshVocabulary()
+		if use_cuda:  M['net'].cuda()
 
 		if M['state']['current_task'] == -1:
 			if not args.no_train: trainToConvergence()
 			M['state']['current_task'] += 1
 			loader.saveCheckpoint(M)
-			save()
+			loader.save(M)
 
 		for i in range(M['state']['current_task'], len(data)+1):
 			print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace']) for c in M['trace'].baseConcepts))
@@ -398,4 +401,4 @@ if __name__ == "__main__":
 			if not args.no_train: trainToConvergence()
 			M['state']['current_task'] += 1
 			loader.saveCheckpoint(M)
-			save()
+			loader.save(M)
