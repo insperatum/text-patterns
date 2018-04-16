@@ -46,19 +46,24 @@ parser.add_argument('--max_examples', type=int, default=5)
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
 parser.add_argument('--embedding_size', type=int, default=128)
-# parser.add_argument('--retrain_iterations', type=int, default=250)
 
 parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
 parser.add_argument('--n_examples', type=int, default=500)
-# parser.add_argument('--pretrain_iterations', type=int, default=5000)
+
+parser.add_argument('--alpha', type=float, default=1) #p(reference concept) proportional to #references, or to alpha if no references
+parser.add_argument('--pyconcept_alpha', type=float, default=1)
+parser.add_argument('--pyconcept_d', type=float, default=0)
+parser.add_argument('--helmholtz_dist', type=str, default="default") #During sleep, sample concepts from true weighted dist(default) or uniform
+parser.add_argument('--regex-primitives', dest='regex_primitives', action='store_true')
 
 parser.add_argument('--demo', dest='demo', action='store_true')
 parser.add_argument('--debug', dest='debug', action='store_true')
 parser.add_argument('--no-train', dest='no_train', action='store_true')
+parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
-parser.add_argument('--regex-primitives', dest='regex_primitives', action='store_true')
-parser.set_defaults(demo=False, debug=False, no_train=False, no_cuda=False, regex_primitives=False)
+
+parser.set_defaults(demo=False, debug=False, no_train=False, no_cuda=False, regex_primitives=False, no_network=False)
 args = parser.parse_args()
 
 character_classes=[pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u] if args.regex_primitives else [pre.dot]
@@ -70,7 +75,7 @@ def getInstance(n_examples):
 	Returns a single problem instance, as input/target strings
 	"""
 	while True:
-		r = M['trace'].model.sampleregex(M['trace'])
+		r = M['trace'].model.sampleregex(M['trace'], conceptDist = args.helmholtz_dist)
 		target = r.flatten()
 		inputs = ([r.sample(M['trace']) for i in range(n_examples)],)
 		if len(target)<25 and all(len(x)<25 for x in inputs): break
@@ -107,17 +112,20 @@ def networkStep():
 
 def trainToConvergence():
 	scores = []
-	while True:
-		scores.append(networkStep())
+	if args.debug:
+		for _ in range(10): scores.append(networkStep())
+	else:
+		while True:
+			scores.append(networkStep())
 
-		if len(scores)>50:
-			window = scores[-50:]
-			regress = stats.linregress(range(len(window)), window)
-			regress_slope = stats.linregress(range(len(window)), [window[i] - 0.002*i for i in range(len(window))])
-			p_ratio = regress.pvalue / regress_slope.pvalue
-			# print("p ratio ", p_ratio)
-			if p_ratio > 2: 
-				break #Break when converged
+			if len(scores)>50:
+				window = scores[-50:]
+				regress = stats.linregress(range(len(window)), window)
+				regress_slope = stats.linregress(range(len(window)), [window[i] - 0.002*i for i in range(len(window))])
+				p_ratio = regress.pvalue / regress_slope.pvalue
+				# print("p ratio ", p_ratio)
+				if p_ratio > 2: 
+					break #Break when converged
 
 
 # ----------- Proposals ------------------
@@ -128,10 +136,9 @@ def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False):
 		return None
 
 	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, examples)
-
 	if trace is None:
 		if onCounterexamples is not None:
-			if doPrint: print(proposal.concept.str(proposal.trace), "failed on", counterexamples)
+			if doPrint: print(proposal.concept.str(proposal.trace), "failed on", counterexamples, flush=True)
 			onCounterexamples(proposal, counterexamples, p_valid)
 		return None
 	else:
@@ -153,7 +160,7 @@ def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False):
 					onCounterexamples(proposal, list(set(outliers)), p_valid)
 
 		# onCounterexamples(proposal, )
-		if doPrint: print(proposal.concept.str(proposal.trace), "got score", trace.score-proposal.trace.score)
+		if doPrint: print(proposal.concept.str(proposal.trace), "got score: %3.3f" % trace.score, "of which observation: %3.3f" % (trace.score-proposal.trace.score), flush=True)
 		return {"trace":trace, "observations":observations, "concept":proposal.concept}
 
 def getProposals(current_trace, examples, depth=0): #Includes proposals from network, and proposals on existing concepts
@@ -161,22 +168,26 @@ def getProposals(current_trace, examples, depth=0): #Includes proposals from net
 	isCached = examples in networkCache
 	# if not isCached: print("getProposals(", ", ".join(examples), ")")
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
-	if examples in networkCache:
-		regex_count = networkCache[examples]
-	else:
-		regex_count = Counter()
-		for i in range(10):
-			inputs = [examples] * 500
-			outputs = M['net'].sample(inputs)
-			for o in outputs:
-				try:
-					r = pre.create(o, lookup=lookup)
-					regex_count[r] += 1
-				except pre.ParseException:
-					pass
-		networkCache[examples] = regex_count
 
-	network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
+	if args.no_network:
+		network_regexes = []
+	else:
+		if examples in networkCache:
+			regex_count = networkCache[examples]
+		else:
+			regex_count = Counter()
+			for i in range(10):
+				inputs = [examples] * 500
+				outputs = M['net'].sample(inputs)
+				for o in outputs:
+					try:
+						r = pre.create(o, lookup=lookup)
+						regex_count[r] += 1
+					except pre.ParseException:
+						pass
+			networkCache[examples] = regex_count
+		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
+	
 	# if not isCached: print("  RobustFill:  ", ", ".join(str(r) for r in network_regexes[:10]))
 	proposals = [Proposal(depth, examples, *current_trace.addregex(r)) for r in network_regexes] + \
 		[Proposal(depth, examples, current_trace, c) for c in current_trace.baseConcepts] + \
@@ -190,7 +201,7 @@ def getProposals(current_trace, examples, depth=0): #Includes proposals from net
 
 	crp_proposals = []
 	for proposal in proposals:
-		new_trace, new_concept = proposal.trace.addCRP(proposal.concept)
+		new_trace, new_concept = proposal.trace.addPY(proposal.concept)
 		crp_proposals.append(Proposal(depth, examples, new_trace, new_concept))
 
 	# if not isCached: print("  Proposals:", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
@@ -212,11 +223,11 @@ def onCounterexamples(q_proposals, proposal, counterexamples, p_valid):
 		for counterexample_proposal in counterexample_proposals[:3]:
 			q_proposals.put(counterexample_proposal)
 
-def cpu_worker(worker_idx, q_proposals, q_counterexamples, q_solutions, l_active, task):
+def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, l_active, task):
 	solutions = []
 	nEvaluated = 0
 
-	while any(l_active):
+	while any(l_active) or not q_counterexamples.empty():
 		try:
 			proposal = q_proposals.get(timeout=1)
 		except queue.Empty:
@@ -228,10 +239,10 @@ def cpu_worker(worker_idx, q_proposals, q_counterexamples, q_solutions, l_active
 		nEvaluated += 1
 		if solution is not None:
 			solutions.append(solution)
-			print("(Worker %d)"%worker_idx, "Score: %3.3f,"%(solution['trace'].score-proposal.trace.score), proposal.concept.str(proposal.trace), flush=True)
+			print("(Worker %d)"%worker_idx, "Score: %3.3f"%(solution['trace'].score), "(prior %3.3f + likelihood %3.3f),"%(proposal.trace.score - init_trace.score, solution['trace'].score - proposal.trace.score), proposal.concept.str(proposal.trace), flush=True)
 		else:
 			print("(Worker %d)"%worker_idx, "Failed:", proposal.concept.str(proposal.trace), flush=True)
-
+		
 	q_solutions.put(
 		{"nEvaluated": nEvaluated,
 		 "nSolutions": len(solutions),
@@ -272,14 +283,14 @@ def addTask(task_idx):
 	for p in proposals:
 		q_proposals.put(p)
 	for worker_idx in range(n_workers):
-		mp.Process(target=cpu_worker, args=(worker_idx, q_proposals, q_counterexamples, q_solutions, l_active, data[task_idx])).start()
+		mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, l_active, data[task_idx])).start()
 
-	while any(l_active):
+	while any(l_active) or not q_counterexamples.empty():
 		try:
 			counterexample_args = q_counterexamples.get(timeout=1)
 			onCounterexamples(q_proposals, *counterexample_args)
 		except queue.Empty:
-			networkStep()
+			if not args.no_train and not args.no_network: networkStep()
 
 	solutions = []
 	nSolutions = 0
@@ -295,7 +306,7 @@ def addTask(task_idx):
 	M['trace'] = accepted['trace']
 	M['task_observations'][task_idx] = accepted['observations']
 	refreshVocabulary()
-	print("Accepted proposal: " + accepted['concept'].str(accepted['trace']) + "\n")
+	print("Accepted proposal: " + accepted['concept'].str(accepted['trace']) + "\nScore:" + str(accepted['trace'].score) + "\n")
 
 
 
@@ -346,7 +357,12 @@ if __name__ == "__main__":
 									 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
 			M['args'] = args
 			M['task_observations'] = [[] for d in range(len(data))]
-			M['trace'] = Trace(model=RegexModel(character_classes=character_classes))
+			M['trace'] = Trace(model=RegexModel(
+				character_classes=character_classes,
+				alpha=args.alpha,
+				pyconcept_alpha=args.pyconcept_alpha,
+				pyconcept_d=args.pyconcept_d))
+			M['trace'], init_concept = M['trace'].addregex(pre.dot)
 			print("Created new model")
 		M['data_file'] = args.data_file
 		M['model_file'] = modelfile
@@ -388,9 +404,10 @@ if __name__ == "__main__":
 		if use_cuda:  M['net'].cuda()
 
 		if M['state']['current_task'] == -1:
-			if not args.no_train: trainToConvergence()
+			if not args.no_train and not args.no_network: trainToConvergence()
 			M['state']['current_task'] += 1
 			loader.saveCheckpoint(M)
+			loader.saveRender(M)
 			loader.save(M)
 
 		for i in range(M['state']['current_task'], len(data)+1):
@@ -398,7 +415,8 @@ if __name__ == "__main__":
 			addTask(M['state']['current_task'])
 			gc.collect()
 
-			if not args.no_train: trainToConvergence()
+			if not args.no_train and not args.no_network: trainToConvergence()
 			M['state']['current_task'] += 1
-			loader.saveCheckpoint(M)
+			if M['state']['current_task']%10==0: loader.saveCheckpoint(M)
+			loader.saveRender(M)
 			loader.save(M)

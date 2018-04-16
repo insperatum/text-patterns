@@ -169,8 +169,11 @@ class Concept:
 
 
 
-class CRPConcept(Concept):
-	class State(namedtuple("CRPConcept_State", ['baseConcept', 'nCustomers', 'table_nCustomers', 'value_tables', 'cache'])):
+class PYConcept(Concept): 
+	"""
+	Pitman-Yor process
+	"""
+	class State(namedtuple("PYConcept_State", ['baseConcept', 'nCustomers', 'table_nCustomers', 'value_tables', 'cache'])):
 		"""
 		Uses 'Observation' objects to represent tables
 		:param Concept baseConcept:
@@ -183,17 +186,17 @@ class CRPConcept(Concept):
 	def str(self, trace, short=False):
 		state = trace.getState(self)
 		if short:
-			return "CRP"
+			return "PY"
 		else:
-			return "CRP_" + str(trace.baseConcepts.index(self)) + ":<" + state.baseConcept.str(trace) + ">"
+			return "PY_" + str(trace.baseConcepts.index(self)) + ":<" + state.baseConcept.str(trace) + ">"
 		# return "(" + type(self).__name__ + "_" + str(self.id)[:5] + " " + state.baseConcept.str(trace) + ")"
 
 	def createState(self, baseConcept):
-		return CRPConcept.State(baseConcept = baseConcept,
+		return PYConcept.State(baseConcept = baseConcept,
 								nCustomers = 0,
 								value_tables = TempDict(default=[]),
 								table_nCustomers = TempDict(default=0),
-								cache = (None, None, None) #table_nCustomers, tables, p
+								cache = (None, None, None), #table_nCustomers, tables, p
 								)
 
 	def priorScore(self, trace):
@@ -207,11 +210,19 @@ class CRPConcept(Concept):
 
 	def refresh_cache(self, trace):
 		state = trace.getState(self)
+		alpha = trace.model.pyconcept_alpha
+		d = trace.model.pyconcept_d
+		
 		if state.cache[0] == state.table_nCustomers:
 			nextTables, p = state.cache[1:]
 		else:
-			nextTables = list(state.table_nCustomers.keys()) + [None]
-			p = [state.table_nCustomers[table]/(1+state.nCustomers) for table in nextTables] + [(1/(1+state.nCustomers))]
+			currentTables = list(state.table_nCustomers.keys())
+			nextTables = currentTables + [None]
+			
+			p_new_table = (alpha + d*len(currentTables))/(alpha+state.nCustomers)
+			p_existing_table = (state.nCustomers - d*len(currentTables))/(alpha+state.nCustomers) 
+
+			p = [p_existing_table * state.table_nCustomers[table] / state.nCustomers for table in nextTables] + [p_new_table]
 			state = state._replace(cache=(state.table_nCustomers, nextTables, p))
 			trace._setState(self, state)
 		return state, nextTables, p
@@ -231,6 +242,10 @@ class CRPConcept(Concept):
 		value_tables = state.value_tables
 		matching_tables = value_tables[value]
 
+		alpha = trace.model.pyconcept_alpha
+		d = trace.model.pyconcept_d
+		currentTables = list(state.table_nCustomers.keys())
+		
 		if not matching_tables: # Need to create a new table
 			trace, base_observation = trace.observe(state.baseConcept, value)
 			if trace == None:
@@ -240,8 +255,15 @@ class CRPConcept(Concept):
 		else: # Use existing table
 			table = next(iter(matching_tables))
 
+		nTables = len(currentTables)
 		for i in range(n):
-			trace.score += math.log((max(1,state.table_nCustomers[table]+i)) / (state.nCustomers + i + 1))
+			if i == 0 and state.table_nCustomers[table]==0:
+				p_new_table = (alpha + d*nTables)/(alpha+state.nCustomers)
+				trace.score += math.log(p_new_table)
+				nTables += 1
+			else:
+				p_existing_table = (state.nCustomers+i - d*nTables)/(alpha+state.nCustomers+i) 
+				trace.score += math.log(p_existing_table * (state.table_nCustomers[table]+i) / (state.nCustomers+i)) #Choose an existing customer and join them
 
 		newState = state._replace(
 			nCustomers = state.nCustomers + n,
@@ -257,13 +279,19 @@ class CRPConcept(Concept):
 		Return [(trace, Observation, numCharacters), ...]
 		"""
 		state = trace.getState(self)
+		alpha = trace.model.pyconcept_alpha
+		d = trace.model.pyconcept_d
+		currentTables = list(state.table_nCustomers.keys())
+		
 		out = []
 		for i in range(len(value)+1):
 			substring = value[:i]
 			for table in state.value_tables[substring]:
 				new_trace = trace.fork()
 				for i in range(n):
-					new_trace.score += math.log((max(1,state.table_nCustomers[table])+i) / (state.nCustomers + i + 1))
+					p_existing_table = (state.nCustomers+i - d*len(currentTables))/(alpha+state.nCustomers+i) 
+					new_trace.score += math.log(p_existing_table * (state.table_nCustomers[table]+i) / (state.nCustomers+i))
+					# new_trace.score += math.log((max(1,state.table_nCustomers[table])+i) / (state.nCustomers + i + 1))
 
 				newState = state._replace(
 					nCustomers = state.nCustomers + n,
@@ -277,9 +305,16 @@ class CRPConcept(Concept):
 			new_trace = new_trace.fork()
 			table = Observation(self, matched_value, None, (base_observation,))
 
+			nTables = len(currentTables)
 			for i in range(n):
-				new_trace.score += math.log((max(1,state.table_nCustomers[table]+i)) / (state.nCustomers + i + 1))
-			
+				if i == 0 and state.table_nCustomers[table]==0:
+					p_new_table = (alpha + d*nTables)/(alpha+state.nCustomers)
+					new_trace.score += math.log(p_new_table)
+					nTables += 1
+				else:
+					p_existing_table = (state.nCustomers+i - d*nTables)/(alpha+state.nCustomers+i) 
+					new_trace.score += math.log(p_existing_table * (state.table_nCustomers[table]+i) / (state.nCustomers+i))
+
 			newState = state._replace(
 				nCustomers = state.nCustomers + n,
 				value_tables = state.value_tables.set(matched_value, state.value_tables[matched_value] + [table]),
@@ -294,7 +329,8 @@ class CRPConcept(Concept):
 		state = trace.getState(self)
 
 		if state.table_nCustomers[observation]>1: #Take one customer off table
-			trace.score -= math.log((state.table_nCustomers[observation]-1) / state.nCustomers)
+			p_existing_table = (state.nCustomers-1 - d*len(currentTables))/(alpha+state.nCustomers-1) 
+			trace.score -= math.log(p_existing_table * (state.table_nCustomers[table]-1) / (state.nCustomers-1))
 			newState = state._replace(
 				nCustomers = state.nCustomers - 1,
 				table_nCustomers = state.table_nCustomers.set(observation, state.table_nCustomers[observation]-1),
@@ -303,7 +339,8 @@ class CRPConcept(Concept):
 		else: #Delete table
 			for obs in observation.children:
 				trace = trace.unobserve(obs)
-			trace.score -= math.log(1 / state.nCustomers)
+			p_new_table = (alpha + d*len(currentTables))/(alpha+state.nCustomers-1)
+			trace.score -= math.log(p_new_table)
 			newState = state._replace(
 				nCustomers = state.nCustomers - 1,
 				value_tables = state.value_tables.set(observation.value, [x for x in state.value_tables[observation.value] if x != observation]),
@@ -366,7 +403,6 @@ class RegexConcept(Concept):
 
 	def sample(self, trace):
 		state = trace.getState(self)
-		if not issubclass(type(state.regex), pre.Pregex): print(state)
 		regex = state.regex
 		return regex.sample(trace)
 
@@ -467,7 +503,10 @@ class Trace:
 		self.model = model
 
 	def logpConcept(self, c):
-		return math.log(self.baseConcept_nReferences.get(c, 0)+1) - math.log(self.baseConcept_nReferences_total + len(self.baseConcepts))
+		#Score each reference proportional to #references, or alpha if no references
+		num_no_references = len(self.baseConcepts) - sum([1 for x in self.baseConcept_nReferences.values() if x > 0])
+		n_references = self.baseConcept_nReferences.get(c, 0)
+		return math.log(n_references if n_references>0 else self.model.alpha) - math.log(self.baseConcept_nReferences_total + num_no_references*self.model.alpha)
 
 	def fork(self):
 		fork = copy.copy(self)
@@ -501,7 +540,6 @@ class Trace:
 			else:
 				observations.extend([new_observation]*n)
 				trace = new_trace
-
 		if len(counterexamples)>0:
 			p_valid = len(observations) / (len(observations) + sum(counter[x] for x in counterexamples))
 			return None, None, counterexamples, p_valid
@@ -530,12 +568,12 @@ class Trace:
 		
 		prior = concept.priorScore(self)
 		conceptsReferenced = concept.conceptsReferenced(self)
-		# print(concept.str(self), "has prior score", prior)
+
 		if conceptClass is RegexConcept: conceptTypePrior = math.log(0.5)
-		if conceptClass is CRPConcept: conceptTypePrior = math.log(0.001)
+		if conceptClass is PYConcept: conceptTypePrior = math.log(0.5)
 
 		self.score += conceptTypePrior + prior
-		for c in conceptsReferenced: #Score each reference proportional to (number of existing references+1)
+		for c in conceptsReferenced:
 			if c in self.baseConcepts: #
 				# self.score += math.log(1/len(self.baseConcepts))
 				self.score += self.logpConcept(c)
@@ -545,20 +583,16 @@ class Trace:
 		# self.baseConcepts.append(concept)
 		return concept
 
-	def addCRPregex(self, regex):
+	def addPYregex(self, regex):
 		trace = self.fork()
 		regex_concept = trace._addConcept(RegexConcept, regex)
-		concept = trace._addConcept(CRPConcept, regex_concept)
-		# print("New state:")
-		# for k in trace.state:
-		# 	print(k, trace.state[k])
-		# trace.baseConcepts.append(regex_concept)
+		concept = trace._addConcept(PYConcept, regex_concept)
 		trace.baseConcepts.append(concept)
 		return trace, concept
 
-	def addCRP(self, concept):
+	def addPY(self, concept):
 		trace = self.fork()
-		concept = trace._addConcept(CRPConcept, concept)
+		concept = trace._addConcept(PYConcept, concept)
 		trace.baseConcepts.append(concept)
 		return trace, concept
 
@@ -578,11 +612,11 @@ if __name__=="__main__":
 	import os
 
 	trace = trace()
-	trace, firstName = trace.addCRPregex(pre.create("\\w+"))
-	trace, lastName  = trace.addCRPregex(pre.create("\\w+"))
+	trace, firstName = trace.addPYregex(pre.create("\\w+"))
+	trace, lastName  = trace.addPYregex(pre.create("\\w+"))
 
 	regex = pre.create("f l", {"f":RegexWrapper(firstName), "l":RegexWrapper(lastName)})
-	trace, fullName = trace.addCRPregex(regex)
+	trace, fullName = trace.addPYregex(regex)
 
 
 	trace, observation1 = trace.observe(fullName, "Luke Hewitt")
@@ -621,8 +655,8 @@ if __name__=="__main__":
 
 	#--------
 
-	trace, word = trace.addCRPregex(pre.create("\\w+"))
-	trace, sentence = trace.addCRPregex(pre.create("%( %)+\\.", {"%":RegexWrapper(word)}))
+	trace, word = trace.addPYregex(pre.create("\\w+"))
+	trace, sentence = trace.addPYregex(pre.create("%( %)+\\.", {"%":RegexWrapper(word)}))
 	trace, paragraph = trace.addregex(pre.create("%( %)+", {"%":RegexWrapper(sentence)}))
 	trace, observation = trace.observe(paragraph, 
 		"Lorem Ipsum is simply dummy text of the printing and typesetting industry. " + \

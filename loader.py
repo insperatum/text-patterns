@@ -11,6 +11,7 @@ import render
 def load(file, cuda=False):
 	M = torch.load(file, map_location=lambda storage, loc: storage.cuda() if cuda else storage)
 	M['model_file'] = file
+
 	return M
 
 def save(M, append_str=""):
@@ -44,11 +45,10 @@ def save(M, append_str=""):
 		render.saveTrainingError(M, M['results_file'] + "_plot.png")
 
 
-def saveIteration(M):
-	torch.save(M, M['model_file'] + "_" + str(M['state']['iteration']))
-
 def saveCheckpoint(M):
 	torch.save(M, M['model_file'] + "_task" + str(M['state']['current_task']))
+
+def saveRender(M):
 	render.saveConcepts(M, M['results_file'] + "_concepts" + "_task" + str(M['state']['current_task']))
 
 def loadData(file, n_examples, n_tasks):

@@ -13,6 +13,7 @@ IMPORTANT:
 Training/Proposals:
 - [X] Evaluate multiple proposals in parallel
 - [X] Keep training NN while evaluating proposals
+- [ ] Don't add the same proposal multiple times (after counterexamples)
 - [ ] Repropose on existing concept 
 - [ ] Given a valid inferred regex, parse examples with that regex, choose a matching subgroup, and run inference on that parse
 
@@ -20,8 +21,9 @@ Library:
 - [ ] When removing library item, delete other redundant items that are only referenced by it
 
 Trace:
+- [X] Pitman-Yor Process
 - [ ] Move state (other than observations) into concept itself
-- [ ] Clean up CRPRegexConcept. Currently concepts not in baseConcepts don't get scored in addConcept and CRPconcept has no prior on whether it has regex or CRP inside
+- [ ] Clean up CRPRegexConcept. Currently CRPconcept has no prior on whether it has regex or CRP inside (and concepts not in baseConcepts don't get scored in addConcept)
 - [X] Rich concepts get richer (DP?)
 - [ ] Move all model logic out of trace.py
 - [ ] Make it clearer which functions mutate, and also when a returned trace is clean/dirty

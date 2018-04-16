@@ -11,9 +11,12 @@ CONCEPT = "CONCEPT"
 maxDepth=2
 
 class RegexModel:
-	def __init__(self, pConcept=0.2, character_classes=[pre.dot]):
+	def __init__(self, character_classes, alpha, pyconcept_alpha, pyconcept_d, pConcept=0.2):
 		self.pConcept = pConcept
 		self.character_classes = character_classes #= [pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u]
+		self.alpha = alpha
+		self.pyconcept_alpha = pyconcept_alpha
+		self.pyconcept_d = pyconcept_d
 
 		self.p_regex_no_concepts = {
 			pre.String: 0.5,
@@ -28,7 +31,11 @@ class RegexModel:
 		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: pConcept}
 		self.logp_regex = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex.items()}
 
-	def sampleregex(self, trace, depth=0):
+	def sampleregex(self, trace, depth=0, conceptDist="default"):
+		"""
+		conceptDist: 'default' assumes base concept probabilities as defined in trace
+					 'uniform' assumes uniform distribution over base concepts
+		"""
 		p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
 		logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
 		
@@ -51,7 +58,10 @@ class RegexModel:
 		elif R in [pre.KleeneStar, pre.Plus, pre.Maybe]:
 			return R(self.sampleregex(trace, depth+1))
 		elif R == CONCEPT:
-			return RegexWrapper(np.random.choice(trace.baseConcepts, p=[math.exp(trace.logpConcept(c)) for c in trace.baseConcepts]))
+			if conceptDist == "default":
+				return RegexWrapper(np.random.choice(trace.baseConcepts, p=[math.exp(trace.logpConcept(c)) for c in trace.baseConcepts]))
+			elif conceptDist == "uniform":
+				return RegexWrapper(np.random.choice(trace.baseConcepts))
 
 	def scoreregex(self, r, trace, depth=0):
 		p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
