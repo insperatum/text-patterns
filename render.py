@@ -19,12 +19,17 @@ def saveConcepts(M, filename):
 		name = concept.str(trace, short=True)
 		c = Counter(concept.sample(trace) for _ in range(1000))
 		# c = Counter(x.value for x in trace.getState(concept).observations)
-		samples = sorted(c, key=c.get)
+		samples = sorted(c, key=c.get, reverse=True)
 		if len(samples)<=4:
 			sample_str = ", ".join(samples[:4])
 		else:
 			sample_str = ", ".join(samples[:3] + ["..."])
-		dot.node(str(concept.id), "<" + html.escape(name) + "<br/>" + "<FONT POINT-SIZE='8'>" + html.escape(sample_str) + "</FONT>" + ">")
+		
+		if not any(concept in parent.uniqueConceptsReferenced(trace) for parent in concepts):
+			dot.node(str(concept.id), "<" + html.escape(name) + "<br/>" + "<FONT POINT-SIZE='8'>" + html.escape(sample_str) + "</FONT>" + ">", color="lightgrey")
+		else:
+			dot.node(str(concept.id), "<" + html.escape(name) + "<br/>" + "<FONT POINT-SIZE='8'>" + html.escape(sample_str) + "</FONT>" + ">")
+
 	for concept in concepts:
 		conceptsReferenced = concept.uniqueConceptsReferenced(trace)
 		for concept2 in conceptsReferenced:
