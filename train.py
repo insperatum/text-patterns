@@ -51,10 +51,11 @@ parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
 parser.add_argument('--n_examples', type=int, default=500)
 
-parser.add_argument('--alpha', type=float, default=1) #p(reference concept) proportional to #references, or to alpha if no references
+parser.add_argument('--alpha', type=float, default=0.01) #p(reference concept) proportional to #references, or to alpha if no references
+parser.add_argument('--geom_p', type=float, default=0.01) #probability of adding another concept (geometric)
 parser.add_argument('--pyconcept_alpha', type=float, default=1)
-parser.add_argument('--pyconcept_d', type=float, default=0)
-parser.add_argument('--helmholtz_dist', type=str, default="default") #During sleep, sample concepts from true weighted dist(default) or uniform
+parser.add_argument('--pyconcept_d', type=float, default=0.5)
+parser.add_argument('--helmholtz_dist', type=str, default="uniform") #During sleep, sample concepts from true weighted dist(default) or uniform
 parser.add_argument('--regex-primitives', dest='regex_primitives', action='store_true')
 
 parser.add_argument('--demo', dest='demo', action='store_true')
@@ -131,11 +132,11 @@ def trainToConvergence():
 # ----------- Proposals ------------------
 
 Proposal = namedtuple("Proposal", ["depth", "examples", "trace", "concept"]) #start with depth=0, increase depth when triggering a new proposal
-def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False):
+def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task_idx=None):
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
 		return None
 
-	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, examples)
+	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, examples, task=task_idx)
 	if trace is None:
 		if onCounterexamples is not None:
 			if doPrint: print(proposal.concept.str(proposal.trace), "failed on", counterexamples, flush=True)
@@ -223,7 +224,7 @@ def onCounterexamples(q_proposals, proposal, counterexamples, p_valid):
 		for counterexample_proposal in counterexample_proposals[:3]:
 			q_proposals.put(counterexample_proposal)
 
-def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, l_active, task):
+def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, l_active, task_idx, task):
 	solutions = []
 	nEvaluated = 0
 
@@ -235,7 +236,7 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 			continue
 
 		l_active[worker_idx] = True
-		solution = evalProposal(proposal, task, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False)
+		solution = evalProposal(proposal, task, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
 		nEvaluated += 1
 		if solution is not None:
 			solutions.append(solution)
@@ -283,7 +284,7 @@ def addTask(task_idx):
 	for p in proposals:
 		q_proposals.put(p)
 	for worker_idx in range(n_workers):
-		mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, l_active, data[task_idx])).start()
+		mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, l_active, task_idx, data[task_idx])).start()
 
 	while any(l_active) or not q_counterexamples.empty():
 		try:
@@ -360,6 +361,7 @@ if __name__ == "__main__":
 			M['trace'] = Trace(model=RegexModel(
 				character_classes=character_classes,
 				alpha=args.alpha,
+				geom_p=args.geom_p,
 				pyconcept_alpha=args.pyconcept_alpha,
 				pyconcept_d=args.pyconcept_d))
 			M['trace'], init_concept = M['trace'].addregex(pre.dot)
@@ -410,7 +412,7 @@ if __name__ == "__main__":
 			loader.saveRender(M)
 			loader.save(M)
 
-		for i in range(M['state']['current_task'], len(data)+1):
+		for i in range(M['state']['current_task'], len(data)):
 			print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace']) for c in M['trace'].baseConcepts))
 			addTask(M['state']['current_task'])
 			gc.collect()

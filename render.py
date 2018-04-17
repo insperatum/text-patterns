@@ -4,7 +4,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from graphviz import Digraph
 
-import trace
+from trace import RegexConcept
 import loader
 from collections import Counter
 import html
@@ -15,25 +15,45 @@ def saveConcepts(M, filename):
 	concepts = trace.baseConcepts
 
 	dot = Digraph()
+	isMini = {}
 	for concept in concepts:
-		name = concept.str(trace, short=True)
-		c = Counter(concept.sample(trace) for _ in range(1000))
+		n=1000
+		c = Counter(concept.sample(trace) for _ in range(n))
 		# c = Counter(x.value for x in trace.getState(concept).observations)
 		samples = sorted(c, key=c.get, reverse=True)
+		samples = [x for x in samples if c.get(x) >= c.get(samples[0])/50]
 		if len(samples)<=4:
-			sample_str = ", ".join(samples[:4])
+			sample_str = ", ".join(samples[:5])
 		else:
-			sample_str = ", ".join(samples[:3] + ["..."])
+			sample_str = ", ".join(samples[:4] + ["..."])
 		
-		if not any(concept in parent.uniqueConceptsReferenced(trace) for parent in concepts):
-			dot.node(str(concept.id), "<" + html.escape(name) + "<br/>" + "<FONT POINT-SIZE='8'>" + html.escape(sample_str) + "</FONT>" + ">", color="lightgrey")
-		else:
-			dot.node(str(concept.id), "<" + html.escape(name) + "<br/>" + "<FONT POINT-SIZE='8'>" + html.escape(sample_str) + "</FONT>" + ">")
+		
+		isRegex = type(concept) is RegexConcept
+		name_prefix = html.escape(concept.str(trace, short=True)) + "<br/>" if isRegex else ""
+		nTaskReferences = trace.baseConcept_nTaskReferences.get(concept, 0)
+		nConceptReferences = trace.baseConcept_nReferences.get(concept, 0)
 
+		color = "" if isRegex else "lightgrey"
+		style = "" if isRegex else "filled"
+
+		isMini[concept] = nTaskReferences<=1 and nConceptReferences==0 and not isRegex
+
+		if isMini[concept]:
+			dot.node(str(concept.id), "", color=color, style=style, width='0.2', height='0.2')
+		else:				
+			size = 8
+
+			dot.node(str(concept.id), "<" 
+				+ name_prefix
+				+ "<font point-size='%d'>"%size + html.escape(sample_str) + "</font>"
+				+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
+				+ ">", color=color, style=style, width='0.5')
+		
 	for concept in concepts:
 		conceptsReferenced = concept.uniqueConceptsReferenced(trace)
 		for concept2 in conceptsReferenced:
-			dot.edge(str(concept2.id), str(concept.id))
+			color = "lightgrey" if isMini[concept] else "black"
+			dot.edge(str(concept2.id), str(concept.id), color=color)
 
 	dot.format = 'pdf'
 	dot.render(filename)  

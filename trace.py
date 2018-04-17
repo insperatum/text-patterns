@@ -214,27 +214,26 @@ class PYConcept(Concept):
 		d = trace.model.pyconcept_d
 		
 		if state.cache[0] == state.table_nCustomers:
-			nextTables, p = state.cache[1:]
+			currentTables, p = state.cache[1:]
 		else:
 			currentTables = list(state.table_nCustomers.keys())
-			nextTables = currentTables + [None]
 			
 			p_new_table = (alpha + d*len(currentTables))/(alpha+state.nCustomers)
 			p_existing_table = (state.nCustomers - d*len(currentTables))/(alpha+state.nCustomers) 
 
-			p = [p_existing_table * state.table_nCustomers[table] / state.nCustomers for table in nextTables] + [p_new_table]
-			state = state._replace(cache=(state.table_nCustomers, nextTables, p))
+			p = [p_existing_table * state.table_nCustomers[table] / state.nCustomers for table in currentTables] + [p_new_table]
+			state = state._replace(cache=(state.table_nCustomers, currentTables, p))
 			trace._setState(self, state)
-		return state, nextTables, p
+		return state, currentTables, p
 
 	def sample(self, trace):
-		state, nextTables, p = self.refresh_cache(trace)
+		state, currentTables, p = self.refresh_cache(trace)
 
-		tableidx = np.random.choice(np.arange(len(nextTables) + 1), p=p)
-		if tableidx == len(nextTables): #New table
+		tableidx = np.random.choice(np.arange(len(currentTables) + 1), p=p)
+		if tableidx == len(currentTables): #New table
 			x = state.baseConcept.sample(trace)
 		else: #Existing table
-			x = nextTables[tableidx].value
+			x = currentTables[tableidx].value
 		return x
 
 	def observe(self, trace, value, n=1):
@@ -381,7 +380,7 @@ class RegexConcept(Concept):
 		flat = state.regex.flatten(char_map=char_map, escape_strings=True)
 		if short:
 			conceptsReferenced = self.uniqueConceptsReferenced(trace)
-			inner_str = "".join(["$%d"%conceptsReferenced.index(x) if issubclass(type(x), Concept) else str(x) for x in flat])
+			inner_str = "/" + "".join(["$%d"%conceptsReferenced.index(x) if issubclass(type(x), Concept) else str(x) for x in flat]) + "/"
 		else:
 			inner_str = "".join(["<" + x.str(trace) + ">" if issubclass(type(x), Concept) else str(x) for x in flat])
 		# return "(" + type(self).__name__ + "_" + str(self.id)[:5] + " " + inner_str + ")"
@@ -500,20 +499,22 @@ class Trace:
 		self.baseConcepts = []
 		self.baseConcept_nReferences = {} #dict<Concept, int> number of times concept is referenced by other concepts
 		self.baseConcept_nReferences_total = 0
+		self.baseConcept_nTaskReferences = {} #dict<Concept, int> number of times concept is referenced by other concepts
 		self.model = model
-
-	def logpConcept(self, c):
-		#Score each reference proportional to #references, or alpha if no references
-		num_no_references = len(self.baseConcepts) - sum([1 for x in self.baseConcept_nReferences.values() if x > 0])
-		n_references = self.baseConcept_nReferences.get(c, 0)
-		return math.log(n_references if n_references>0 else self.model.alpha) - math.log(self.baseConcept_nReferences_total + num_no_references*self.model.alpha)
 
 	def fork(self):
 		fork = copy.copy(self)
 		fork.state = copy.copy(self.state)
 		fork.baseConcepts = copy.copy(self.baseConcepts)
 		fork.baseConcept_nReferences = copy.copy(self.baseConcept_nReferences)
+		fork.baseConcept_nTaskReferences = copy.copy(self.baseConcept_nTaskReferences)
 		return fork
+
+	def logpConcept(self, c):
+		#Score each reference proportional to #references, or alpha if no references
+		num_no_references = len(self.baseConcepts) - sum([1 for x in self.baseConcept_nReferences.values() if x > 0])
+		n_references = self.baseConcept_nReferences.get(c, 0)
+		return math.log(n_references if n_references>0 else self.model.alpha) - math.log(self.baseConcept_nReferences_total + num_no_references*self.model.alpha)
 
 	def __repr__(self):
 		return repr({"score": self.score, "state": self.state})
@@ -527,7 +528,7 @@ class Trace:
 	def unobserve(self, observation):
 		return observation.concept.unobserve(self.fork(), observation)
 
-	def observe_all(self, concept, values, max_n_counterexamples=5):
+	def observe_all(self, concept, values, max_n_counterexamples=5, task=None):
 		observations = []
 		counterexamples = []
 		trace = self.fork()
@@ -544,10 +545,16 @@ class Trace:
 			p_valid = len(observations) / (len(observations) + sum(counter[x] for x in counterexamples))
 			return None, None, counterexamples, p_valid
 		else:
+			if task is not None: trace.baseConcept_nTaskReferences[concept] = trace.baseConcept_nTaskReferences.get(concept, 0) + 1
 			return trace, observations, None, None
 
 	def unobserve_all(self, observations):
 		trace = self.fork()
+		raise Exception("""
+			Todo:
+				(1) Make sure that we unobserve the correct number of observations
+				(2) Make sure to update baseConcept_nTaskReferences
+		""")
 		for observation in observations:
 			trace = observation.concept.unobserve(trace, observation)
 		return trace
@@ -572,7 +579,7 @@ class Trace:
 		if conceptClass is RegexConcept: conceptTypePrior = math.log(0.5)
 		if conceptClass is PYConcept: conceptTypePrior = math.log(0.5)
 
-		self.score += conceptTypePrior + prior
+		self.score += math.log(self.model.geom_p) + conceptTypePrior + prior
 		for c in conceptsReferenced:
 			if c in self.baseConcepts: #
 				# self.score += math.log(1/len(self.baseConcepts))
