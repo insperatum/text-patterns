@@ -8,6 +8,8 @@ import numpy as np
 
 import pregex as pre
 
+default_string_depth = 2
+
 class TempList():
 	"""
 	Immutable 
@@ -110,7 +112,7 @@ class Concept:
 	def n_observations(self, trace):
 		raise NotImplementedError()
 	
-	def str(self, trace, short=False):
+	def str(self, trace, depth=default_string_depth):
 		return str(self)
 
 	def createState(self):
@@ -183,16 +185,12 @@ class PYConcept(Concept):
 		"""
 		pass
 
-	def __str__(self):
-		return "PY" + str(self.id)
-
-	def str(self, trace, short=False):
+	def str(self, trace, depth=default_string_depth):
 		state = trace.getState(self)
-		if short:
+		if depth==0:
 			return "PY" + str(trace.baseConcepts.index(self))
 		else:
-			return "PY" + str(trace.baseConcepts.index(self)) + "(" + state.baseConcept.str(trace, short=True) + ")"
-		# return "(" + type(self).__name__ + "_" + str(self.id)[:5] + " " + state.baseConcept.str(trace) + ")"
+			return "PY" + str(trace.baseConcepts.index(self)) + "(" + state.baseConcept.str(trace, depth=depth-1) + ")"
 
 	def createState(self, baseConcept):
 		return PYConcept.State(baseConcept = baseConcept,
@@ -364,40 +362,12 @@ class RegexConcept(Concept):
 		"""
 		pass
 
-	def str(self, trace, short=False):
+	def str(self, trace, depth=default_string_depth):
 		state = trace.getState(self)
-		return "R" + str(self.id) + "(" + state.regex.str(lambda concept: concept.str(trace, short=True)) + ")"
-		# if short:
-		# 	# conceptsReferenced = self.uniqueConceptsReferenced(trace)
-		# 	# return state.regex.str(lambda concept: "$%d"%conceptsReferenced.index(concept))
-		# else:
-		# 	return state.regex.str(lambda concept: concept.str(trace, short=True))
-		
-	# def str(self, trace, short=False):
-	# 	state = trace.getState(self)
-	# 	char_map = {
-	# 		pre.dot: ".",
-	# 		pre.d: "\\d",
-	# 		pre.s: "\\s",
-	# 		pre.w: "\\w",
-	# 		pre.l: "\\l",
-	# 		pre.u: "\\u",
-	# 		pre.KleeneStar: "*",
-	# 		pre.Plus: "+",
-	# 		pre.Maybe: "?",
-	# 		pre.Alt: "|",
-	# 		pre.OPEN: "(",
-	# 		pre.CLOSE: ")"
-	# 	}
-	# 	flat = state.regex.flatten(char_map=char_map, escape_strings=True)
-	# 	if short:
-	# 		conceptsReferenced = self.uniqueConceptsReferenced(trace)
-	# 		inner_str = "/" + "".join(["$%d"%conceptsReferenced.index(x) if issubclass(type(x), Concept) else str(x) for x in flat]) + "/"
-	# 	else:
-	# 		inner_str = "/" + "".join([str(x) for x in flat]) + "/"
-	# 		# inner_str = "".join(["<" + x.str(trace) + ">" if issubclass(type(x), Concept) else str(x) for x in flat])
-	# 	# return "(" + type(self).__name__ + "_" + str(self.id)[:5] + " " + inner_str + ")"
-	# 	return inner_str
+		if depth==0:
+			return "R" + str(self.id)
+		else:
+			return "R" + str(self.id) + "(" + state.regex.str(lambda concept: concept.str(trace, depth=depth-1)) + ")"
 
 	def createState(self, regex):
 		return RegexConcept.State(observations = TempDict(), regex = regex)

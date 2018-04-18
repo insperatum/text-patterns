@@ -141,7 +141,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid):
 			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
 				ps = [p_valid, 1-p_valid]))
-			new_proposal = Proposal(proposal.depth+1, proposal.examples + tuple(counterexamples), trace, concept)
+			new_proposal = Proposal(proposal.depth+1, proposal.examples + tuple(counterexamples), trace, concept, None, None, None)
 			queueProposal(new_proposal)
 		
 		#Retry by including counterexamples in support set
@@ -163,16 +163,16 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 		l_active[worker_idx] = True
 		solution = evalProposal(proposal, task, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
 		nEvaluated += 1
-		if solution.trace is not None:
+		if solution.valid:
 			solutions.append(solution)
-			print("(Worker %d)"%worker_idx, "Score: %3.3f"%(solution.trace.score), "(prior %3.3f + likelihood %3.3f),"%(proposal.trace.score - init_trace.score, solution.trace.score - proposal.trace.score), proposal.concept.str(proposal.trace), flush=True)
+			print("(Worker %d)"%worker_idx, "Score: %3.3f"%(solution.final_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
 		else:
 			print("(Worker %d)"%worker_idx, "Failed:", proposal.concept.str(proposal.trace), flush=True)
 		
 	q_solutions.put(
 		{"nEvaluated": nEvaluated,
 		 "nSolutions": len(solutions),
-		 "best": max(solutions, key=lambda evaluatedProposal: evaluatedProposal.trace.score) if solutions else None
+		 "best": max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score) if solutions else None
 		})
 
 def addTask(task_idx):
@@ -189,7 +189,8 @@ def addTask(task_idx):
 	proposal_strings_sofar = [] #TODO: this better. Want to avoid duplicate proposals. For now, just using string representation to check...
 
 	def queueProposal(proposal): #add to evaluation queue
-		proposal_string = proposal.concept.str(proposal.trace) 
+		proposal = proposal.strip() #Remove any evaluation data
+		proposal_string = proposal.concept.str(proposal.trace, depth=-1) 
 		if proposal_string not in proposal_strings_sofar:
 			q_proposals.put(proposal)
 			proposal_strings_sofar.append(proposal_string)
@@ -233,12 +234,12 @@ def addTask(task_idx):
 		if x['best'] is not None: solutions.append(x['best'])
 	
 	print("Evaluated", nEvaluated, "proposals", "(%d solutions)" % nSolutions)
-	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.trace.score)
-	M['trace'] = accepted.trace
+	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
+	M['trace'] = accepted.final_trace
 	M['task_observations'][task_idx] = accepted.observations
 	refreshVocabulary()
 	M['state']['task_iterations'].append(M['state']['iteration'])
-	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.trace.score) + "\n")
+	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score) + "\n")
 
 
 
@@ -317,7 +318,7 @@ if __name__ == "__main__":
 		if not args.no_network: trainToConvergence()
 		save()
 
-		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace']) for c in M['trace'].baseConcepts))
+		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace'], depth=1) for c in M['trace'].baseConcepts))
 		addTask(M['state']['current_task'])
 		gc.collect()
 		M['state']['current_task'] += 1

@@ -32,8 +32,7 @@ def saveConcepts(M, filename):
 		isRegex = type(concept) is RegexConcept
 		size = 8
 		
-		# name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, short=True)) + "</font><br/>" if isRegex else ""
-		name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, short=True)) + "</font><br/>"
+		name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace)) + "</font><br/>"
 		nTaskReferences = trace.baseConcept_nTaskReferences.get(concept, 0)
 		nConceptReferences = trace.baseConcept_nReferences.get(concept, 0)
 
@@ -73,7 +72,7 @@ def saveTrainingError(M, filename):
 		plt.axvline(x=iteration, color='r', linewidth=0.5)
 
 	plt.plot(xs, ys)
-	
+
 	# plt.ylim(ymin=0, ymax=25)
 	plt.xlabel('iteration')
 	plt.ylabel('NLL')
