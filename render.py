@@ -33,7 +33,7 @@ def saveConcepts(M, filename):
 		size = 8
 		
 		# name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, short=True)) + "</font><br/>" if isRegex else ""
-		name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + str(concept) + "</font><br/>"
+		name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, short=True)) + "</font><br/>"
 		nTaskReferences = trace.baseConcept_nTaskReferences.get(concept, 0)
 		nConceptReferences = trace.baseConcept_nReferences.get(concept, 0)
 

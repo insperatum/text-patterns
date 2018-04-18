@@ -30,6 +30,7 @@ import pregex as pre
 from trace import Trace, RegexWrapper
 from pinn import RobustFill
 import loader
+from propose import Proposal, evalProposal, getProposals, networkCache
 
 
 # Arguments
@@ -99,8 +100,6 @@ def refreshVocabulary():
 	M['net'] = M['net'].with_target_vocabulary(default_vocabulary + M['trace'].baseConcepts)
 
 
-networkCache = {}
-
 def networkStep():
 	inputs, target = getBatch(args.batch_size)
 	network_score = M['net'].optimiser_step(inputs, target)
@@ -113,122 +112,32 @@ def networkStep():
 	return network_score
 
 def trainToConvergence(saveEvery=1000):
-	if args.debug:
-		for _ in range(10): networkStep()
-	else:
-		from_iteration = M['state']['task_iterations'][-1] if M['state']['task_iterations'] else 0
-		while True:
-			window_size = args.min_iterations
-			min_grad=2e-3
+	from_iteration = M['state']['task_iterations'][-1] if M['state']['task_iterations'] else 0
+	while True:
+		window_size = args.min_iterations
+		min_grad=2e-3
+		if len(M['state']['network_losses']) <= from_iteration + window_size:
 			networkStep()
-			if len(M['state']['network_losses']) > from_iteration + window_size:
-				window = M['state']['network_losses'][-window_size:]
-				regress = stats.linregress(range(window_size), window)
-				regress_slope = stats.linregress(range(window_size), [window[i] + min_grad*i for i in range(len(window))])
-				p_ratio = regress.pvalue / regress_slope.pvalue
-				if p_ratio > 2: 
-					break #Break when converged
-			if len(M['state']['network_losses']) % saveEvery == 0:
-				loader.save(M)
-
-
-# ----------- Proposals ------------------
-
-Proposal = namedtuple("Proposal", ["depth", "examples", "trace", "concept"]) #start with depth=0, increase depth when triggering a new proposal
-def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task_idx=None):
-	if proposal.trace.score == float("-inf"): #Zero probability under prior
-		return None
-
-	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, examples, task=task_idx)
-	if trace is None:
-		if onCounterexamples is not None:
-			if doPrint: print(proposal.concept.str(proposal.trace), "failed on", counterexamples, flush=True)
-			onCounterexamples(proposal, counterexamples, p_valid)
-		return None
-	else:
-		if onCounterexamples is not None:
-			scores = []
-			for example in examples:
-				single_example_trace, observation = proposal.trace.observe(proposal.concept, example)
-				scores.append(single_example_trace.score - proposal.trace.score)
-
-			if min(scores) != max(scores):
-				zscores = (np.array(scores)-np.mean(scores))/np.std(scores)
-				# values_zscores = list(zip(examples, zscores))
-				# min_value, min_zscore = min(values_zscores, key=lambda x: x[1])
-				
-				kinkval, kinkscore = util.getKink(zscores)
-				# print(proposal.concept.str(proposal.trace), "got", min_zscore, "on", min_value, flush=True)
-				# if min_zscore == -1.4408290416913525:
-				# 	print(values_zscores)
-				# 	raise Exception()
-				# zscore_threshold=-2
-				# outliers = [value for value, zscore in values_zscores if zscore<zscore_threshold]
-				# if outliers:
-				if kinkscore<0.6:
-					outliers = [example for (example, zscore) in zip(examples, zscores) if zscore <= kinkval]
-					p_valid = 1-len(outliers)/len(examples)
-					# print(proposal.concept.str(proposal.trace) + " got outliers", outliers, "p_valid=", p_valid, flush=True)
-					onCounterexamples(proposal, list(set(outliers)), p_valid)
-
-		# onCounterexamples(proposal, )
-		if doPrint: print(proposal.concept.str(proposal.trace), "got score: %3.3f" % trace.score, "of which observation: %3.3f" % (trace.score-proposal.trace.score), flush=True)
-		return {"trace":trace, "observations":observations, "concept":proposal.concept}
-
-def getProposals(current_trace, examples, depth=0): #Includes proposals from network, and proposals on existing concepts
-	examples = tuple(sorted(examples)[:10]) #Hashable for cache. Up to 10 input examples
-	isCached = examples in networkCache
-	# if not isCached: print("getProposals(", ", ".join(examples), ")")
-	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
-
-	if args.no_network:
-		network_regexes = []
-	else:
-		if examples in networkCache:
-			regex_count = networkCache[examples]
 		else:
-			regex_count = Counter()
-			for i in range(10):
-				inputs = [examples] * 500
-				outputs = M['net'].sample(inputs)
-				for o in outputs:
-					try:
-						r = pre.create(o, lookup=lookup)
-						regex_count[r] += 1
-					except pre.ParseException:
-						pass
-			networkCache[examples] = regex_count
-		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
-	
-	proposals = [Proposal(depth, examples, *current_trace.addregex(r)) for r in network_regexes] + \
-		[Proposal(depth, examples, current_trace, c) for c in current_trace.baseConcepts] + \
-		[Proposal(depth, examples, *current_trace.addregex(
-			pre.String(examples[0]) if len(examples)==1 else pre.Alt([pre.String(x) for x in examples])))] #Exactly the examples
-
-	evals = [evalProposal(proposal, examples) for proposal in proposals]
-	scores = {proposals[i]:evals[i]['trace'].score for i in range(len(proposals)) if evals[i] is not None}
-	proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
-	proposals = proposals[:10]
-
-	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
-
-	crp_proposals = []
-	for proposal in proposals:
-		new_trace, new_concept = proposal.trace.addPY(proposal.concept)
-		crp_proposals.append(Proposal(depth, examples, new_trace, new_concept))
-
-	proposals = [p for i in range(len(proposals)) for p in (proposals[i], crp_proposals[i])]
+			window = M['state']['network_losses'][-window_size:]
+			regress = stats.linregress(range(window_size), window)
+			regress_slope = stats.linregress(range(window_size), [window[i] + min_grad*i for i in range(len(window))])
+			p_ratio = regress.pvalue / regress_slope.pvalue
+			if p_ratio < 2 and not args.debug: 
+				networkStep()
+			else:
+				break #Break when converged
+		if len(M['state']['network_losses']) % saveEvery == 0:
+			loader.save(M)
 
 
-	# if not isCached: print("  Proposals:", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
-	return proposals + crp_proposals, scores
-
+# ----------- Solve a task ------------------
 def onCounterexamples(queueProposal, proposal, counterexamples, p_valid):
 	if p_valid>0.5 and proposal.depth==0:
 		# print("Got counterexamples:", counterexamples)
 		#Deal with counter examples separately (with Alt)
 
-		counterexample_proposals, scores = getProposals(proposal.trace, counterexamples, depth=proposal.depth+1)
+		counterexample_proposals, scores = getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples, depth=proposal.depth+1)
 		for counterexample_proposal in counterexample_proposals[:4]: 
 			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
@@ -237,7 +146,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid):
 			queueProposal(new_proposal)
 		
 		#Retry by including counterexamples in support set
-		counterexample_proposals, scores = getProposals(proposal.trace, proposal.examples + tuple(counterexamples), depth=proposal.depth+1)
+		counterexample_proposals, scores = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.examples + tuple(counterexamples), depth=proposal.depth+1)
 		for counterexample_proposal in counterexample_proposals[:3]:
 			queueProposal(counterexample_proposal)
 
@@ -294,7 +203,7 @@ def addTask(task_idx):
 			p=np.array(list(example_counter.values()))/sum(example_counter.values()),
 			replace=False))
 		pre_trace = M['trace']
-		new_proposals, scores = getProposals(pre_trace, examples)
+		new_proposals, scores = getProposals(M['net'] if not args.no_network else None, pre_trace, examples)
 		for proposal in new_proposals:
 			queueProposal(proposal)
 
@@ -415,7 +324,7 @@ if __name__ == "__main__":
 					else:
 						examples.append(s)
 
-			proposals, scores = getProposals(M['trace'], examples)
+			proposals, scores = getProposals(M['net'] if not args.no_network else None, M['trace'], examples)
 			for proposal in sorted(proposals, key=lambda proposal:scores[proposal], reverse=True):
 				print("\n%5.2f: %s" % (scores[proposal], proposal.concept.str(proposal.trace)))
 				for i in range(3): print("  " + proposal.concept.sample(proposal.trace))
@@ -426,13 +335,19 @@ if __name__ == "__main__":
 		refreshVocabulary()
 		if use_cuda:  M['net'].cuda()
 
-		for i in range(M['state']['current_task'], len(data)):
-			if not args.no_network: trainToConvergence()
+		def save():
+			print("Saving...")
 			if M['state']['current_task']%10==0: loader.saveCheckpoint(M)
 			loader.saveRender(M)
 			loader.save(M)
+			print("Saved.")
+
+		for i in range(M['state']['current_task'], len(data)):
+			if not args.no_network: trainToConvergence()
+			save()
 
 			print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace']) for c in M['trace'].baseConcepts))
 			addTask(M['state']['current_task'])
 			gc.collect()
 			M['state']['current_task'] += 1
+			save()

@@ -366,7 +366,7 @@ class RegexConcept(Concept):
 
 	def str(self, trace, short=False):
 		state = trace.getState(self)
-		return "<" + state.regex.str(lambda concept: concept.str(trace, short=True)) + ">"
+		return "R" + str(self.id) + "(" + state.regex.str(lambda concept: concept.str(trace, short=True)) + ")"
 		# if short:
 		# 	# conceptsReferenced = self.uniqueConceptsReferenced(trace)
 		# 	# return state.regex.str(lambda concept: "$%d"%conceptsReferenced.index(concept))
