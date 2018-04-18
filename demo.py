@@ -1,0 +1,102 @@
+import loader
+from propose import Proposal, evalProposal, getProposals, networkCache
+import util
+
+import torch
+
+import os
+import math
+
+modelfile = max(('models/%s'%x for x in os.listdir('models')), key=os.path.getmtime) #Most recent model
+M = loader.load(modelfile)
+if torch.cuda.is_available(): M['net'].cuda()
+
+
+print("Few shot (g)eneration or (c)lassification?")
+mode = input()
+if mode.lower() in ["g", "generation"]:
+
+	for i in range(10000):
+		print("-"*20, "\n")
+		if i==0:
+			examples = ["bar", "car", "dar"]
+			print("Using examples:")
+			for e in examples: print(e)
+			print()
+		else:
+			print("Please enter examples (one per line):")
+			examples = []
+			nextInput = True
+			while nextInput:
+				s = input()
+				if s=="":
+					nextInput=False
+				else:
+					examples.append(s)
+
+		proposals = getProposals(M['net'], M['trace'], examples, include_crp=False)
+		for proposal in proposals[:5]:
+			print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))
+			for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
+
+elif mode.lower() in ["c", "classification"]:
+
+	def getExamples():
+		examples = []
+		nextInput = True
+		while nextInput:
+			s = input()
+			if s=="":
+				nextInput=False
+			else:
+				examples.append(s)
+		return examples
+
+	def conditionalProbability(examples_support, examples_test): #p(examples_test | examples_support)
+		proposals = getProposals(M['net'], M['trace'], examples_support, include_crp=False)
+
+		#Normalise scores
+		total_logprob = util.logsumexp([proposal.final_trace.score for proposal in proposals])
+
+		for proposal in proposals:
+			proposal.final_trace.score -= total_logprob
+		
+		#Observe new examples
+		new_traces = []
+		for proposal in proposals:
+			trace, observations, counterexamples, p_valid = proposal.final_trace.observe_all(proposal.concept, examples_test)
+			if trace is not None:
+				new_traces.append(trace)
+
+		#Conditional probability
+		return util.logsumexp([trace.score for trace in new_traces])
+
+
+	for i in range(10000):
+		print("-"*20, "\n")
+
+		if i==0:
+			examples1 = ["1", "2"]
+			print("Examples of class 1:\n" + "\n".join(examples1) + "\n")
+			examples2 = ["a", "b"]
+			print("Examples of class 2:\n" + "\n".join(examples2) + "\n")
+			examples_test = ["7"]
+			print("Test Examples:\n" + "\n".join(examples_test) + "\n")
+		else:
+			print("Please enter examples of class 1 (one per line):")
+			examples1 = getExamples()
+			print("Please enter examples of class 2:")
+			examples2 = getExamples()
+			print("Please enter test examples:")
+			examples_test = getExamples()
+
+		score1 = conditionalProbability(examples1, examples_test)
+		print("Class 1 posterior predictive:", score1)
+		print()
+		score2 = conditionalProbability(examples2, examples_test)
+		print("Class 2 posterior predictive:", score2)
+
+		print()
+		prediction = "class 1" if score1>score2 else "class 2",
+		confidence = math.exp(max(score1, score2) - util.logsumexp([score1, score2]))
+		print("Prediction: %s"%prediction, "(confidence %2.2f%%)"%(confidence*100))

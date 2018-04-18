@@ -6,16 +6,18 @@ import numpy as np
 import util
 
 Proposal = namedtuple("Proposal", ["depth", "examples", "trace", "concept"]) #start with depth=0, increase depth when triggering a new proposal
+EvalProposal = namedtuple("EvalProposal", ["depth", "examples", "trace", "concept", "final_trace", "observations"])
+
 def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task_idx=None):
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
-		return None
+		return EvalProposal(*proposal, final_trace=None, observations=None)
 
 	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, examples, task=task_idx)
 	if trace is None:
 		if onCounterexamples is not None:
 			if doPrint: print(proposal.concept.str(proposal.trace), "failed on", counterexamples, flush=True)
 			onCounterexamples(proposal, counterexamples, p_valid)
-		return None
+		return EvalProposal(*proposal, final_trace=None, observations=None)
 	else:
 		if onCounterexamples is not None:
 			scores = []
@@ -33,7 +35,7 @@ def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task
 					onCounterexamples(proposal, list(set(outliers)), p_valid)
 
 		if doPrint: print(proposal.concept.str(proposal.trace), "got score: %3.3f" % trace.score, "of which observation: %3.3f" % (trace.score-proposal.trace.score), flush=True)
-		return {"trace":trace, "observations":observations, "concept":proposal.concept}
+		return EvalProposal(*proposal, final_trace=trace, observations=observations)
 
 networkCache = {}
 
@@ -63,13 +65,15 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
 	
 	proposals = [Proposal(depth, examples, *current_trace.addregex(r)) for r in network_regexes] + \
-		[Proposal(depth, examples, current_trace, c) for c in current_trace.baseConcepts] + \
+		[Proposal(depth, examples, current_trace.fork(), c) for c in current_trace.baseConcepts] + \
 		[Proposal(depth, examples, *current_trace.addregex(
 			pre.String(examples[0]) if len(examples)==1 else pre.Alt([pre.String(x) for x in examples])))] #Exactly the examples
 
-	evals = [evalProposal(proposal, examples) for proposal in proposals]
-	scores = {proposals[i]:evals[i]['trace'].score for i in range(len(proposals)) if evals[i] is not None}
-	proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
+	proposals = [evalProposal(proposal, examples) for proposal in proposals]
+	proposals = [x for x in proposals if x.final_trace is not None]
+	proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
+	# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
+	# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
 	proposals = proposals[:10]
 
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
@@ -81,4 +85,4 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 			crp_proposals.append(Proposal(depth, examples, new_trace, new_concept))
 		proposals = [p for i in range(len(proposals)) for p in (proposals[i], crp_proposals[i])]
 
-	return proposals, scores
+	return proposals

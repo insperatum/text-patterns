@@ -10,9 +10,14 @@ def choose(matrix, idxs):
 	unrolled_idxs = idxs + torch.arange(0, matrix.size(0)).type_as(idxs)*matrix.size(1)
 	return matrix.view(matrix.nelement())[unrolled_idxs]
 
-def logsumexp(t): #t: Variable
-	m, _ = t.max(0, keepdim=True)
-	return (t-m).exp().sum(0).log() + m[0]
+# def logsumexp_pytorch(t): #t: Variable
+# 	m, _ = t.max(0, keepdim=True)
+# 	return (t-m).exp().sum(0).log() + m[0]
+
+def logsumexp(l):
+	if len(l) == 0: return float("-inf")
+	m = max(l)
+	return math.log(sum(math.exp(x-m) for x in l)) + m
 
 def entropy(l): #Entropy of a list
 	c = Counter(l)

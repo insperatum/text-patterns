@@ -136,7 +136,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid):
 		# print("Got counterexamples:", counterexamples)
 		#Deal with counter examples separately (with Alt)
 
-		counterexample_proposals, scores = getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples, depth=proposal.depth+1)
+		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples, depth=proposal.depth+1)
 		for counterexample_proposal in counterexample_proposals[:4]: 
 			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
@@ -145,7 +145,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid):
 			queueProposal(new_proposal)
 		
 		#Retry by including counterexamples in support set
-		counterexample_proposals, scores = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.examples + tuple(counterexamples), depth=proposal.depth+1)
+		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.examples + tuple(counterexamples), depth=proposal.depth+1)
 		for counterexample_proposal in counterexample_proposals[:3]:
 			queueProposal(counterexample_proposal)
 
@@ -163,16 +163,16 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 		l_active[worker_idx] = True
 		solution = evalProposal(proposal, task, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
 		nEvaluated += 1
-		if solution is not None:
+		if solution.trace is not None:
 			solutions.append(solution)
-			print("(Worker %d)"%worker_idx, "Score: %3.3f"%(solution['trace'].score), "(prior %3.3f + likelihood %3.3f),"%(proposal.trace.score - init_trace.score, solution['trace'].score - proposal.trace.score), proposal.concept.str(proposal.trace), flush=True)
+			print("(Worker %d)"%worker_idx, "Score: %3.3f"%(solution.trace.score), "(prior %3.3f + likelihood %3.3f),"%(proposal.trace.score - init_trace.score, solution.trace.score - proposal.trace.score), proposal.concept.str(proposal.trace), flush=True)
 		else:
 			print("(Worker %d)"%worker_idx, "Failed:", proposal.concept.str(proposal.trace), flush=True)
 		
 	q_solutions.put(
 		{"nEvaluated": nEvaluated,
 		 "nSolutions": len(solutions),
-		 "best": max(solutions, key=lambda p:p['trace'].score) if solutions else None
+		 "best": max(solutions, key=lambda evaluatedProposal: evaluatedProposal.trace.score) if solutions else None
 		})
 
 def addTask(task_idx):
@@ -202,7 +202,7 @@ def addTask(task_idx):
 			p=np.array(list(example_counter.values()))/sum(example_counter.values()),
 			replace=False))
 		pre_trace = M['trace']
-		new_proposals, scores = getProposals(M['net'] if not args.no_network else None, pre_trace, examples)
+		new_proposals = getProposals(M['net'] if not args.no_network else None, pre_trace, examples)
 		for proposal in new_proposals:
 			queueProposal(proposal)
 
@@ -233,12 +233,12 @@ def addTask(task_idx):
 		if x['best'] is not None: solutions.append(x['best'])
 	
 	print("Evaluated", nEvaluated, "proposals", "(%d solutions)" % nSolutions)
-	accepted = max(solutions, key=lambda p:p['trace'].score)
-	M['trace'] = accepted['trace']
-	M['task_observations'][task_idx] = accepted['observations']
+	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.trace.score)
+	M['trace'] = accepted.trace
+	M['task_observations'][task_idx] = accepted.observations
 	refreshVocabulary()
 	M['state']['task_iterations'].append(M['state']['iteration'])
-	print("Accepted proposal: " + accepted['concept'].str(accepted['trace']) + "\nScore:" + str(accepted['trace'].score) + "\n")
+	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.trace.score) + "\n")
 
 
 

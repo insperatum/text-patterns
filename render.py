@@ -66,12 +66,14 @@ def saveTrainingError(M, filename):
 	interval=20
 	xs = range(interval, M['state']['iteration']+1, interval)
 	ys = [np.mean(M['state']['network_losses'][i-interval:i]) for i in xs]
-	plt.plot(xs, ys)
 
 	plt.xlim(xmin=0, xmax=M['state']['iteration']+1)
 
 	for iteration in M['state']['task_iterations']:
-		plt.axvline(x=iteration, color='r')
+		plt.axvline(x=iteration, color='r', linewidth=0.5)
+
+	plt.plot(xs, ys)
+	
 	# plt.ylim(ymin=0, ymax=25)
 	plt.xlabel('iteration')
 	plt.ylabel('NLL')
