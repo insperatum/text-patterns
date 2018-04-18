@@ -37,7 +37,7 @@ def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task
 
 networkCache = {}
 
-def getProposals(net, current_trace, examples, depth=0): #Includes proposals from network, and proposals on existing concepts
+def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Includes proposals from network, and proposals on existing concepts
 	examples = tuple(sorted(examples)[:10]) #Hashable for cache. Up to 10 input examples
 	isCached = examples in networkCache
 	# if not isCached: print("getProposals(", ", ".join(examples), ")")
@@ -74,11 +74,11 @@ def getProposals(net, current_trace, examples, depth=0): #Includes proposals fro
 
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
 
-	crp_proposals = []
-	for proposal in proposals:
-		new_trace, new_concept = proposal.trace.addPY(proposal.concept)
-		crp_proposals.append(Proposal(depth, examples, new_trace, new_concept))
+	if include_crp:
+		crp_proposals = []
+		for proposal in proposals:
+			new_trace, new_concept = proposal.trace.addPY(proposal.concept)
+			crp_proposals.append(Proposal(depth, examples, new_trace, new_concept))
+		proposals = [p for i in range(len(proposals)) for p in (proposals[i], crp_proposals[i])]
 
-	proposals = [p for i in range(len(proposals)) for p in (proposals[i], crp_proposals[i])]
-
-	return proposals + crp_proposals, scores
+	return proposals, scores

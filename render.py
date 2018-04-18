@@ -63,9 +63,9 @@ def saveConcepts(M, filename):
 def saveTrainingError(M, filename):
 	plt.clf()
 
-	interval=25
-	xs = range(1, M['state']['iteration']+1, interval)
-	ys = [np.mean(M['state']['network_losses'][i:i+interval]) for i in range(0, len(M['state']['network_losses']), interval)]
+	interval=20
+	xs = range(interval, M['state']['iteration']+1, interval)
+	ys = [np.mean(M['state']['network_losses'][i-interval:i]) for i in xs]
 	plt.plot(xs, ys)
 
 	plt.xlim(xmin=0, xmax=M['state']['iteration']+1)

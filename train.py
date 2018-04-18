@@ -60,13 +60,12 @@ parser.add_argument('--pyconcept_d', type=float, default=0.5)
 parser.add_argument('--helmholtz_dist', type=str, default="uniform") #During sleep, sample concepts from true weighted dist(default) or uniform
 parser.add_argument('--regex-primitives', dest='regex_primitives', action='store_true')
 
-parser.add_argument('--demo', dest='demo', action='store_true')
 parser.add_argument('--debug', dest='debug', action='store_true')
 parser.add_argument('--train-first', dest='train_first', action='store_true')
 parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
 
-parser.set_defaults(demo=False, debug=False, no_cuda=False, regex_primitives=False, no_network=False, train_first=False)
+parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False, train_first=False)
 args = parser.parse_args()
 
 character_classes=[pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u] if args.regex_primitives else [pre.dot]
@@ -303,51 +302,23 @@ if __name__ == "__main__":
 	if use_cuda: M['net'].cuda()
 
 
-	if args.demo: # ------------ Demo -------------------
-		i=0
-		while True:
-			print("-"*20, "\n")
-			i += 1
-			if i==1:
-				examples = ["bar", "car", "dar"]
-				print("Using examples:")
-				for e in examples: print(e)
-				print()
-			else:
-				print("Please enter examples:")
-				examples = []
-				nextInput = True
-				while nextInput:
-					s = input()
-					if s=="":
-						nextInput=False
-					else:
-						examples.append(s)
+	print("\nTraining...")
+	refreshVocabulary()
+	if use_cuda:  M['net'].cuda()
 
-			proposals, scores = getProposals(M['net'] if not args.no_network else None, M['trace'], examples)
-			for proposal in sorted(proposals, key=lambda proposal:scores[proposal], reverse=True):
-				print("\n%5.2f: %s" % (scores[proposal], proposal.concept.str(proposal.trace)))
-				for i in range(3): print("  " + proposal.concept.sample(proposal.trace))
-				
-	else: # ------------------ Training -------------------
-		print("\nTraining...")
+	def save():
+		print("Saving...")
+		if M['state']['current_task']%10==0: loader.saveCheckpoint(M)
+		loader.saveRender(M)
+		loader.save(M)
+		print("Saved.")
 
-		refreshVocabulary()
-		if use_cuda:  M['net'].cuda()
+	for i in range(M['state']['current_task'], len(data)):
+		if not args.no_network: trainToConvergence()
+		save()
 
-		def save():
-			print("Saving...")
-			if M['state']['current_task']%10==0: loader.saveCheckpoint(M)
-			loader.saveRender(M)
-			loader.save(M)
-			print("Saved.")
-
-		for i in range(M['state']['current_task'], len(data)):
-			if not args.no_network: trainToConvergence()
-			save()
-
-			print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace']) for c in M['trace'].baseConcepts))
-			addTask(M['state']['current_task'])
-			gc.collect()
-			M['state']['current_task'] += 1
-			save()
+		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace']) for c in M['trace'].baseConcepts))
+		addTask(M['state']['current_task'])
+		gc.collect()
+		M['state']['current_task'] += 1
+		save()
