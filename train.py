@@ -39,7 +39,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--name', type=str, default=default_name)
 parser.add_argument('--fork', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv.p")
-parser.add_argument('--batch_size', type=int, default=500)
+parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--min_iterations', type=int, default=50) #minimum number of training iterations before next concept
