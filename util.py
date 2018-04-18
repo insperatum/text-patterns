@@ -2,6 +2,7 @@ import torch
 from torch.autograd import Variable
 from collections import Counter
 import math
+import numpy as np
 
 def choose(matrix, idxs):
 	if type(idxs) is Variable: idxs = idxs.data
@@ -17,3 +18,9 @@ def entropy(l): #Entropy of a list
 	c = Counter(l)
 	total = sum(c.values())
 	return -sum((v/total) * (math.log(v) - math.log(total)) for v in c.values())
+
+def getKink(list): #Given a list, find the index that best separates the list (by minimising the sum of standard deviations on either side)
+	s = np.array(sorted(list))
+	i = min(range(1,len(s)), key=lambda i: np.std(s[i:]) + np.std(s[:i]))
+	val = np.std(s[i:]) + np.std(s[:i])
+	return s[i-1], val

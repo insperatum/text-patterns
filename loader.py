@@ -12,6 +12,24 @@ def load(file, cuda=False):
 	M = torch.load(file, map_location=lambda storage, loc: storage.cuda() if cuda else storage)
 	M['model_file'] = file
 
+	# Legacy
+	trace = M['trace']
+	if trace.baseConcepts[0].id != 0:
+		for i in range(len(trace.baseConcepts)):
+			v0 = trace.state.get(trace.baseConcepts[i], None)
+			v1 = trace.baseConcept_nReferences.get(trace.baseConcepts[i], None)
+			v2 = trace.baseConcept_nTaskReferences.get(trace.baseConcepts[i], None)
+			if v0 is not None: del trace.state[trace.baseConcepts[i]]
+			if v1 is not None: del trace.baseConcept_nReferences[trace.baseConcepts[i]]
+			if v2 is not None: del trace.baseConcept_nTaskReferences[trace.baseConcepts[i]]
+			trace.baseConcepts[i].id = i
+			if v0 is not None: trace.state[trace.baseConcepts[i]] = v0
+			if v1 is not None: trace.baseConcept_nReferences[trace.baseConcepts[i]] = v1
+			if v2 is not None: trace.baseConcept_nTaskReferences[trace.baseConcepts[i]] = v2
+
+	if not hasattr(trace, 'nextConceptID'):
+		trace.nextConceptID=len(trace.baseConcepts)
+
 	return M
 
 def save(M, append_str=""):
@@ -46,7 +64,7 @@ def save(M, append_str=""):
 
 
 def saveCheckpoint(M):
-	torch.save(M, M['model_file'] + "_task" + str(M['state']['current_task']))
+	torch.save(M, M['model_file'] + "_task" + str(M['state']['current_task']) + "_iter" + str(M['state']['iteration']))
 
 def saveRender(M):
 	render.saveConcepts(M, M['results_file'] + "_concepts" + "_task" + str(M['state']['current_task']))

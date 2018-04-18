@@ -13,7 +13,7 @@ IMPORTANT:
 Training/Proposals:
 - [X] Evaluate multiple proposals in parallel
 - [X] Keep training NN while evaluating proposals
-- [ ] Don't add the same proposal multiple times (after counterexamples)
+- [X] Don't add the same proposal multiple times (after counterexamples)
 - [ ] Repropose on existing concept 
 - [ ] Given a valid inferred regex, parse examples with that regex, choose a matching subgroup, and run inference on that parse
 
@@ -22,7 +22,7 @@ Library:
 
 Trace:
 - [X] Pitman-Yor Process
-- [ ] Move state (other than observations) into concept itself
+- [ ] Move state (other than observations) into concept itself?
 - [ ] Clean up CRPRegexConcept. Currently CRPconcept has no prior on whether it has regex or CRP inside (and concepts not in baseConcepts don't get scored in addConcept)
 - [X] Rich concepts get richer (DP?)
 - [ ] Move all model logic out of trace.py

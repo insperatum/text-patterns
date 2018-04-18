@@ -11,6 +11,7 @@ import html
 import numpy as np
 
 def saveConcepts(M, filename):
+	print("Rendering to:%s"%filename)
 	trace = M['trace']
 	concepts = trace.baseConcepts
 
@@ -29,7 +30,10 @@ def saveConcepts(M, filename):
 		
 		
 		isRegex = type(concept) is RegexConcept
-		name_prefix = html.escape(concept.str(trace, short=True)) + "<br/>" if isRegex else ""
+		size = 8
+		
+		# name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, short=True)) + "</font><br/>" if isRegex else ""
+		name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + str(concept) + "</font><br/>"
 		nTaskReferences = trace.baseConcept_nTaskReferences.get(concept, 0)
 		nConceptReferences = trace.baseConcept_nReferences.get(concept, 0)
 
@@ -41,8 +45,6 @@ def saveConcepts(M, filename):
 		if isMini[concept]:
 			dot.node(str(concept.id), "", color=color, style=style, width='0.2', height='0.2')
 		else:				
-			size = 8
-
 			dot.node(str(concept.id), "<" 
 				+ name_prefix
 				+ "<font point-size='%d'>"%size + html.escape(sample_str) + "</font>"
@@ -61,12 +63,15 @@ def saveConcepts(M, filename):
 def saveTrainingError(M, filename):
 	plt.clf()
 
-	interval=20
+	interval=25
 	xs = range(1, M['state']['iteration']+1, interval)
-	ys = [np.mean(M['state']['network_losses'][i:i+50]) for i in range(0, len(M['state']['network_losses']), interval)]
+	ys = [np.mean(M['state']['network_losses'][i:i+interval]) for i in range(0, len(M['state']['network_losses']), interval)]
 	plt.plot(xs, ys)
 
 	plt.xlim(xmin=0, xmax=M['state']['iteration']+1)
+
+	for iteration in M['state']['task_iterations']:
+		plt.axvline(x=iteration, color='r')
 	# plt.ylim(ymin=0, ymax=25)
 	plt.xlabel('iteration')
 	plt.ylabel('NLL')

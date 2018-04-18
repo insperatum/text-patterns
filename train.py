@@ -39,9 +39,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--name', type=str, default=default_name)
 parser.add_argument('--fork', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv.p")
-parser.add_argument('--batch_size', type=int, default=300)
-parser.add_argument('--min_examples', type=int, default=1)
-parser.add_argument('--max_examples', type=int, default=5)
+parser.add_argument('--batch_size', type=int, default=500)
+parser.add_argument('--min_examples', type=int, default=2)
+parser.add_argument('--max_examples', type=int, default=4)
+parser.add_argument('--min_iterations', type=int, default=50) #minimum number of training iterations before next concept
 
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
@@ -60,11 +61,11 @@ parser.add_argument('--regex-primitives', dest='regex_primitives', action='store
 
 parser.add_argument('--demo', dest='demo', action='store_true')
 parser.add_argument('--debug', dest='debug', action='store_true')
-parser.add_argument('--no-train', dest='no_train', action='store_true')
+parser.add_argument('--train-first', dest='train_first', action='store_true')
 parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
 
-parser.set_defaults(demo=False, debug=False, no_train=False, no_cuda=False, regex_primitives=False, no_network=False)
+parser.set_defaults(demo=False, debug=False, no_cuda=False, regex_primitives=False, no_network=False, train_first=False)
 args = parser.parse_args()
 
 character_classes=[pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u] if args.regex_primitives else [pre.dot]
@@ -111,22 +112,24 @@ def networkStep():
 	networkCache.clear()
 	return network_score
 
-def trainToConvergence():
-	scores = []
+def trainToConvergence(saveEvery=1000):
 	if args.debug:
-		for _ in range(10): scores.append(networkStep())
+		for _ in range(10): networkStep()
 	else:
+		from_iteration = M['state']['task_iterations'][-1] if M['state']['task_iterations'] else 0
 		while True:
-			scores.append(networkStep())
-
-			if len(scores)>50:
-				window = scores[-50:]
-				regress = stats.linregress(range(len(window)), window)
-				regress_slope = stats.linregress(range(len(window)), [window[i] - 0.002*i for i in range(len(window))])
+			window_size = args.min_iterations
+			min_grad=2e-3
+			networkStep()
+			if len(M['state']['network_losses']) > from_iteration + window_size:
+				window = M['state']['network_losses'][-window_size:]
+				regress = stats.linregress(range(window_size), window)
+				regress_slope = stats.linregress(range(window_size), [window[i] + min_grad*i for i in range(len(window))])
 				p_ratio = regress.pvalue / regress_slope.pvalue
-				# print("p ratio ", p_ratio)
 				if p_ratio > 2: 
 					break #Break when converged
+			if len(M['state']['network_losses']) % saveEvery == 0:
+				loader.save(M)
 
 
 # ----------- Proposals ------------------
@@ -150,14 +153,22 @@ def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task
 				scores.append(single_example_trace.score - proposal.trace.score)
 
 			if min(scores) != max(scores):
-				values_zscores = list(zip(examples, (np.array(scores)-np.mean(scores))/np.std(scores)))
-				min_value, min_zscore = min(values_zscores, key=lambda x: x[1])
+				zscores = (np.array(scores)-np.mean(scores))/np.std(scores)
+				# values_zscores = list(zip(examples, zscores))
+				# min_value, min_zscore = min(values_zscores, key=lambda x: x[1])
 				
-				zscore_threshold=-2
-				outliers = [value for value, zscore in values_zscores if zscore<zscore_threshold]
-				if outliers:
+				kinkval, kinkscore = util.getKink(zscores)
+				# print(proposal.concept.str(proposal.trace), "got", min_zscore, "on", min_value, flush=True)
+				# if min_zscore == -1.4408290416913525:
+				# 	print(values_zscores)
+				# 	raise Exception()
+				# zscore_threshold=-2
+				# outliers = [value for value, zscore in values_zscores if zscore<zscore_threshold]
+				# if outliers:
+				if kinkscore<0.6:
+					outliers = [example for (example, zscore) in zip(examples, zscores) if zscore <= kinkval]
 					p_valid = 1-len(outliers)/len(examples)
-					# print(proposal.concept.str(proposal.trace) + " got outliers", outliers, "p_valid=", p_valid)
+					# print(proposal.concept.str(proposal.trace) + " got outliers", outliers, "p_valid=", p_valid, flush=True)
 					onCounterexamples(proposal, list(set(outliers)), p_valid)
 
 		# onCounterexamples(proposal, )
@@ -189,7 +200,6 @@ def getProposals(current_trace, examples, depth=0): #Includes proposals from net
 			networkCache[examples] = regex_count
 		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
 	
-	# if not isCached: print("  RobustFill:  ", ", ".join(str(r) for r in network_regexes[:10]))
 	proposals = [Proposal(depth, examples, *current_trace.addregex(r)) for r in network_regexes] + \
 		[Proposal(depth, examples, current_trace, c) for c in current_trace.baseConcepts] + \
 		[Proposal(depth, examples, *current_trace.addregex(
@@ -200,29 +210,36 @@ def getProposals(current_trace, examples, depth=0): #Includes proposals from net
 	proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
 	proposals = proposals[:10]
 
+	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
+
 	crp_proposals = []
 	for proposal in proposals:
 		new_trace, new_concept = proposal.trace.addPY(proposal.concept)
 		crp_proposals.append(Proposal(depth, examples, new_trace, new_concept))
 
+	proposals = [p for i in range(len(proposals)) for p in (proposals[i], crp_proposals[i])]
+
+
 	# if not isCached: print("  Proposals:", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
 	return proposals + crp_proposals, scores
 
-def onCounterexamples(q_proposals, proposal, counterexamples, p_valid):
+def onCounterexamples(queueProposal, proposal, counterexamples, p_valid):
 	if p_valid>0.5 and proposal.depth==0:
 		# print("Got counterexamples:", counterexamples)
 		#Deal with counter examples separately (with Alt)
+
 		counterexample_proposals, scores = getProposals(proposal.trace, counterexamples, depth=proposal.depth+1)
-		for counterexample_proposal in counterexample_proposals[:3]: 
+		for counterexample_proposal in counterexample_proposals[:4]: 
 			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
 				ps = [p_valid, 1-p_valid]))
-			q_proposals.put(Proposal(proposal.depth+1, proposal.examples + tuple(counterexamples), trace, concept))
+			new_proposal = Proposal(proposal.depth+1, proposal.examples + tuple(counterexamples), trace, concept)
+			queueProposal(new_proposal)
 		
 		#Retry by including counterexamples in support set
 		counterexample_proposals, scores = getProposals(proposal.trace, proposal.examples + tuple(counterexamples), depth=proposal.depth+1)
 		for counterexample_proposal in counterexample_proposals[:3]:
-			q_proposals.put(counterexample_proposal)
+			queueProposal(counterexample_proposal)
 
 def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, l_active, task_idx, task):
 	solutions = []
@@ -257,8 +274,18 @@ def addTask(task_idx):
 	example_counter = Counter(data[task_idx])
 	# q_proposals = mp.Queue()
 	
+	manager = mp.Manager()
+	q_proposals = manager.Queue()
+
 	proposals = []
-	proposal_strings = [] #TODO: this better. Want to avoid duplicate proposals. For now, just using string representation to check
+	proposal_strings_sofar = [] #TODO: this better. Want to avoid duplicate proposals. For now, just using string representation to check...
+
+	def queueProposal(proposal): #add to evaluation queue
+		proposal_string = proposal.concept.str(proposal.trace) 
+		if proposal_string not in proposal_strings_sofar:
+			q_proposals.put(proposal)
+			proposal_strings_sofar.append(proposal_string)
+
 	for i in range(10):
 		num_examples = random.randint(1, min(len(example_counter), args.max_examples))
 		examples = list(np.random.choice(
@@ -269,15 +296,10 @@ def addTask(task_idx):
 		pre_trace = M['trace']
 		new_proposals, scores = getProposals(pre_trace, examples)
 		for proposal in new_proposals:
-			proposal_string = proposal.concept.str(proposal.trace) 
-			if proposal_string not in proposal_strings:
-				proposals.append(proposal)
-				proposal_strings.append(proposal_string)
+			queueProposal(proposal)
 
 	n_workers = max(1, cpus-1)
 
-	manager = mp.Manager()
-	q_proposals = manager.Queue()
 	q_counterexamples = manager.Queue()
 	q_solutions = manager.Queue()
 	l_active = manager.list([True for _ in range(n_workers)])
@@ -288,10 +310,10 @@ def addTask(task_idx):
 
 	while any(l_active) or not q_counterexamples.empty():
 		try:
-			counterexample_args = q_counterexamples.get(timeout=1)
-			onCounterexamples(q_proposals, *counterexample_args)
+			counterexample_args = q_counterexamples.get(timeout=0.1)
+			onCounterexamples(queueProposal, *counterexample_args)
 		except queue.Empty:
-			if not args.no_train and not args.no_network: networkStep()
+			if not args.no_network: networkStep()
 
 	solutions = []
 	nSolutions = 0
@@ -307,14 +329,12 @@ def addTask(task_idx):
 	M['trace'] = accepted['trace']
 	M['task_observations'][task_idx] = accepted['observations']
 	refreshVocabulary()
+	M['state']['task_iterations'].append(M['state']['iteration'])
 	print("Accepted proposal: " + accepted['concept'].str(accepted['trace']) + "\nScore:" + str(accepted['trace'].score) + "\n")
 
 
 
-
 # -----------------------------------------------------------------------------------------------------------------------------------------------
-
-
 
 if __name__ == "__main__":
 	mp.set_start_method('spawn')
@@ -332,8 +352,9 @@ if __name__ == "__main__":
 	# Files to save:
 	os.makedirs("models", exist_ok = True)
 	os.makedirs("results", exist_ok = True)
+	os.makedirs("results/" + args.name, exist_ok = True)
 	modelfile = 'models/' + args.name + '.pt'
-	results_file = 'results/' + args.name #prefix
+	results_file = 'results/' + args.name + "/"
 	use_cuda = torch.cuda.is_available() and not args.no_cuda
 
 	# ------------- Load Model & Data --------------
@@ -353,7 +374,7 @@ if __name__ == "__main__":
 			print("Forked model", args.fork)
 		else:
 			M = {}
-			M['state'] = {'iteration':0, 'current_task':-1, 'network_losses':[]}
+			M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
 			M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
 									 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
 			M['args'] = args
@@ -368,7 +389,7 @@ if __name__ == "__main__":
 			print("Created new model")
 		M['data_file'] = args.data_file
 		M['model_file'] = modelfile
-		M['results_file'] = 'results/' + args.name
+		M['results_file'] = results_file
 
 	if use_cuda: M['net'].cuda()
 
@@ -405,20 +426,13 @@ if __name__ == "__main__":
 		refreshVocabulary()
 		if use_cuda:  M['net'].cuda()
 
-		if M['state']['current_task'] == -1:
-			if not args.no_train and not args.no_network: trainToConvergence()
-			M['state']['current_task'] += 1
-			loader.saveCheckpoint(M)
-			loader.saveRender(M)
-			loader.save(M)
-
 		for i in range(M['state']['current_task'], len(data)):
-			print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace']) for c in M['trace'].baseConcepts))
-			addTask(M['state']['current_task'])
-			gc.collect()
-
-			if not args.no_train and not args.no_network: trainToConvergence()
-			M['state']['current_task'] += 1
+			if not args.no_network: trainToConvergence()
 			if M['state']['current_task']%10==0: loader.saveCheckpoint(M)
 			loader.saveRender(M)
 			loader.save(M)
+
+			print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace']) for c in M['trace'].baseConcepts))
+			addTask(M['state']['current_task'])
+			gc.collect()
+			M['state']['current_task'] += 1

@@ -92,9 +92,9 @@ class Observation(namedtuple("Observation", (['concept', 'value', 'score', 'chil
 	# 	return self.value
 
 class Concept:
-	def __init__(self):
-		self.id = random.getrandbits(128)
-	
+	def __init__(self, id=None):
+		self.id = id if id is not None else random.getrandbits(128)
+
 	def __eq__(self, other):
 		return issubclass(type(other), Concept) and self.id==other.id
 
@@ -102,10 +102,10 @@ class Concept:
 		return self.id
 
 	def __repr__(self):
-		return "(" + type(self).__name__ + "_" + str(self.id)[:5] + ")"
+		return str(self)
 
 	def __str__(self):
-		return "(" + type(self).__name__ + "_" + str(self.id)[:5] + ")"
+		return type(self).__name__ + str(self.id)
 
 	def n_observations(self, trace):
 		raise NotImplementedError()
@@ -183,12 +183,15 @@ class PYConcept(Concept):
 		"""
 		pass
 
+	def __str__(self):
+		return "PY" + str(self.id)
+
 	def str(self, trace, short=False):
 		state = trace.getState(self)
 		if short:
-			return "PY"
+			return "PY" + str(trace.baseConcepts.index(self))
 		else:
-			return "PY_" + str(trace.baseConcepts.index(self)) + ":<" + state.baseConcept.str(trace) + ">"
+			return "PY" + str(trace.baseConcepts.index(self)) + "(" + state.baseConcept.str(trace, short=True) + ")"
 		# return "(" + type(self).__name__ + "_" + str(self.id)[:5] + " " + state.baseConcept.str(trace) + ")"
 
 	def createState(self, baseConcept):
@@ -360,31 +363,41 @@ class RegexConcept(Concept):
 		:param TempList<Observations> observations:
 		"""
 		pass
-	
+
 	def str(self, trace, short=False):
 		state = trace.getState(self)
-		char_map = {
-			pre.dot: ".",
-			pre.d: "\\d",
-			pre.s: "\\s",
-			pre.w: "\\w",
-			pre.l: "\\l",
-			pre.u: "\\u",
-			pre.KleeneStar: "*",
-			pre.Plus: "+",
-			pre.Maybe: "?",
-			pre.Alt: "|",
-			pre.OPEN: "(",
-			pre.CLOSE: ")"
-		}
-		flat = state.regex.flatten(char_map=char_map, escape_strings=True)
-		if short:
-			conceptsReferenced = self.uniqueConceptsReferenced(trace)
-			inner_str = "/" + "".join(["$%d"%conceptsReferenced.index(x) if issubclass(type(x), Concept) else str(x) for x in flat]) + "/"
-		else:
-			inner_str = "".join(["<" + x.str(trace) + ">" if issubclass(type(x), Concept) else str(x) for x in flat])
-		# return "(" + type(self).__name__ + "_" + str(self.id)[:5] + " " + inner_str + ")"
-		return inner_str
+		return "<" + state.regex.str(lambda concept: concept.str(trace, short=True)) + ">"
+		# if short:
+		# 	# conceptsReferenced = self.uniqueConceptsReferenced(trace)
+		# 	# return state.regex.str(lambda concept: "$%d"%conceptsReferenced.index(concept))
+		# else:
+		# 	return state.regex.str(lambda concept: concept.str(trace, short=True))
+		
+	# def str(self, trace, short=False):
+	# 	state = trace.getState(self)
+	# 	char_map = {
+	# 		pre.dot: ".",
+	# 		pre.d: "\\d",
+	# 		pre.s: "\\s",
+	# 		pre.w: "\\w",
+	# 		pre.l: "\\l",
+	# 		pre.u: "\\u",
+	# 		pre.KleeneStar: "*",
+	# 		pre.Plus: "+",
+	# 		pre.Maybe: "?",
+	# 		pre.Alt: "|",
+	# 		pre.OPEN: "(",
+	# 		pre.CLOSE: ")"
+	# 	}
+	# 	flat = state.regex.flatten(char_map=char_map, escape_strings=True)
+	# 	if short:
+	# 		conceptsReferenced = self.uniqueConceptsReferenced(trace)
+	# 		inner_str = "/" + "".join(["$%d"%conceptsReferenced.index(x) if issubclass(type(x), Concept) else str(x) for x in flat]) + "/"
+	# 	else:
+	# 		inner_str = "/" + "".join([str(x) for x in flat]) + "/"
+	# 		# inner_str = "".join(["<" + x.str(trace) + ">" if issubclass(type(x), Concept) else str(x) for x in flat])
+	# 	# return "(" + type(self).__name__ + "_" + str(self.id)[:5] + " " + inner_str + ")"
+	# 	return inner_str
 
 	def createState(self, regex):
 		return RegexConcept.State(observations = TempDict(), regex = regex)
@@ -496,6 +509,7 @@ class Trace:
 	def __init__(self, model):
 		self.score = 0
 		self.state = {} #dict<Concept, State>
+		self.nextConceptID = 0
 		self.baseConcepts = []
 		self.baseConcept_nReferences = {} #dict<Concept, int> number of times concept is referenced by other concepts
 		self.baseConcept_nReferences_total = 0
@@ -569,7 +583,8 @@ class Trace:
 		self.state[concept] = state
 
 	def _addConcept(self, conceptClass, *args, **kwargs):
-		concept = conceptClass()
+		concept = conceptClass(id=self.nextConceptID)
+		self.nextConceptID += 1
 		state = concept.createState(*args, **kwargs)
 		self.state[concept] = state
 		
@@ -581,13 +596,11 @@ class Trace:
 
 		self.score += math.log(self.model.geom_p) + conceptTypePrior + prior
 		for c in conceptsReferenced:
-			if c in self.baseConcepts: #
-				# self.score += math.log(1/len(self.baseConcepts))
+			if c in self.baseConcepts:
 				self.score += self.logpConcept(c)
 				self.baseConcept_nReferences_total += 1
 				self.baseConcept_nReferences[c] = self.baseConcept_nReferences.get(c, 0) + 1 
 
-		# self.baseConcepts.append(concept)
 		return concept
 
 	def addPYregex(self, regex):
