@@ -12,10 +12,6 @@ fi
 dir=experiments/$name
 init_dir=$(pwd)
 
-echo date:$date
-echo time:$timestr
-echo name:$name
-
 git checkout -B working
 git add -A
 git commit --allow-empty -m "Experiment $name"
