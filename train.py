@@ -202,12 +202,12 @@ def addTask(task_idx):
 			proposal_strings_sofar.append(proposal_string)
 
 	for i in range(10 if not args.debug else 3):
-		num_examples = random.randint(args.min_examples, min(len(example_counter), args.max_examples))
+		num_examples = random.randint(args.min_examples, args.max_examples)
 		examples = list(np.random.choice(
 			list(example_counter.keys()),
 			size=min(num_examples, len(example_counter)),
 			p=np.array(list(example_counter.values()))/sum(example_counter.values()),
-			replace=False))
+			replace=True))
 		pre_trace = M['trace']
 		new_proposals = getProposals(M['net'] if not args.no_network else None, pre_trace, examples)
 		for proposal in new_proposals:
