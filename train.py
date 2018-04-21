@@ -266,6 +266,7 @@ if __name__ == "__main__":
 
 	# Files to save:
 	save_to = "results/"
+	if not os.path.exists(save_to): os.makedirs(save_to)
 	modelfile = save_to + "model.pt"
 	use_cuda = torch.cuda.is_available() and not args.no_cuda
 
