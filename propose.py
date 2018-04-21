@@ -25,18 +25,20 @@ def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task
 	else:
 		if onCounterexamples is not None:
 			scores = []
-			for example in examples:
+
+			c = Counter(examples)
+			examples_reordered = [x for example in c for x in [example] * c[example]]
+			for example in c:
 				single_example_trace, observation = proposal.trace.observe(proposal.concept, example)
-				scores.append(single_example_trace.score - proposal.trace.score)
+				scores.extend([single_example_trace.score - proposal.trace.score] * c[example])
 
 			if min(scores) != max(scores):
 				zscores = (np.array(scores)-np.mean(scores))/np.std(scores)				
 				kinkval, kinkscore = util.getKink(zscores)
 
-				if kinkscore<0.6:
-					outliers = [example for (example, zscore) in zip(examples, zscores) if zscore <= kinkval]
-					p_valid = 1-len(outliers)/len(examples)
-					onCounterexamples(proposal, list(set(outliers)), p_valid)
+				outliers = [example for (example, zscore) in zip(examples_reordered, zscores) if zscore <= kinkval]
+				p_valid = 1-len(outliers)/len(examples_reordered)
+				onCounterexamples(proposal, outliers, p_valid, kinkscore)
 
 		if doPrint: print(proposal.concept.str(proposal.trace), "got score: %3.3f" % trace.score, "of which observation: %3.3f" % (trace.score-proposal.trace.score), flush=True)
 		return proposal._replace(final_trace=trace, observations=observations, valid=True)
@@ -71,7 +73,7 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 	proposals = [Proposal(depth, examples, *current_trace.addregex(r), None, None, None) for r in network_regexes] + \
 		[Proposal(depth, examples, current_trace.fork(), c, None, None, None) for c in current_trace.baseConcepts] + \
 		[Proposal(depth, examples, *current_trace.addregex(
-			pre.String(examples[0]) if len(examples)==1 else pre.Alt([pre.String(x) for x in examples])), None, None, None)] #Exactly the examples
+			pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), None, None, None)] #Exactly the examples
 
 	proposals = [evalProposal(proposal, examples) for proposal in proposals]
 	proposals = [x for x in proposals if x.valid]

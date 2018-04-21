@@ -34,10 +34,7 @@ from propose import Proposal, evalProposal, getProposals, networkCache
 
 
 # Arguments
-default_name = os.path.basename(__file__)
-if 'SLURM_JOB_NAME' in os.environ: default_name += "_" + os.environ['SLURM_JOB_NAME']
 parser = argparse.ArgumentParser()
-parser.add_argument('--name', type=str, default=default_name)
 parser.add_argument('--fork', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv.p")
 parser.add_argument('--batch_size', type=int, default=300)
@@ -53,10 +50,12 @@ parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
 parser.add_argument('--n_examples', type=int, default=500)
 
-parser.add_argument('--alpha', type=float, default=0.01) #p(reference concept) proportional to #references, or to alpha if no references
-parser.add_argument('--geom_p', type=float, default=0.01) #probability of adding another concept (geometric)
-parser.add_argument('--pyconcept_alpha', type=float, default=1)
-parser.add_argument('--pyconcept_d', type=float, default=0.5)
+model_default_params = {'alpha':0.01, 'geom_p':0.01, 'pyconcept_alpha':1, 'pyconcept_d':0.5}
+parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references, or to alpha if no references
+parser.add_argument('--geom_p', type=float, default=None) #probability of adding another concept (geometric)
+parser.add_argument('--pyconcept_alpha', type=float, default=None)
+parser.add_argument('--pyconcept_d', type=float, default=None)
+
 parser.add_argument('--helmholtz_dist', type=str, default="uniform") #During sleep, sample concepts from true weighted dist(default) or uniform
 parser.add_argument('--regex-primitives', dest='regex_primitives', action='store_true')
 
@@ -67,6 +66,9 @@ parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
 
 parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False, train_first=False)
 args = parser.parse_args()
+if args.fork is None:
+	for k,v in model_default_params.items():
+		if v is None: setattr(args, k, v)
 
 character_classes=[pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u] if args.regex_primitives else [pre.dot]
 
@@ -106,7 +108,6 @@ def networkStep():
 	M['state']['network_losses'].append(-network_score)
 	M['state']['iteration'] += 1
 	if M['state']['iteration']%10==0: print("Iteration %d" % M['state']['iteration'], "| Network loss: %2.2f" % M['state']['network_losses'][-1])
-
 	networkCache.clear()
 	return network_score
 
@@ -131,23 +132,28 @@ def trainToConvergence(saveEvery=1000):
 
 
 # ----------- Solve a task ------------------
-def onCounterexamples(queueProposal, proposal, counterexamples, p_valid):
-	if p_valid>0.5 and proposal.depth==0:
-		# print("Got counterexamples:", counterexamples)
-		#Deal with counter examples separately (with Alt)
+def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
+	if p_valid>0.5 and proposal.depth==0 and (kinkscore is None or kinkscore < 0.6):
+		counterexamples_unique = list(set(counterexamples))
 
-		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples, depth=proposal.depth+1)
+		#Retry by including counterexamples in support set
+		sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
+		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.examples + tuple(sampled_counterexamples), depth=proposal.depth+1)
+		for counterexample_proposal in counterexample_proposals[:4]:
+			queueProposal(counterexample_proposal)
+		
+		#Deal with counter examples separately (with Alt)
+		sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
+		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples, depth=proposal.depth+1)
 		for counterexample_proposal in counterexample_proposals[:4]: 
 			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
 				ps = [p_valid, 1-p_valid]))
-			new_proposal = Proposal(proposal.depth+1, proposal.examples + tuple(counterexamples), trace, concept, None, None, None)
+			new_proposal = Proposal(proposal.depth+1, proposal.examples + tuple(sampled_counterexamples), trace, concept, None, None, None)
+			print("Adding proposal", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, "kink =", kinkscore, flush=True)
 			queueProposal(new_proposal)
 		
-		#Retry by including counterexamples in support set
-		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.examples + tuple(counterexamples), depth=proposal.depth+1)
-		for counterexample_proposal in counterexample_proposals[:3]:
-			queueProposal(counterexample_proposal)
+
 
 def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, l_active, task_idx, task):
 	solutions = []
@@ -165,7 +171,7 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 		nEvaluated += 1
 		if solution.valid:
 			solutions.append(solution)
-			print("(Worker %d)"%worker_idx, "Score: %3.3f"%(solution.final_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
+			print("(Worker %d)"%worker_idx, "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
 		else:
 			print("(Worker %d)"%worker_idx, "Failed:", proposal.concept.str(proposal.trace), flush=True)
 		
@@ -195,8 +201,8 @@ def addTask(task_idx):
 			q_proposals.put(proposal)
 			proposal_strings_sofar.append(proposal_string)
 
-	for i in range(10):
-		num_examples = random.randint(1, min(len(example_counter), args.max_examples))
+	for i in range(10 if not args.debug else 3):
+		num_examples = random.randint(args.min_examples, min(len(example_counter), args.max_examples))
 		examples = list(np.random.choice(
 			list(example_counter.keys()),
 			size=min(num_examples, len(example_counter)),
@@ -259,11 +265,8 @@ if __name__ == "__main__":
 		character_classes
 
 	# Files to save:
-	os.makedirs("models", exist_ok = True)
-	os.makedirs("results", exist_ok = True)
-	os.makedirs("results/" + args.name, exist_ok = True)
-	modelfile = 'models/' + args.name + '.pt'
-	results_file = 'results/' + args.name + "/"
+	save_to = "results/"
+	modelfile = save_to + "model.pt"
 	use_cuda = torch.cuda.is_available() and not args.no_cuda
 
 	# ------------- Load Model & Data --------------
@@ -281,6 +284,11 @@ if __name__ == "__main__":
 			M = loader.load(args.fork, use_cuda)
 			M['args'] = args
 			print("Forked model", args.fork)
+			for param in model_default_params:
+				val = getattr(args, param)
+				if val is not None:
+					setattr(M['trace'].model, param, val)
+					print("set model." + str(param) + "=" + str(val))
 		else:
 			M = {}
 			M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
@@ -297,11 +305,9 @@ if __name__ == "__main__":
 			M['trace'], init_concept = M['trace'].addregex(pre.dot)
 			print("Created new model")
 		M['data_file'] = args.data_file
-		M['model_file'] = modelfile
-		M['results_file'] = results_file
+		M['save_to'] = save_to
 
 	if use_cuda: M['net'].cuda()
-
 
 	print("\nTraining...")
 	refreshVocabulary()
@@ -309,17 +315,18 @@ if __name__ == "__main__":
 
 	def save():
 		print("Saving...")
-		if M['state']['current_task']%10==0: loader.saveCheckpoint(M)
+		if M['state']['current_task']%1==0: loader.saveCheckpoint(M)
 		loader.saveRender(M)
 		loader.save(M)
 		print("Saved.")
 
 	for i in range(M['state']['current_task'], len(data)):
 		if not args.no_network: trainToConvergence()
+		gc.collect()
 		save()
 
 		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace'], depth=1) for c in M['trace'].baseConcepts))
 		addTask(M['state']['current_task'])
-		gc.collect()
 		M['state']['current_task'] += 1
+		gc.collect()
 		save()

@@ -18,11 +18,13 @@ def saveConcepts(M, filename):
 	dot = Digraph()
 	isMini = {}
 	for concept in concepts:
-		n=1000
-		c = Counter(concept.sample(trace) for _ in range(n))
-		# c = Counter(x.value for x in trace.getState(concept).observations)
-		samples = sorted(c, key=c.get, reverse=True)
-		samples = [x for x in samples if c.get(x) >= c.get(samples[0])/50]
+		# n=1000
+		# c = Counter(concept.sample(trace) for _ in range(n))
+		# samples = sorted(c, key=c.get, reverse=True)
+		# samples = [x for x in samples if c.get(x) >= c.get(samples[0])/50]
+
+		samples = list(set(concept.sample(trace) for _ in range(200)))
+
 		if len(samples)<=4:
 			sample_str = ", ".join(samples[:5])
 		else:
@@ -32,7 +34,7 @@ def saveConcepts(M, filename):
 		isRegex = type(concept) is RegexConcept
 		size = 8
 		
-		name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace)) + "</font><br/>"
+		name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=1)) + "</font><br/>"
 		nTaskReferences = trace.baseConcept_nTaskReferences.get(concept, 0)
 		nConceptReferences = trace.baseConcept_nReferences.get(concept, 0)
 

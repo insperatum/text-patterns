@@ -188,9 +188,9 @@ class PYConcept(Concept):
 	def str(self, trace, depth=default_string_depth):
 		state = trace.getState(self)
 		if depth==0:
-			return "PY" + str(trace.baseConcepts.index(self))
+			return "P" + str(trace.baseConcepts.index(self))
 		else:
-			return "PY" + str(trace.baseConcepts.index(self)) + "(" + state.baseConcept.str(trace, depth=depth-1) + ")"
+			return "P" + str(trace.baseConcepts.index(self)) + "(" + state.baseConcept.str(trace, depth=depth-1) + ")"
 
 	def createState(self, baseConcept):
 		return PYConcept.State(baseConcept = baseConcept,

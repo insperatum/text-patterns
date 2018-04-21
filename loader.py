@@ -33,10 +33,10 @@ def load(file, cuda=False):
 	return M
 
 def save(M, append_str=""):
-	torch.save(M, M['model_file'] + append_str)
+	torch.save(M, M['save_to'] + "model.pt")
 	
 	if 'trace' in M:
-		temp_file = M['results_file']+"temp"
+		temp_file = M['save_to']+"temp"
 		with open(temp_file, "w") as text_file:
 			text_file.write(str(M['args']) + "\n\n")
 
@@ -52,22 +52,23 @@ def save(M, append_str=""):
 			for i in range(len(M['task_observations'])):
 				t = M['task_observations'][i]
 				if len(t)>0:
+					text_file.write("Task %d: "%i)
 					if t[0].concept in M['trace'].baseConcepts:
 						text_file.write(t[0].concept.str(M['trace']) + "\n")
 					else:
 						text_file.write("???\n")
 					text_file.write(", ".join(list(set([x.value for x in t]))[:30]) + "\n\n")
-		shutil.copy(temp_file, M['results_file']+append_str + "_results.txt")
+		shutil.copy(temp_file, M['save_to'] + "_results.txt")
 
-		render.saveConcepts(M, M['results_file'] + "_concepts")
-		render.saveTrainingError(M, M['results_file'] + "_plot.png")
+		render.saveConcepts(M, M['save_to'] + "concepts.gv")
+		render.saveTrainingError(M, M['save_to'] + "plot.png")
 
 
 def saveCheckpoint(M):
-	torch.save(M, M['model_file'] + "_task" + str(M['state']['current_task']) + "_iter" + str(M['state']['iteration']))
+	torch.save(M, M['save_to'] + "model_task" + str(M['state']['current_task']) + "_iter" + str(M['state']['iteration']) + ".pt")
 
 def saveRender(M):
-	render.saveConcepts(M, M['results_file'] + "_concepts" + "_task" + str(M['state']['current_task']))
+	render.saveConcepts(M, M['save_to'] + "concepts" + "_task" + str(M['state']['current_task']) + ".gv")
 
 def loadData(file, n_examples, n_tasks):
 	rand = np.random.RandomState()

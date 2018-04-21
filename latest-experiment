@@ -1,0 +1,3 @@
+#!/bin/bash
+experiment=experiments/$(ls -t experiments | head -n1)
+echo $experiment

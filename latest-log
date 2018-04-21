@@ -1,0 +1,3 @@
+#!/bin/bash
+experiment=$(./latest-experiment)
+echo $experiment/slurm-logs/$(ls -t $experiment/slurm-logs | head -n1)
