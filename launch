@@ -17,13 +17,14 @@ git add -A
 git commit --allow-empty -m "Experiment $name"
 git push origin working
 
-echo "Launching in $dir"
+echo "Cloining project into in $dir"
 mkdir -p "$dir"
 cd "$dir"
-git clone -b working --recurse-submodules --depth 1 git@github.com:insperatum/text-patterns.git . 
+git clone -b working --quiet --recurse-submodules --depth 1 git@github.com:insperatum/text-patterns.git . 
 
 ln -s $init_dir/envs #anaconda-project
 
+echo "Launching"
 if [ "$1" == "-i" ]; then
 	anaconda-project run train ${@:2}
 else
