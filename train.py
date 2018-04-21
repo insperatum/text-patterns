@@ -68,7 +68,7 @@ parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_netwo
 args = parser.parse_args()
 if args.fork is None:
 	for k,v in model_default_params.items():
-		if v is None: setattr(args, k, v)
+		if getattr(args,k) is None: setattr(args, k, v)
 
 character_classes=[pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u] if args.regex_primitives else [pre.dot]
 
