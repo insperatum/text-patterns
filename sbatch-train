@@ -25,6 +25,7 @@ echo "Launching in $dir"
 mkdir -p "$dir"
 cd "$dir"
 git clone --recurse-submodules --depth 1 https://github.com/insperatum/text-patterns.git .
+git checkout working
 
 ln -s $init_dir/envs #anaconda-project
 
