@@ -564,8 +564,8 @@ class Trace:
 		if conceptClass is RegexConcept: conceptTypePrior = math.log(0.5)
 		if conceptClass is PYConcept: conceptTypePrior = math.log(0.5)
 
-		self.score += math.log(self.model.geom_p) + conceptTypePrior + prior
 		print(self.model.geom_p, conceptTypePrior, prior, flush=True)
+		self.score += math.log(self.model.geom_p) + conceptTypePrior + prior
 		for c in conceptsReferenced:
 			if c in self.baseConcepts:
 				self.score += self.logpConcept(c)
