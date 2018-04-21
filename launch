@@ -20,15 +20,14 @@ git push origin working
 echo "Launching in $dir"
 mkdir -p "$dir"
 cd "$dir"
-git clone --recurse-submodules --depth 1 git@github.com:insperatum/text-patterns.git . 
-git checkout working
+git clone -b working --recurse-submodules --depth 1 git@github.com:insperatum/text-patterns.git . 
 
 ln -s $init_dir/envs #anaconda-project
 
 bash
 
-if [ "$1" = '-i' ]; then
-	anaconda-project run train ${@:2}
-else
-	om-repeat sbatch -J "$name" -o slurm-logs/%j.out --gres=gpu:titan-x:1 --qos=tenenbaum --mem=40G -c10 --time=60 anaconda-project run train $@
-fi
+# if [ "$1" = '-i' ]; then
+# 	anaconda-project run train ${@:2}
+# else
+# 	om-repeat sbatch -J "$name" -o slurm-logs/%j.out --gres=gpu:titan-x:1 --qos=tenenbaum --mem=40G -c10 --time=60 anaconda-project run train $@
+# fi
