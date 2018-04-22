@@ -13,6 +13,7 @@ dir=experiments/$name
 init_dir=$(pwd)
 
 git checkout --quiet -B working
+git pull --quiet origin working
 git add -A
 git commit --quiet --allow-empty -m "Experiment $name"
 git push --quiet origin working
