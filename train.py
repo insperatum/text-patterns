@@ -40,6 +40,7 @@ parser.add_argument('--data_file', type=str, default="./data/csv.p")
 parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
+parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
 parser.add_argument('--min_iterations', type=int, default=50) #minimum number of training iterations before next concept
 
 parser.add_argument('--cell_type', type=str, default="LSTM")
@@ -82,7 +83,7 @@ def getInstance(n_examples):
 		r = M['trace'].model.sampleregex(M['trace'], conceptDist = args.helmholtz_dist)
 		target = r.flatten()
 		inputs = ([r.sample(M['trace']) for i in range(n_examples)],)
-		if len(target)<25 and all(len(x)<25 for x in inputs): break
+		if len(target)<args.max_length and all(len(x)<args.max_length for x in inputs): break
 	return {'inputs':inputs, 'target':target}
 
 def getBatch(batch_size):
@@ -202,12 +203,12 @@ def addTask(task_idx):
 			proposal_strings_sofar.append(proposal_string)
 
 	for i in range(10 if not args.debug else 3):
-		num_examples = random.randint(args.min_examples, min(len(example_counter), args.max_examples))
+		num_examples = random.randint(args.min_examples, args.max_examples)
 		examples = list(np.random.choice(
 			list(example_counter.keys()),
 			size=min(num_examples, len(example_counter)),
 			p=np.array(list(example_counter.values()))/sum(example_counter.values()),
-			replace=False))
+			replace=True))
 		pre_trace = M['trace']
 		new_proposals = getProposals(M['net'] if not args.no_network else None, pre_trace, examples)
 		for proposal in new_proposals:
@@ -272,7 +273,7 @@ if __name__ == "__main__":
 
 	# ------------- Load Model & Data --------------
 	# Data
-	data = loader.loadData(args.data_file, args.n_examples, args.n_tasks)
+	data = loader.loadData(args.data_file, args.n_examples, args.n_tasks, args.max_length)
 
 	# Model
 	try:

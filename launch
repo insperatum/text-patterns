@@ -9,20 +9,19 @@ else
 	name="${name}_${timestr}"
 fi
 
-mkdir -p "experiments"
 dir=experiments/$name
 init_dir=$(pwd)
 
-git checkout --quiet -B working
-git add -A
-git commit --quiet --allow-empty -m "Experiment $name"
-git push --quiet origin working
-
+git checkout --quiet -B working || exit
+git pull --no-edit --quiet origin working || exit
+git add -A || exit
+git commit --quiet --allow-empty -m "Experiment $name" || exit
+git push --quiet origin working || exit
 
 echo "Cloining project into in $dir"
 mkdir -p "$dir"
 cd "$dir"
-git clone --quiet -b working --recurse-submodules --depth 1 git@github.com:insperatum/text-patterns.git . >/dev/null #quiet doesn't seem to work with submodules?
+git clone --quiet -b working --recurse-submodules --depth 1 git@github.com:insperatum/text-patterns.git . || exit
 
 ln -s $init_dir/envs #anaconda-project
 
