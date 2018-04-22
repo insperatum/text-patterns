@@ -70,11 +70,9 @@ def saveCheckpoint(M):
 def saveRender(M):
 	render.saveConcepts(M, M['save_to'] + "concepts" + "_task" + str(M['state']['current_task']) + ".gv")
 
-def loadData(file, n_examples, n_tasks):
+def loadData(file, n_examples, n_tasks, max_length):
 	rand = np.random.RandomState()
 	rand.seed(0)
-	
-	max_length = 15
 
 	all_tasks = []
 	for x in pickle.load(open(file, 'rb')):

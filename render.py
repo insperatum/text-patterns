@@ -9,6 +9,7 @@ import loader
 from collections import Counter
 import html
 import numpy as np
+import random
 
 def saveConcepts(M, filename):
 	print("Rendering to:%s"%filename)
@@ -24,7 +25,8 @@ def saveConcepts(M, filename):
 		# samples = [x for x in samples if c.get(x) >= c.get(samples[0])/50]
 
 		samples = list(set(concept.sample(trace) for _ in range(200)))
-
+		random.shuffle(samples)
+		
 		if len(samples)<=4:
 			sample_str = ", ".join(samples[:5])
 		else:
