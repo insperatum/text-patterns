@@ -1,5 +1,5 @@
 import loader
-from propose import Proposal, evalProposal, getProposals, networkCache
+from propose import Proposal, evalProposal, getProposals, networkCache, getNetworkRegexes
 import util
 
 import torch
@@ -19,9 +19,33 @@ if torch.cuda.is_available(): M['net'].cuda()
 print("Few shot (g)eneration or (c)lassification?")
 mode = input()
 
-if mode.lower() in ["g", "generation"]:
 
-	for i in range(10000):
+if mode.lower() in ["n", "network"]:
+	for i in range(99999):
+		print("-"*20, "\n")
+		if i==0:
+			examples = ["bar", "car", "dar"]
+			print("Using examples:")
+			for e in examples: print(e)
+			print()
+		else:
+			print("Please enter examples (one per line):")
+			examples = []
+			nextInput = True
+			while nextInput:
+				s = input()
+				if s=="":
+					nextInput=False
+				else:
+					examples.append(s)
+
+		network_regexes = getNetworkRegexes(M['net'], M['trace'], examples)
+		for r in network_regexes:
+			print(r)
+	
+
+if mode.lower() in ["g", "generation"]:
+	for i in range(99999):
 		print("-"*20, "\n")
 		if i==0:
 			examples = ["bar", "car", "dar"]
@@ -77,7 +101,7 @@ elif mode.lower() in ["c", "classification"]:
 		return util.logsumexp([trace.score for trace in new_traces])
 
 
-	for i in range(10000):
+	for i in range(99999):
 		print("-"*20, "\n")
 
 		if i==0:
