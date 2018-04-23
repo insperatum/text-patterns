@@ -39,9 +39,9 @@ if mode.lower() in ["n", "network"]:
 				else:
 					examples.append(s)
 
-		network_regexes = getNetworkRegexes(M['net'], M['trace'], examples)
-		for r in network_regexes:
-			print(r)
+		regex_count = getNetworkRegexes(M['net'], M['trace'], examples)
+		for r in sorted(regex_count, key=regex_count.get, reverse=True)[:20]:
+			print("%3d: %s" %(regex_count.get(r), r))
 	
 
 if mode.lower() in ["g", "generation"]:

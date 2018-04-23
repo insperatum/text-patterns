@@ -62,8 +62,7 @@ def getNetworkRegexes(net, current_trace, examples):
 				except pre.ParseException:
 					pass
 		networkCache[examples] = regex_count
-	network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
-	return network_regexes
+	return regex_count
 
 def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Includes proposals from network, and proposals on existing concepts
 	examples = sorted(examples)[:10] #Hashable for cache. Up to 10 input examples
@@ -72,7 +71,8 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 	if net is None:
 		network_regexes = []
 	else:
-		network_regexes = getNetworkRegexes(net, current_trace, examples)
+		regex_count = getNetworkRegexes(net, current_trace, examples)
+		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
 	
 	proposals = [Proposal(depth, examples, *current_trace.addregex(r), None, None, None) for r in network_regexes] + \
 		[Proposal(depth, examples, current_trace.fork(), c, None, None, None) for c in current_trace.baseConcepts] + \
