@@ -9,7 +9,7 @@ import math
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default=max(('results/%s'%x for x in os.listdir('results') if x[-3:]=".pt"), key=os.path.getmtime)) #Most recent model
+parser.add_argument('--model', type=str, default=max(('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt"), key=os.path.getmtime)) #Most recent model
 args = parser.parse_args()
 
 print("Loading", args.model)
