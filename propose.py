@@ -47,6 +47,7 @@ networkCache = {}
 
 def getNetworkRegexes(net, current_trace, examples):
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
+	examples = tuple(examples)
 	if examples in networkCache:
 		regex_count = networkCache[examples]
 	else:
@@ -65,8 +66,8 @@ def getNetworkRegexes(net, current_trace, examples):
 	return network_regexes
 
 def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Includes proposals from network, and proposals on existing concepts
-	examples = tuple(sorted(examples)[:10]) #Hashable for cache. Up to 10 input examples
-	isCached = examples in networkCache
+	examples = sorted(examples)[:10] #Hashable for cache. Up to 10 input examples
+	isCached = tuple(examples) in networkCache
 
 	if net is None:
 		network_regexes = []
