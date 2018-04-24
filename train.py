@@ -112,7 +112,7 @@ def networkStep():
 	networkCache.clear()
 	return network_score
 
-def train(toConvergence=False, iterations=None, saveEvery=1000):
+def train(toConvergence=False, iterations=None, saveEvery=2000):
 	from_iteration = M['state']['task_iterations'][-1] if M['state']['task_iterations'] else 0
 	while True:
 		if toConvergence:
