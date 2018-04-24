@@ -16,7 +16,7 @@ print("Loading", args.model)
 M = loader.load(args.model)
 if torch.cuda.is_available(): M['net'].cuda()
 
-print("Few shot (g)eneration or (c)lassification?")
+print("Few shot (g)eneration, (c)lassification, or (n)etwork predictions?")
 mode = input()
 
 
@@ -41,7 +41,9 @@ if mode.lower() in ["n", "network"]:
 
 		regex_count = getNetworkRegexes(M['net'], M['trace'], examples)
 		for r in sorted(regex_count, key=regex_count.get, reverse=True)[:20]:
-			print("%3d: %s" %(regex_count.get(r), r))
+			count = regex_count.get(r)
+			s = r.str(lambda concept: concept.str(M['trace'], depth=-1))
+			print("%3d: %s" %(count, s))
 	
 
 if mode.lower() in ["g", "generation"]:
