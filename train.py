@@ -132,9 +132,9 @@ def train(toConvergence=False, iterations=None, saveEvery=1000):
 		else:
 			if len(M['state']['network_losses']) <= from_iteration + iterations:
 				networkStep()
-			else
+			else:
 				break
-				
+
 		if len(M['state']['network_losses']) % saveEvery == 0:
 			loader.save(M)
 
