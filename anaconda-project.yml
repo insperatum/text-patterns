@@ -21,8 +21,7 @@ description:
 # In the commands section, list your runnable scripts, notebooks, and other code.
 # Use `anaconda-project add-command` to add commands.
 #
-commands: {demo: {unix: python -u demo.py, env_spec: default}, python: {unix: python
-      -u, env_spec: default}, train: {unix: python -u train.py, env_spec: default}}
+commands: {demo: {unix: python -u demo.py, env_spec: default}, python: {unix: python -u, env_spec: default}, train: {unix: python -u train.py, env_spec: default}, debug: {unix: python -u -i debug.py, env_spec: default}}
 #
 # In the variables section, list any environment variables your code depends on.
 # Use `anaconda-project add-variable` to add variables.

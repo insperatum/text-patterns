@@ -45,29 +45,33 @@ def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task
 
 networkCache = {}
 
-def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Includes proposals from network, and proposals on existing concepts
-	examples = tuple(sorted(examples)[:10]) #Hashable for cache. Up to 10 input examples
-	isCached = examples in networkCache
-	# if not isCached: print("getProposals(", ", ".join(examples), ")")
+def getNetworkRegexes(net, current_trace, examples):
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
+	examples = tuple(examples)
+	if examples in networkCache:
+		regex_count = networkCache[examples]
+	else:
+		regex_count = Counter()
+		for i in range(10):
+			inputs = [examples] * 500
+			outputs = net.sample(inputs)
+			for o in outputs:
+				try:
+					r = pre.create(o, lookup=lookup)
+					regex_count[r] += 1
+				except pre.ParseException:
+					pass
+		networkCache[examples] = regex_count
+	return regex_count
+
+def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Includes proposals from network, and proposals on existing concepts
+	examples = sorted(examples)[:10] #Hashable for cache. Up to 10 input examples
+	isCached = tuple(examples) in networkCache
 
 	if net is None:
 		network_regexes = []
 	else:
-		if examples in networkCache:
-			regex_count = networkCache[examples]
-		else:
-			regex_count = Counter()
-			for i in range(10):
-				inputs = [examples] * 500
-				outputs = net.sample(inputs)
-				for o in outputs:
-					try:
-						r = pre.create(o, lookup=lookup)
-						regex_count[r] += 1
-					except pre.ParseException:
-						pass
-			networkCache[examples] = regex_count
+		regex_count = getNetworkRegexes(net, current_trace, examples)
 		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
 	
 	proposals = [Proposal(depth, examples, *current_trace.addregex(r), None, None, None) for r in network_regexes] + \

@@ -32,20 +32,27 @@ class RegexModel:
 		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: pConcept}
 		self.logp_regex = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex.items()}
 
+		self.p_regex_no_recursion = {pre.String: self.p_regex[pre.String] / (self.p_regex[pre.String] + self.p_regex[CONCEPT]),
+					     CONCEPT:	 self.p_regex[CONCEPT] / (self.p_regex[pre.String] + self.p_regex[CONCEPT])}
+		self.logp_regex_no_recursion = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_recursion.items()}
+		self.p_regex_no_recursion_no_concepts = {pre.String: 1}
+		self.logp_regex_no_recursion_no_concepts = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_recursion_no_concepts.items()}
+
 	def sampleregex(self, trace, depth=0, conceptDist="default"):
 		"""
 		conceptDist: 'default' assumes base concept probabilities as defined in trace
 					 'uniform' assumes uniform distribution over base concepts
 		"""
-		p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
-		logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
-		
 		if depth==maxDepth:
-			R = pre.String
+			p_regex = self.p_regex_no_recursion if trace.baseConcepts else self.p_regex_no_concepts_no_recursion
+			logp_regex = self.logp_regex_no_recursion if trace.baseConcepts else self.logp_regex_no_concepts_no_recursion
 		else:
-			items = list(p_regex.items())
-			idx = np.random.choice(range(len(items)), p=[p for k,p in items])
-			R, p = items[idx]
+			p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
+			logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
+		
+		items = list(p_regex.items())
+		idx = np.random.choice(range(len(items)), p=[p for k,p in items])
+		R, p = items[idx]
 			
 		if R == pre.String:
 			s = pre.Plus(pre.dot, p=0.3).sample()
@@ -65,15 +72,14 @@ class RegexModel:
 				return RegexWrapper(np.random.choice(trace.baseConcepts))
 
 	def scoreregex(self, r, trace, depth=0):
-		p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
-		logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
-
 		if depth==maxDepth:
-			if type(r) is pre.String:
-				return pre.Plus(pre.dot, p=0.3).match(r.arg)
-			else:
-				return float("-inf")
-		elif type(r) is RegexWrapper and r.concept in trace.baseConcepts:
+			p_regex = self.p_regex_no_recursion if trace.baseConcepts else self.p_regex_no_concepts_no_recursion
+			logp_regex = self.logp_regex_no_recursion if trace.baseConcepts else self.logp_regex_no_concepts_no_recursion
+		else:
+			p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
+			logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
+
+		if type(r) is RegexWrapper and r.concept in trace.baseConcepts:
 			return logp_regex[CONCEPT] + trace.logpConcept(r.concept)
 		elif r in self.character_classes:
 			return logp_regex[r]

@@ -19,18 +19,15 @@ def saveConcepts(M, filename):
 	dot = Digraph()
 	isMini = {}
 	for concept in concepts:
-		# n=1000
-		# c = Counter(concept.sample(trace) for _ in range(n))
-		# samples = sorted(c, key=c.get, reverse=True)
-		# samples = [x for x in samples if c.get(x) >= c.get(samples[0])/50]
-
-		samples = list(set(concept.sample(trace) for _ in range(200)))
-		random.shuffle(samples)
+		samples = [concept.sample(trace) for _ in range(5)]
+		unique_samples = set(samples)
+		many_samples = [concept.sample(trace) for _ in range(1000)]
 		
-		if len(samples)<=4:
-			sample_str = ", ".join(samples[:5])
+
+		if any(x not in unique_samples for x in many_samples):
+			sample_str = ", ".join(unique_samples)
 		else:
-			sample_str = ", ".join(samples[:4] + ["..."])
+			sample_str = ", ".join(list(unique_samples) + ["..."])
 		
 		
 		isRegex = type(concept) is RegexConcept

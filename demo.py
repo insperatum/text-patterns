@@ -1,22 +1,53 @@
 import loader
-from propose import Proposal, evalProposal, getProposals, networkCache
+from propose import Proposal, evalProposal, getProposals, networkCache, getNetworkRegexes
 import util
 
 import torch
 
 import os
 import math
+import argparse
 
-modelfile = max(('models/%s'%x for x in os.listdir('models')), key=os.path.getmtime) #Most recent model
-M = loader.load(modelfile)
+parser = argparse.ArgumentParser()
+parser.add_argument('--model', type=str, default=max(('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt"), key=os.path.getmtime)) #Most recent model
+args = parser.parse_args()
+
+print("Loading", args.model)
+M = loader.load(args.model)
 if torch.cuda.is_available(): M['net'].cuda()
 
-
-print("Few shot (g)eneration or (c)lassification?")
+print("Few shot (g)eneration, (c)lassification, or (n)etwork predictions?")
 mode = input()
-if mode.lower() in ["g", "generation"]:
 
-	for i in range(10000):
+
+if mode.lower() in ["n", "network"]:
+	for i in range(99999):
+		print("-"*20, "\n")
+		if i==0:
+			examples = ["bar", "car", "dar"]
+			print("Using examples:")
+			for e in examples: print(e)
+			print()
+		else:
+			print("Please enter examples (one per line):")
+			examples = []
+			nextInput = True
+			while nextInput:
+				s = input()
+				if s=="":
+					nextInput=False
+				else:
+					examples.append(s)
+
+		regex_count = getNetworkRegexes(M['net'], M['trace'], examples)
+		for r in sorted(regex_count, key=regex_count.get, reverse=True)[:20]:
+			count = regex_count.get(r)
+			s = r.str(lambda concept: concept.str(M['trace'], depth=-1))
+			print("%3d: %s" %(count, s))
+	
+
+if mode.lower() in ["g", "generation"]:
+	for i in range(99999):
 		print("-"*20, "\n")
 		if i==0:
 			examples = ["bar", "car", "dar"]
@@ -72,7 +103,7 @@ elif mode.lower() in ["c", "classification"]:
 		return util.logsumexp([trace.score for trace in new_traces])
 
 
-	for i in range(10000):
+	for i in range(99999):
 		print("-"*20, "\n")
 
 		if i==0:

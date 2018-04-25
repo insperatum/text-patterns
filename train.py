@@ -60,12 +60,12 @@ parser.add_argument('--pyconcept_d', type=float, default=None)
 parser.add_argument('--helmholtz_dist', type=str, default="uniform") #During sleep, sample concepts from true weighted dist(default) or uniform
 parser.add_argument('--regex-primitives', dest='regex_primitives', action='store_true')
 
+parser.add_argument('--train_first', type=int, default=0)
 parser.add_argument('--debug', dest='debug', action='store_true')
-parser.add_argument('--train-first', dest='train_first', action='store_true')
 parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
 
-parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False, train_first=False)
+parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False)
 args = parser.parse_args()
 if args.fork is None:
 	for k,v in model_default_params.items():
@@ -112,22 +112,29 @@ def networkStep():
 	networkCache.clear()
 	return network_score
 
-def trainToConvergence(saveEvery=1000):
+def train(toConvergence=False, iterations=None, saveEvery=2000):
 	from_iteration = M['state']['task_iterations'][-1] if M['state']['task_iterations'] else 0
 	while True:
-		window_size = args.min_iterations
-		min_grad=2e-3
-		if len(M['state']['network_losses']) <= from_iteration + window_size:
-			networkStep()
-		else:
-			window = M['state']['network_losses'][-window_size:]
-			regress = stats.linregress(range(window_size), window)
-			regress_slope = stats.linregress(range(window_size), [window[i] + min_grad*i for i in range(len(window))])
-			p_ratio = regress.pvalue / regress_slope.pvalue
-			if p_ratio < 2 and not args.debug: 
+		if toConvergence:
+			window_size = args.min_iterations
+			min_grad=2e-3
+			if len(M['state']['network_losses']) <= from_iteration + window_size:
 				networkStep()
 			else:
-				break #Break when converged
+				window = M['state']['network_losses'][-window_size:]
+				regress = stats.linregress(range(window_size), window)
+				regress_slope = stats.linregress(range(window_size), [window[i] + min_grad*i for i in range(len(window))])
+				p_ratio = regress.pvalue / regress_slope.pvalue
+				if p_ratio < 2 and not args.debug: 
+					networkStep()
+				else:
+					break #Break when converged
+		else:
+			if len(M['state']['network_losses']) <= from_iteration + iterations:
+				networkStep()
+			else:
+				break
+
 		if len(M['state']['network_losses']) % saveEvery == 0:
 			loader.save(M)
 
@@ -322,8 +329,10 @@ if __name__ == "__main__":
 		loader.save(M)
 		print("Saved.")
 
+	if args.train_first > 0: train(iterations=args.train_first)
+
 	for i in range(M['state']['current_task'], len(data)):
-		if not args.no_network: trainToConvergence()
+		if not args.no_network: train(toConvergence=True)
 		gc.collect()
 		save()
 
