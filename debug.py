@@ -7,6 +7,8 @@ import torch
 import os
 import math
 import argparse
+import pregex as pre
+from trace import RegexWrapper
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default=max(('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt"), key=os.path.getmtime)) #Most recent model
