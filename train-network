@@ -26,8 +26,9 @@ git clone --quiet -b working --recurse-submodules --depth 1 git@github.com:inspe
 ln -s $init_dir/envs #anaconda-project
 
 echo "Launching"
+extra_args="--train_first=100000"
 if [ "$1" == "-i" ]; then
-	anaconda-project run train ${@:2}
+	anaconda-project run train $extra_args ${@:2}
 else
-	om-repeat sbatch -J "$name" -o slurm-logs/%j.out --gres=gpu:titan-x:1 --qos=tenenbaum --mem=40G -c1 --time=60 anaconda-project run train --train_first=100000 $@
+	om-repeat sbatch -J "$name" -o slurm-logs/%j.out --gres=gpu:titan-x:1 --qos=tenenbaum --mem=40G -c1 --time=60 anaconda-project run train $extra_args $@
 fi

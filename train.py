@@ -311,7 +311,7 @@ if __name__ == "__main__":
 				geom_p=args.geom_p,
 				pyconcept_alpha=args.pyconcept_alpha,
 				pyconcept_d=args.pyconcept_d))
-			M['trace'], init_concept = M['trace'].addregex(pre.dot)
+			#M['trace'], init_concept = M['trace'].addregex(pre.dot)
 			print("Created new model")
 		M['data_file'] = args.data_file
 		M['save_to'] = save_to
