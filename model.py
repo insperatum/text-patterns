@@ -44,8 +44,8 @@ class RegexModel:
 					 'uniform' assumes uniform distribution over base concepts
 		"""
 		if depth==maxDepth:
-			p_regex = self.p_regex_no_recursion if trace.baseConcepts else self.p_regex_no_concepts_no_recursion
-			logp_regex = self.logp_regex_no_recursion if trace.baseConcepts else self.logp_regex_no_concepts_no_recursion
+			p_regex = self.p_regex_no_recursion if trace.baseConcepts else self.p_regex_no_recursion_no_concepts
+			logp_regex = self.logp_regex_no_recursion if trace.baseConcepts else self.logp_regex_no_recursion_no_concepts
 		else:
 			p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
 			logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
@@ -73,8 +73,8 @@ class RegexModel:
 
 	def scoreregex(self, r, trace, depth=0):
 		if depth==maxDepth:
-			p_regex = self.p_regex_no_recursion if trace.baseConcepts else self.p_regex_no_concepts_no_recursion
-			logp_regex = self.logp_regex_no_recursion if trace.baseConcepts else self.logp_regex_no_concepts_no_recursion
+			p_regex = self.p_regex_no_recursion if trace.baseConcepts else self.p_regex_no_recursion_no_concepts
+			logp_regex = self.logp_regex_no_recursion if trace.baseConcepts else self.logp_regex_no_recursion_no_concepts
 		else:
 			p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
 			logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
