@@ -307,13 +307,13 @@ if __name__ == "__main__":
 			M['args'] = args
 			M['task_observations'] = [[] for d in range(len(data))]
 			M['trace'] = Trace(model=RegexModel(
-				character_classes=character_classes,
+			    character_classes=character_classes,
 				alpha=args.alpha,
 				geom_p=args.geom_p,
 				pyconcept_alpha=args.pyconcept_alpha,
 				pyconcept_d=args.pyconcept_d))
-                        if args.initial_concept=="dot":
-                            M['trace'], init_concept = M['trace'].addregex(pre.dot)
+			if args.initial_concept=="dot":
+				M['trace'], init_concept = M['trace'].addregex(pre.dot)
 			print("Created new model")
 		M['data_file'] = args.data_file
 		M['save_to'] = save_to
