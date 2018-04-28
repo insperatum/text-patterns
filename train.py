@@ -50,6 +50,7 @@ parser.add_argument('--embedding_size', type=int, default=128)
 parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
 parser.add_argument('--n_examples', type=int, default=500)
+parser.add_argument('--initial_concept', type=str, default="dot") 
 
 model_default_params = {'alpha':0.01, 'geom_p':0.01, 'pyconcept_alpha':1, 'pyconcept_d':0.5}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references, or to alpha if no references
@@ -64,7 +65,7 @@ parser.add_argument('--train_first', type=int, default=0)
 parser.add_argument('--debug', dest='debug', action='store_true')
 parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
-
+parser-add_argument('--no-initial-concept', dest='initial_concept', action='store_const', const=None)
 parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False)
 args = parser.parse_args()
 if args.fork is None:
@@ -311,7 +312,8 @@ if __name__ == "__main__":
 				geom_p=args.geom_p,
 				pyconcept_alpha=args.pyconcept_alpha,
 				pyconcept_d=args.pyconcept_d))
-			#M['trace'], init_concept = M['trace'].addregex(pre.dot)
+                        if args.initial_concept=="dot":
+                            M['trace'], init_concept = M['trace'].addregex(pre.dot)
 			print("Created new model")
 		M['data_file'] = args.data_file
 		M['save_to'] = save_to
