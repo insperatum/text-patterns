@@ -27,7 +27,7 @@ ln -s $init_dir/envs #anaconda-project
 
 echo "Launching"
 extra_args="--train_first=100000 --n_tasks=0"
-n
+
 if [ "$1" == "-i" ]; then
 	anaconda-project run train $extra_args ${@:2}
 else
