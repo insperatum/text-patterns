@@ -73,6 +73,9 @@ if args.fork is None:
 		if getattr(args,k) is None: setattr(args, k, v)
 
 character_classes=[pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u] if args.regex_primitives else [pre.dot]
+default_vocabulary = list(string.printable) + \
+        [pre.OPEN, pre.CLOSE, pre.String, pre.Concat, pre.Alt, pre.KleeneStar, pre.Plus, pre.Maybe] + \
+        character_classes
 
 # ----------- Network training ------------------
 # Sample
@@ -267,11 +270,6 @@ if __name__ == "__main__":
 	if "SLURM_CPUS_PER_TASK" in os.environ: cpus = int(os.environ["SLURM_CPUS_PER_TASK"])
 	else: cpus = 1
 	print("Running on %d CPUs" % cpus)
-
-
-	default_vocabulary = list(string.printable) + \
-		[pre.OPEN, pre.CLOSE, pre.String, pre.Concat, pre.Alt, pre.KleeneStar, pre.Plus, pre.Maybe] + \
-		character_classes
 
 	# Files to save:
 	save_to = "results/"
