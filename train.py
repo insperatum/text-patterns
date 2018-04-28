@@ -87,7 +87,7 @@ def getInstance(n_examples):
 		r = M['trace'].model.sampleregex(M['trace'], conceptDist = args.helmholtz_dist)
 		target = r.flatten()
 		inputs = ([r.sample(M['trace']) for i in range(n_examples)],)
-		if len(target)<args.max_length and all(len(x)<args.max_length for x in inputs): break
+		if len(target)<args.max_length and all(len(x)<args.max_length for x in inputs[0]): break
 	return {'inputs':inputs, 'target':target}
 
 def getBatch(batch_size):
