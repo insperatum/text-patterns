@@ -65,7 +65,7 @@ parser.add_argument('--train_first', type=int, default=0)
 parser.add_argument('--debug', dest='debug', action='store_true')
 parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
-parser-add_argument('--no-initial-concept', dest='initial_concept', action='store_const', const=None)
+parser.add_argument('--no-initial-concept', dest='initial_concept', action='store_const', const=None)
 parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False)
 args = parser.parse_args()
 if args.fork is None:
