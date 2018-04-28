@@ -1,27 +1,15 @@
 import os
 import torch
-import torch.nn as nn
-from torch.nn.parameter import Parameter
-from torch.autograd import Variable
-from torch import optim
-import torch.nn.functional as F
-import util
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import random
 import argparse
 import gc
 
-from datetime import datetime
-import pickle
-import copy
-import math
 import numpy as np
 from scipy import stats
-import time
 import string
-from collections import Counter, namedtuple
+from collections import Counter
 import torch.multiprocessing as mp
 import queue
 
