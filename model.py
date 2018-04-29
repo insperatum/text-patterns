@@ -30,13 +30,12 @@ class RegexModel:
 		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: pConcept}
 		self.logp_regex = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex.items()}
 
-		
-                valid_no_recursion = [pre.String, CONCEPT] + self.character_classes
-                self.p_regex_no_recursion = {k: self.p_regex[k] / sum(self.p_regex[k] for k in valid_no_recursion) for k in valid_no_recursion}
-                self.logp_regex_no_recursion = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_recursion.items()}
-		
-                valid_no_concepts_no_recursion = [pre.String] + self.character_classes
-                self.p_regex_no_concepts_no_recursion = {k: self.p_regex[k] / sum(self.p_regex[k] for k in valid_no_concepts_no_recursion) for k in valid_no_concepts_no_recursion}
+		valid_no_recursion = [pre.String, CONCEPT] + self.character_classes
+		self.p_regex_no_recursion = {k: self.p_regex[k] / sum(self.p_regex[k] for k in valid_no_recursion) for k in valid_no_recursion}
+		self.logp_regex_no_recursion = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_recursion.items()}
+
+		valid_no_concepts_no_recursion = [pre.String] + self.character_classes
+		self.p_regex_no_concepts_no_recursion = {k: self.p_regex[k] / sum(self.p_regex[k] for k in valid_no_concepts_no_recursion) for k in valid_no_concepts_no_recursion}
 		self.logp_regex_no_concepts_no_recursion = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_concepts_no_recursion.items()}
 
 	def sampleregex(self, trace, depth=0, conceptDist="default"):
