@@ -29,14 +29,14 @@ class RegexModel:
 		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: pConcept}
 
 		valid_no_recursion = [pre.String, CONCEPT] + self.character_classes
-		self.p_regex_no_recursion = 
+		self.p_regex_no_recursion = \
 			{k: self.p_regex[k] / sum(self.p_regex[k] for k in valid_no_recursion) if k in valid_no_recursion else 0 
-			for k in p_regex}
+			for k in self.p_regex}
 
 		valid_no_concepts_no_recursion = [pre.String] + self.character_classes
-		self.p_regex_no_concepts_no_recursion = 
+		self.p_regex_no_concepts_no_recursion = \
 			{k: self.p_regex[k] / sum(self.p_regex[k] for k in valid_no_concepts_no_recursion) if k in valid_no_concepts_no_recursion else 0
-			for k in p_regex}
+			for k in self.p_regex}
 
 		self.logp_regex_no_concepts = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_concepts.items()}
 		self.logp_regex = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex.items()}
