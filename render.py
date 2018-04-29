@@ -22,9 +22,9 @@ def saveConcepts(M, filename):
 		
 		
 		if any(x not in unique_samples for x in many_samples):
-			sample_str = ", ".join(list(s if s is not "" else "&epsilon;" for s in unique_samples) + ["..."])
+			sample_str = ", ".join(list(s if s is not "" else "&#949;" for s in unique_samples) + ["..."])
 		else:
-			sample_str = ", ".join(list(s if s is not "" else "&epsilon;" for s in unique_samples))
+			sample_str = ", ".join(list(s if s is not "" else "&#949;" for s in unique_samples))
 		
 		
 		isRegex = type(concept) is RegexConcept
