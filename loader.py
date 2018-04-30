@@ -14,6 +14,7 @@ def load(file, cuda=False):
 
 	# Legacy
 	trace = M['trace']
+	trace.model.refresh()
 	if len(trace.baseConcepts)>0 and trace.baseConcepts[0].id != 0:
 		for i in range(len(trace.baseConcepts)):
 			v0 = trace.state.get(trace.baseConcepts[i], None)

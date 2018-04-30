@@ -16,7 +16,9 @@ class RegexModel:
 		self.geom_p = geom_p
 		self.pyconcept_alpha = pyconcept_alpha
 		self.pyconcept_d = pyconcept_d
+		self.refresh()
 
+	def refresh(self):
 		self.p_regex_no_concepts = {
 			pre.String: 0.5,
 			pre.Concat: 0.1,
@@ -27,7 +29,7 @@ class RegexModel:
 		}
 		for x in self.character_classes: self.p_regex_no_concepts[x] = 0.1 / len(self.character_classes)
 
-		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: pConcept}
+		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: self.pConcept}
 
 		valid_no_recursion = [pre.String, CONCEPT] + self.character_classes
 		self.p_regex_no_recursion = \
