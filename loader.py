@@ -102,7 +102,7 @@ def loadData(file, n_examples, n_tasks, max_length):
 		grouped_data[i] = sorted(grouped_data[i], key=lambda examples: -util.entropy(examples))
 
 	data = [x for examples in grouped_data for x in examples]
-	group_idxs = list(np.cumsum(len(X) for X in grouped_data)) 
+	group_idxs = list(np.cumsum([len(X) for X in grouped_data])) 
 	# rand.shuffle(data)
 	# if args.n_tasks is not None:
 	# 	data = data[args.skip_tasks:args.n_tasks + args.skip_tasks]

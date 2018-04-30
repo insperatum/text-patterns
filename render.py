@@ -11,7 +11,7 @@ import numpy as np
 def saveConcepts(M, filename):
 	print("Rendering to:%s"%filename)
 	trace = M['trace']
-	concepts = trace.baseConcepts
+	concepts = trace.allConcepts
 
 	dot = Digraph()
 	isMini = {}

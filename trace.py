@@ -476,6 +476,7 @@ class Trace:
 		self.state = {} #dict<Concept, State>
 		self.nextConceptID = 0
 		self.baseConcepts = []
+		self.allConcepts = []
 		self.baseConcept_nReferences = {} #dict<Concept, int> number of times concept is referenced by other concepts
 		self.baseConcept_nReferences_total = 0
 		self.baseConcept_nTaskReferences = {} #dict<Concept, int> number of times concept is referenced by other concepts
@@ -485,6 +486,7 @@ class Trace:
 		fork = copy.copy(self)
 		fork.state = copy.copy(self.state)
 		fork.baseConcepts = copy.copy(self.baseConcepts)
+		fork.allConcepts = copy.copy(self.allConcepts)
 		fork.baseConcept_nReferences = copy.copy(self.baseConcept_nReferences)
 		fork.baseConcept_nTaskReferences = copy.copy(self.baseConcept_nTaskReferences)
 		return fork
@@ -573,18 +575,22 @@ class Trace:
 		regex_concept = trace._addConcept(RegexConcept, regex)
 		concept = trace._addConcept(PYConcept, regex_concept)
 		trace.baseConcepts.append(concept)
+		trace.allConcepts.append(regex_concept)
+		trace.allConcepts.append(concept)
 		return trace, concept
 
 	def addPY(self, concept):
 		trace = self.fork()
 		concept = trace._addConcept(PYConcept, concept)
 		trace.baseConcepts.append(concept)
+		trace.allConcepts.append(concept)
 		return trace, concept
 
 	def addregex(self, regex):
 		trace = self.fork()
 		concept = trace._addConcept(RegexConcept, regex)
 		trace.baseConcepts.append(concept)
+		trace.allConcepts.append(concept)
 		return trace, concept
 
 
