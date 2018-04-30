@@ -1,6 +1,4 @@
 import math
-import string
-import random
 import numpy as np
 from scipy.stats import geom
 
@@ -27,16 +25,23 @@ class RegexModel:
 			#Doesn't include CONCEPT
 		}
 		for x in self.character_classes: self.p_regex_no_concepts[x] = 0.1 / len(self.character_classes)
-		self.logp_regex_no_concepts = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_concepts.items()}
 
 		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: pConcept}
-		self.logp_regex = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex.items()}
 
-		self.p_regex_no_recursion = {pre.String: self.p_regex[pre.String] / (self.p_regex[pre.String] + self.p_regex[CONCEPT]),
-					     CONCEPT:	 self.p_regex[CONCEPT] / (self.p_regex[pre.String] + self.p_regex[CONCEPT])}
+		valid_no_recursion = [pre.String, CONCEPT] + self.character_classes
+		self.p_regex_no_recursion = \
+			{k: self.p_regex[k] / sum(self.p_regex[k] for k in valid_no_recursion) if k in valid_no_recursion else 0 
+			for k in self.p_regex}
+
+		valid_no_concepts_no_recursion = [pre.String] + self.character_classes
+		self.p_regex_no_concepts_no_recursion = \
+			{k: self.p_regex[k] / sum(self.p_regex[k] for k in valid_no_concepts_no_recursion) if k in valid_no_concepts_no_recursion else 0
+			for k in self.p_regex}
+
+		self.logp_regex_no_concepts = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_concepts.items()}
+		self.logp_regex = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex.items()}
 		self.logp_regex_no_recursion = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_recursion.items()}
-		self.p_regex_no_recursion_no_concepts = {pre.String: 1}
-		self.logp_regex_no_recursion_no_concepts = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_recursion_no_concepts.items()}
+		self.logp_regex_no_concepts_no_recursion = {k: math.log(p) if p>0 else float("-inf") for k,p in self.p_regex_no_concepts_no_recursion.items()}
 
 	def sampleregex(self, trace, depth=0, conceptDist="default"):
 		"""
@@ -45,10 +50,8 @@ class RegexModel:
 		"""
 		if depth==maxDepth:
 			p_regex = self.p_regex_no_recursion if trace.baseConcepts else self.p_regex_no_concepts_no_recursion
-			logp_regex = self.logp_regex_no_recursion if trace.baseConcepts else self.logp_regex_no_concepts_no_recursion
 		else:
 			p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
-			logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
 		
 		items = list(p_regex.items())
 		idx = np.random.choice(range(len(items)), p=[p for k,p in items])
@@ -73,10 +76,8 @@ class RegexModel:
 
 	def scoreregex(self, r, trace, depth=0):
 		if depth==maxDepth:
-			p_regex = self.p_regex_no_recursion if trace.baseConcepts else self.p_regex_no_concepts_no_recursion
 			logp_regex = self.logp_regex_no_recursion if trace.baseConcepts else self.logp_regex_no_concepts_no_recursion
 		else:
-			p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
 			logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
 
 		if type(r) is RegexWrapper and r.concept in trace.baseConcepts:

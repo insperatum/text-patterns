@@ -1,6 +1,5 @@
 import copy
 import math
-import time
 import random
 
 from collections import namedtuple, Counter

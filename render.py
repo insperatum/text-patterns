@@ -5,11 +5,8 @@ import matplotlib.pyplot as plt
 from graphviz import Digraph
 
 from trace import RegexConcept
-import loader
-from collections import Counter
 import html
 import numpy as np
-import random
 
 def saveConcepts(M, filename):
 	print("Rendering to:%s"%filename)
@@ -21,13 +18,13 @@ def saveConcepts(M, filename):
 	for concept in concepts:
 		samples = [concept.sample(trace) for _ in range(5)]
 		unique_samples = set(samples)
-		many_samples = [concept.sample(trace) for _ in range(1000)]
+		many_samples = [concept.sample(trace) for _ in range(500)]
 		
-
+		
 		if any(x not in unique_samples for x in many_samples):
-			sample_str = ", ".join(unique_samples)
+			sample_str = ", ".join(list(s if s is not "" else "&#949;" for s in unique_samples) + ["..."])
 		else:
-			sample_str = ", ".join(list(unique_samples) + ["..."])
+			sample_str = ", ".join(list(s if s is not "" else "&#949;" for s in unique_samples))
 		
 		
 		isRegex = type(concept) is RegexConcept

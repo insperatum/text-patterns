@@ -74,9 +74,9 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 		regex_count = getNetworkRegexes(net, current_trace, examples)
 		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
 	
-	proposals = [Proposal(depth, examples, *current_trace.addregex(r), None, None, None) for r in network_regexes] + \
-		[Proposal(depth, examples, current_trace.fork(), c, None, None, None) for c in current_trace.baseConcepts] + \
-		[Proposal(depth, examples, *current_trace.addregex(
+	proposals = [Proposal(depth, tuple(examples), *current_trace.addregex(r), None, None, None) for r in network_regexes] + \
+		[Proposal(depth, tuple(examples), current_trace.fork(), c, None, None, None) for c in current_trace.baseConcepts] + \
+		[Proposal(depth, tuple(examples), *current_trace.addregex(
 			pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), None, None, None)] #Exactly the examples
 
 	proposals = [evalProposal(proposal, examples) for proposal in proposals]
@@ -92,7 +92,7 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 		crp_proposals = []
 		for proposal in proposals:
 			new_trace, new_concept = proposal.trace.addPY(proposal.concept)
-			crp_proposals.append(Proposal(depth, examples, new_trace, new_concept, None, None, None))
+			crp_proposals.append(Proposal(depth, tuple(examples), new_trace, new_concept, None, None, None))
 		proposals = [p for i in range(len(proposals)) for p in (proposals[i], crp_proposals[i])]
 
 	return proposals

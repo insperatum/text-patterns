@@ -1,27 +1,15 @@
 import os
 import torch
-import torch.nn as nn
-from torch.nn.parameter import Parameter
-from torch.autograd import Variable
-from torch import optim
-import torch.nn.functional as F
-import util
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import random
 import argparse
 import gc
 
-from datetime import datetime
-import pickle
-import copy
-import math
 import numpy as np
 from scipy import stats
-import time
 import string
-from collections import Counter, namedtuple
+from collections import Counter
 import torch.multiprocessing as mp
 import queue
 
@@ -50,6 +38,7 @@ parser.add_argument('--embedding_size', type=int, default=128)
 parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
 parser.add_argument('--n_examples', type=int, default=500)
+parser.add_argument('--initial_concept', type=str, default="dot") 
 
 model_default_params = {'alpha':0.01, 'geom_p':0.01, 'pyconcept_alpha':1, 'pyconcept_d':0.5}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references, or to alpha if no references
@@ -64,7 +53,7 @@ parser.add_argument('--train_first', type=int, default=0)
 parser.add_argument('--debug', dest='debug', action='store_true')
 parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
-
+parser.add_argument('--no-initial-concept', dest='initial_concept', action='store_const', const=None)
 parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False)
 args = parser.parse_args()
 if args.fork is None:
@@ -72,6 +61,9 @@ if args.fork is None:
 		if getattr(args,k) is None: setattr(args, k, v)
 
 character_classes=[pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u] if args.regex_primitives else [pre.dot]
+default_vocabulary = list(string.printable) + \
+        [pre.OPEN, pre.CLOSE, pre.String, pre.Concat, pre.Alt, pre.KleeneStar, pre.Plus, pre.Maybe] + \
+        character_classes
 
 # ----------- Network training ------------------
 # Sample
@@ -83,7 +75,7 @@ def getInstance(n_examples):
 		r = M['trace'].model.sampleregex(M['trace'], conceptDist = args.helmholtz_dist)
 		target = r.flatten()
 		inputs = ([r.sample(M['trace']) for i in range(n_examples)],)
-		if len(target)<args.max_length and all(len(x)<args.max_length for x in inputs): break
+		if len(target)<args.max_length and all(len(x)<args.max_length for x in inputs[0]): break
 	return {'inputs':inputs, 'target':target}
 
 def getBatch(batch_size):
@@ -146,7 +138,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 
 		#Retry by including counterexamples in support set
 		sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
-		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.examples + tuple(sampled_counterexamples), depth=proposal.depth+1)
+		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1)
 		for counterexample_proposal in counterexample_proposals[:4]:
 			queueProposal(counterexample_proposal)
 		
@@ -157,7 +149,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
 				ps = [p_valid, 1-p_valid]))
-			new_proposal = Proposal(proposal.depth+1, proposal.examples + tuple(sampled_counterexamples), trace, concept, None, None, None)
+			new_proposal = Proposal(proposal.depth+1, tuple(proposal.examples) + tuple(sampled_counterexamples), trace, concept, None, None, None)
 			print("Adding proposal", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, "kink =", kinkscore, flush=True)
 			queueProposal(new_proposal)
 		
@@ -267,11 +259,6 @@ if __name__ == "__main__":
 	else: cpus = 1
 	print("Running on %d CPUs" % cpus)
 
-
-	default_vocabulary = list(string.printable) + \
-		[pre.OPEN, pre.CLOSE, pre.String, pre.Concat, pre.Alt, pre.KleeneStar, pre.Plus, pre.Maybe] + \
-		character_classes
-
 	# Files to save:
 	save_to = "results/"
 	if not os.path.exists(save_to): os.makedirs(save_to)
@@ -306,12 +293,13 @@ if __name__ == "__main__":
 			M['args'] = args
 			M['task_observations'] = [[] for d in range(len(data))]
 			M['trace'] = Trace(model=RegexModel(
-				character_classes=character_classes,
+			    character_classes=character_classes,
 				alpha=args.alpha,
 				geom_p=args.geom_p,
 				pyconcept_alpha=args.pyconcept_alpha,
 				pyconcept_d=args.pyconcept_d))
-			M['trace'], init_concept = M['trace'].addregex(pre.dot)
+			if args.initial_concept=="dot":
+				M['trace'], init_concept = M['trace'].addregex(pre.dot)
 			print("Created new model")
 		M['data_file'] = args.data_file
 		M['save_to'] = save_to
