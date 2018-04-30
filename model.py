@@ -21,7 +21,8 @@ class RegexModel:
 			pre.String: 0.5,
 			pre.Concat: 0.1,
 			pre.Alt: 0.1,
-			pre.KleeneStar: 0.2/3, pre.Plus: 0.2/3, pre.Maybe: 0.2/3
+			pre.KleeneStar: 0.2/3, pre.Plus: 0.2/3, pre.Maybe: 0.2/3,
+			CONCEPT: 0
 			#Doesn't include CONCEPT
 		}
 		for x in self.character_classes: self.p_regex_no_concepts[x] = 0.1 / len(self.character_classes)
