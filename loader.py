@@ -94,6 +94,7 @@ def loadData(file, n_examples, n_tasks, max_length):
 			tasks_unique.append(unique)
 	
 	data_by_max_length = [[examples for examples in data if max(len(x) for x in examples)==i] for i in range(max_length)]
+	data_by_max_length = [X for X in data_by_max_length if len(X)>0]
 
 	for i in range(max_length):
 		rand.shuffle(data_by_max_length[i])
@@ -101,6 +102,7 @@ def loadData(file, n_examples, n_tasks, max_length):
 		data_by_max_length[i] = sorted(data_by_max_length[i], key=lambda examples: -util.entropy(examples))
 
 	data = [x for examples in data_by_max_length for x in examples]
+	group_idxs = list(np.cumsum(len(X) for X in data_by_max_length)) 
 	# rand.shuffle(data)
 	# if args.n_tasks is not None:
 	# 	data = data[args.skip_tasks:args.n_tasks + args.skip_tasks]
@@ -110,4 +112,4 @@ def loadData(file, n_examples, n_tasks, max_length):
 	with open("data/data_filtered.pt", 'wb') as f:
 		pickle.dump(data, f)
 
-	return data
+	return data, group_idxs

@@ -29,7 +29,7 @@ parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
-parser.add_argument('--min_iterations', type=int, default=100) #minimum number of training iterations before next concept
+parser.add_argument('--min_iterations', type=int, default=1000) #minimum number of training iterations before next concept
 
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
@@ -38,7 +38,7 @@ parser.add_argument('--embedding_size', type=int, default=128)
 parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
 parser.add_argument('--n_examples', type=int, default=500)
-parser.add_argument('--initial_concept', type=str, default="dot") 
+parser.add_argument('--initial_concept', type=str, default=None) 
 
 model_default_params = {'alpha':0.01, 'geom_p':0.01, 'pyconcept_alpha':1, 'pyconcept_d':0.5}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references, or to alpha if no references
@@ -267,7 +267,7 @@ if __name__ == "__main__":
 
 	# ------------- Load Model & Data --------------
 	# Data
-	data = loader.loadData(args.data_file, args.n_examples, args.n_tasks, args.max_length)
+	data, group_idxs = loader.loadData(args.data_file, args.n_examples, args.n_tasks, args.max_length)
 
 	# Model
 	try:
@@ -320,7 +320,7 @@ if __name__ == "__main__":
 	if args.train_first > 0: train(iterations=args.train_first)
 
 	for i in range(M['state']['current_task'], len(data)):
-		if not args.no_network: train(toConvergence=True)
+		if i in group_idxs and not args.no_network: train(toConvergence=True)
 		gc.collect()
 		save()
 

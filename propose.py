@@ -74,9 +74,11 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 		regex_count = getNetworkRegexes(net, current_trace, examples)
 		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
 	
-	proposals = [Proposal(depth, tuple(examples), *current_trace.addregex(r), None, None, None) for r in network_regexes] + \
+	addregex = current_trace.addPYregex if include_crp else current_trace.addregex
+
+	proposals = [Proposal(depth, tuple(examples), *addregex(r), None, None, None) for r in network_regexes] + \
 		[Proposal(depth, tuple(examples), current_trace.fork(), c, None, None, None) for c in current_trace.baseConcepts] + \
-		[Proposal(depth, tuple(examples), *current_trace.addregex(
+		[Proposal(depth, tuple(examples), *addregex(
 			pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), None, None, None)] #Exactly the examples
 
 	proposals = [evalProposal(proposal, examples) for proposal in proposals]
@@ -88,13 +90,13 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
 
-	if include_crp:
-		new_proposals = []
-		for proposal in proposals:
-			new_proposals.append(proposal)
-			if type(proposal.concept) is not PYConcept:
-				new_trace, new_concept = proposal.trace.addPY(proposal.concept)
-				new_proposals.append(Proposal(depth, tuple(examples), new_trace, new_concept, None, None, None))
-		proposals = new_proposals
+#	if include_crp:
+#		new_proposals = []
+#		for proposal in proposals:
+#			new_proposals.append(proposal)
+#			if type(proposal.concept) is not PYConcept:
+#				new_trace, new_concept = proposal.trace.addPY(proposal.concept)
+#				new_proposals.append(Proposal(depth, tuple(examples), new_trace, new_concept, None, None, None))
+#		proposals = new_proposals
 
 	return proposals
