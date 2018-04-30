@@ -1,4 +1,4 @@
-from trace import RegexWrapper
+from trace import RegexWrapper, PYConcept
 from collections import Counter, namedtuple
 import pregex as pre
 
@@ -54,7 +54,7 @@ def getNetworkRegexes(net, current_trace, examples):
 		regex_count = Counter()
 		for i in range(10):
 			inputs = [examples] * 500
-			outputs = net.sample(inputs)
+			outputs = net.sample(inputs) 
 			for o in outputs:
 				try:
 					r = pre.create(o, lookup=lookup)
@@ -89,10 +89,12 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
 
 	if include_crp:
-		crp_proposals = []
+		new_proposals = []
 		for proposal in proposals:
-			new_trace, new_concept = proposal.trace.addPY(proposal.concept)
-			crp_proposals.append(Proposal(depth, tuple(examples), new_trace, new_concept, None, None, None))
-		proposals = [p for i in range(len(proposals)) for p in (proposals[i], crp_proposals[i])]
+			new_proposals.append(proposal)
+			if type(proposal.concept) is not PYConcept:
+				new_trace, new_concept = proposal.trace.addPY(proposal.concept)
+				new_proposals.append(Proposal(depth, tuple(examples), new_trace, new_concept, None, None, None))
+		proposals = new_proposals
 
 	return proposals

@@ -324,30 +324,30 @@ class PYConcept(Concept):
 
 		return out
 
-	def unobserve(self, trace, observation):
-		state = trace.getState(self)
-
-		if state.table_nCustomers[observation]>1: #Take one customer off table
-			p_existing_table = (state.nCustomers-1 - d*len(currentTables))/(alpha+state.nCustomers-1) 
-			trace.score -= math.log(p_existing_table * (state.table_nCustomers[table]-1) / (state.nCustomers-1))
-			newState = state._replace(
-				nCustomers = state.nCustomers - 1,
-				table_nCustomers = state.table_nCustomers.set(observation, state.table_nCustomers[observation]-1),
-			)
-			
-		else: #Delete table
-			for obs in observation.children:
-				trace = trace.unobserve(obs)
-			p_new_table = (alpha + d*len(currentTables))/(alpha+state.nCustomers-1)
-			trace.score -= math.log(p_new_table)
-			newState = state._replace(
-				nCustomers = state.nCustomers - 1,
-				value_tables = state.value_tables.set(observation.value, [x for x in state.value_tables[observation.value] if x != observation]),
-				table_nCustomers = state.table_nCustomers.set(observation, state.table_nCustomers[observation] - 1),
-			)
-
-		trace._setState(self, newState)
-		return trace		
+#	def unobserve(self, trace, observation):
+#		state = trace.getState(self)
+#
+#		if state.table_nCustomers[observation]>1: #Take one customer off table
+#			p_existing_table = (state.nCustomers-1 - d*len(currentTables))/(alpha+state.nCustomers-1) 
+#			trace.score -= math.log(p_existing_table * (state.table_nCustomers[table]-1) / (state.nCustomers-1))
+#			newState = state._replace(
+#				nCustomers = state.nCustomers - 1,
+#				table_nCustomers = state.table_nCustomers.set(observation, state.table_nCustomers[observation]-1),
+#			)
+#			
+#		else: #Delete table
+#			for obs in observation.children:
+#				trace = trace.unobserve(obs)
+#			p_new_table = (alpha + d*len(currentTables))/(alpha+state.nCustomers-1)
+#			trace.score -= math.log(p_new_table)
+#			newState = state._replace(
+#				nCustomers = state.nCustomers - 1,
+#				value_tables = state.value_tables.set(observation.value, [x for x in state.value_tables[observation.value] if x != observation]),
+#				table_nCustomers = state.table_nCustomers.set(observation, state.table_nCustomers[observation] - 1),
+#			)
+#
+#		trace._setState(self, newState)
+#		return trace		
 
 
 
@@ -391,7 +391,6 @@ class RegexConcept(Concept):
 		state = trace.getState(self)
 		regex = state.regex
 
-		initScore = trace.score
 		score, S = regex.match(value, state=regexState(trace=trace, observations=(), n=n), mergeState=True)
 
 		if score == float("-inf"):
@@ -415,7 +414,6 @@ class RegexConcept(Concept):
 		regex = state.regex
 
 		out = []
-		initScore = trace.score
 		for numCharacters, (score, S) in regex.match(value, state=regexState(trace=trace, observations=(), n=n), mergeState=True, returnPartials=True):
 			matched_value = value[:numCharacters]
 			new_trace = S.trace.fork()
@@ -432,8 +430,6 @@ class RegexConcept(Concept):
 	def unobserve(self, trace, observation):
 		state = trace.getState(self)
 		regex = state.regex
-
-		initScore = trace.score
 
 		for obs in observation.children:
 			trace = trace.unobserve(obs)
@@ -600,7 +596,7 @@ if __name__=="__main__":
 	import pickle
 	import os
 
-	trace = trace()
+	trace = Trace()
 	trace, firstName = trace.addPYregex(pre.create("\\w+"))
 	trace, lastName  = trace.addPYregex(pre.create("\\w+"))
 
