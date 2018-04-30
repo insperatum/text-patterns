@@ -93,16 +93,16 @@ def loadData(file, n_examples, n_tasks, max_length):
 			data.append(task)
 			tasks_unique.append(unique)
 	
-	data_by_max_length = [[examples for examples in data if max(len(x) for x in examples)==i] for i in range(max_length)]
-	data_by_max_length = [X for X in data_by_max_length if len(X)>0]
+	grouped_data = [[examples for examples in data if max(len(x) for x in examples)==i] for i in range(max_length)]
+	grouped_data = [X for X in grouped_data if len(X)>0]
 
-	for i in range(max_length):
-		rand.shuffle(data_by_max_length[i])
-		data_by_max_length[i] = data_by_max_length[i][:n_tasks]
-		data_by_max_length[i] = sorted(data_by_max_length[i], key=lambda examples: -util.entropy(examples))
+	for i in range(len(grouped_data)):
+		rand.shuffle(grouped_data[i])
+		grouped_data[i] = grouped_data[i][:n_tasks]
+		grouped_data[i] = sorted(grouped_data[i], key=lambda examples: -util.entropy(examples))
 
-	data = [x for examples in data_by_max_length for x in examples]
-	group_idxs = list(np.cumsum(len(X) for X in data_by_max_length)) 
+	data = [x for examples in grouped_data for x in examples]
+	group_idxs = list(np.cumsum(len(X) for X in grouped_data)) 
 	# rand.shuffle(data)
 	# if args.n_tasks is not None:
 	# 	data = data[args.skip_tasks:args.n_tasks + args.skip_tasks]
