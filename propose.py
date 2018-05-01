@@ -1,4 +1,4 @@
-from trace import RegexWrapper, PYConcept
+from trace import RegexWrapper
 from collections import Counter, namedtuple
 import pregex as pre
 

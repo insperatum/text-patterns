@@ -187,9 +187,9 @@ class PYConcept(Concept):
 	def str(self, trace, depth=default_string_depth):
 		state = trace.getState(self)
 		if depth==0:
-			return "P" + str(trace.baseConcepts.index(self))
+			return "P%d" % self.id
 		else:
-			return "P" + str(trace.baseConcepts.index(self)) + "(" + state.baseConcept.str(trace, depth=depth-1) + ")"
+			return "P%d(%s)" % (self.id, state.baseConcept.str(trace, depth=depth-1))
 
 	def createState(self, baseConcept):
 		return PYConcept.State(baseConcept = baseConcept,
@@ -364,9 +364,9 @@ class RegexConcept(Concept):
 	def str(self, trace, depth=default_string_depth):
 		state = trace.getState(self)
 		if depth==0:
-			return "R" + str(self.id)
+			return "R%d" % self.id 
 		else:
-			return "R" + str(self.id) + "(" + state.regex.str(lambda concept: concept.str(trace, depth=depth-1)) + ")"
+			return "R%d(%s)" % (self.id, state.regex.str(lambda concept: concept.str(trace, depth=depth-1))) 
 
 	def createState(self, regex):
 		return RegexConcept.State(observations = TempDict(), regex = regex)

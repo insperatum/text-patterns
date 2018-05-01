@@ -127,7 +127,7 @@ def train(toConvergence=False, iterations=None, saveEvery=2000):
 			else:
 				break
 
-		if len(M['state']['network_losses']) % saveEvery == 0:
+		if not args.debug and len(M['state']['network_losses']) % saveEvery == 0:
 			loader.save(M)
 
 
@@ -270,12 +270,16 @@ if __name__ == "__main__":
 	data, group_idxs = loader.loadData(args.data_file, args.n_examples, args.n_tasks, args.max_length)
 
 	# Model
-	try:
-		M = loader.load(modelfile)
-		print("Loaded model ", modelfile)
-		M['args'] = args
+	M = None
+	if not args.debug:
+		try:
+			M = loader.load(modelfile)
+			print("Loaded model ", modelfile)
+			M['args'] = args
+		except FileNotFoundError:
+			pass
 
-	except FileNotFoundError:
+	if M is None:
 		if args.fork is not None:
 			M = loader.load(args.fork, use_cuda)
 			M['args'] = args
@@ -320,12 +324,12 @@ if __name__ == "__main__":
 	if args.train_first > 0: train(iterations=args.train_first)
 
 	for i in range(M['state']['current_task'], len(data)):
-		if i in group_idxs and not args.no_network: train(toConvergence=True)
+		if (i==0 or i in group_idxs) and not args.no_network: train(toConvergence=True)
 		gc.collect()
-		save()
+		if not args.debug: save()
 
 		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace'], depth=1) for c in M['trace'].baseConcepts))
 		addTask(M['state']['current_task'])
 		M['state']['current_task'] += 1
 		gc.collect()
-		save()
+		if not args.debug: save()
