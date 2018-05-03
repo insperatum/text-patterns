@@ -1,0 +1,1 @@
+$(grep ^sbatch slurm-logs/$(ls -t slurm-logs | head -n1))
