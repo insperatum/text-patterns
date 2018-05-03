@@ -1,1 +1,0 @@
-watch tail -n50 $(./latest-log)

@@ -105,6 +105,7 @@ def networkStep():
 	return network_score
 
 def train(toConvergence=False, iterations=None, saveEvery=2000):
+	refreshVocabulary()
 	from_iteration = M['state']['task_iterations'][-1] if M['state']['task_iterations'] else 0
 	while True:
 		if toConvergence:
@@ -228,7 +229,8 @@ def addTask(task_idx):
 			counterexample_args = q_counterexamples.get(timeout=0.1)
 			onCounterexamples(queueProposal, *counterexample_args)
 		except queue.Empty:
-			if not args.no_network: networkStep()
+			pass
+			#if not args.no_network: networkStep()
 
 	solutions = []
 	nSolutions = 0
@@ -243,7 +245,7 @@ def addTask(task_idx):
 	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 	M['trace'] = accepted.final_trace
 	M['task_observations'][task_idx] = accepted.observations
-	refreshVocabulary()
+	#refreshVocabulary()
 	M['state']['task_iterations'].append(M['state']['iteration'])
 	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score) + "\n")
 
@@ -311,8 +313,7 @@ if __name__ == "__main__":
 	if use_cuda: M['net'].cuda()
 
 	print("\nTraining...")
-	refreshVocabulary()
-	if use_cuda:  M['net'].cuda()
+	#refreshVocabulary()
 
 	def save():
 		print("Saving...")
