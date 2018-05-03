@@ -75,6 +75,7 @@ def getInstance(n_examples):
 	while True:
 		r = M['trace'].model.sampleregex(M['trace'], conceptDist = args.helmholtz_dist)
 		target = r.flatten()
+		#inputs = ([r.sample(M['trace']) for i in range(n_examples)],)
 		inputs = ([r.sample(M['trace']) for i in range(n_examples)],)
 		if len(target)<args.max_length and all(len(x)<args.max_length for x in inputs[0]): break
 	return {'inputs':inputs, 'target':target}
@@ -97,12 +98,14 @@ def refreshVocabulary():
 
 def networkStep():
 	inputs, target = getBatch(args.batch_size)
-	if args.debug_network: print(inputs[0], target[0])
 	network_score = M['net'].optimiser_step(inputs, target)
 
 	M['state']['network_losses'].append(-network_score)
 	M['state']['iteration'] += 1
-	if M['state']['iteration']%10==0: print("Iteration %d" % M['state']['iteration'], "| Network loss: %2.2f" % M['state']['network_losses'][-1])
+	if M['state']['iteration']%10==0:
+		print("Iteration %d" % M['state']['iteration'], "| Network loss: %2.2f" % M['state']['network_losses'][-1])
+		if args.debug_network: print(inputs[0], target[0], net.sample(inputs)[0])
+	
 	networkCache.clear()
 	return network_score
 
