@@ -13,23 +13,6 @@ def load(file, cuda=False):
 	M['model_file'] = file
 
 	# Legacy
-	trace = M['trace']
-	trace.model.refresh()
-	if len(trace.baseConcepts)>0 and trace.baseConcepts[0].id != 0:
-		for i in range(len(trace.baseConcepts)):
-			v0 = trace.state.get(trace.baseConcepts[i], None)
-			v1 = trace.baseConcept_nReferences.get(trace.baseConcepts[i], None)
-			v2 = trace.baseConcept_nTaskReferences.get(trace.baseConcepts[i], None)
-			if v0 is not None: del trace.state[trace.baseConcepts[i]]
-			if v1 is not None: del trace.baseConcept_nReferences[trace.baseConcepts[i]]
-			if v2 is not None: del trace.baseConcept_nTaskReferences[trace.baseConcepts[i]]
-			trace.baseConcepts[i].id = i
-			if v0 is not None: trace.state[trace.baseConcepts[i]] = v0
-			if v1 is not None: trace.baseConcept_nReferences[trace.baseConcepts[i]] = v1
-			if v2 is not None: trace.baseConcept_nTaskReferences[trace.baseConcepts[i]] = v2
-
-	if not hasattr(trace, 'nextConceptID'):
-		trace.nextConceptID=len(trace.baseConcepts)
 
 	return M
 
