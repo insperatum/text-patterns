@@ -54,7 +54,8 @@ parser.add_argument('--debug', dest='debug', action='store_true')
 parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
 parser.add_argument('--no-initial-concept', dest='initial_concept', action='store_const', const=None)
-parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False)
+parser.add_argument('--debug-network', dest='debug_network', action='store_const', const=True)
+parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False)
 args = parser.parse_args()
 if args.fork is None:
 	for k,v in model_default_params.items():
@@ -96,6 +97,7 @@ def refreshVocabulary():
 
 def networkStep():
 	inputs, target = getBatch(args.batch_size)
+	if args.debug_network: print(inputs[0], target[0])
 	network_score = M['net'].optimiser_step(inputs, target)
 
 	M['state']['network_losses'].append(-network_score)
