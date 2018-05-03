@@ -53,8 +53,9 @@ def getNetworkRegexes(net, current_trace, examples):
 	else:
 		regex_count = Counter()
 		for i in range(10):
-			inputs = [examples] * 500
+			inputs = [[(example,) for example in examples]] * 500
 			outputs = net.sample(inputs) 
+
 			for o in outputs:
 				try:
 					r = pre.create(o, lookup=lookup)
