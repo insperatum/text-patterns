@@ -1,17 +1,15 @@
 import os
 import torch
-import matplotlib
-matplotlib.use("Agg")
 import random
 import argparse
 import gc
+import queue
+import string
 
 import numpy as np
 from scipy import stats
-import string
 from collections import Counter
 import torch.multiprocessing as mp
-import queue
 
 from model import RegexModel
 import pregex as pre
@@ -25,11 +23,12 @@ from propose import Proposal, evalProposal, getProposals, networkCache
 parser = argparse.ArgumentParser()
 parser.add_argument('--fork', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv.p")
+parser.add_argument('--init_net', type=str, default="/om/user/lbh/text-patterns/init.pt")
 parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
-parser.add_argument('--min_iterations', type=int, default=1000) #minimum number of training iterations before next concept
+parser.add_argument('--min_iterations', type=int, default=500) #minimum number of training iterations before next concept
 
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
@@ -109,21 +108,22 @@ def networkStep():
 	networkCache.clear()
 	return network_score
 
-def train(toConvergence=False, iterations=None, saveEvery=2000):
+def train(toConvergence=False, iterations=None, saveEvery=1000):
 	refreshVocabulary()
 	from_iteration = M['state']['task_iterations'][-1] if M['state']['task_iterations'] else 0
 	while True:
 		if toConvergence:
 			window_size = args.min_iterations
-			min_grad=2e-3
+			#min_grad=2e-3
 			if len(M['state']['network_losses']) <= from_iteration + window_size:
 				networkStep()
 			else:
 				window = M['state']['network_losses'][-window_size:]
 				regress = stats.linregress(range(window_size), window)
-				regress_slope = stats.linregress(range(window_size), [window[i] + min_grad*i for i in range(len(window))])
-				p_ratio = regress.pvalue / regress_slope.pvalue
-				if p_ratio < 2 and not args.debug: 
+				#regress_slope = stats.linregress(range(window_size), [window[i] + min_grad*i for i in range(len(window))])
+				#p_ratio = regress.pvalue / regress_slope.pvalue
+				#if p_ratio < 2 and not args.debug: 
+				if regress.slope<-1/1000:
 					networkStep()
 				else:
 					break #Break when converged
@@ -299,8 +299,16 @@ if __name__ == "__main__":
 		else:
 			M = {}
 			M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
-			M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
-									 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
+			
+			if args.init_net is None: 
+				print("Creating new network")
+				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
+											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
+			else:
+				M['net'] = net = loader.load('init.pt')['net']
+				assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
+				print("Loaded existing network")
+			
 			M['args'] = args
 			M['task_observations'] = [[] for d in range(len(data))]
 			M['trace'] = Trace(model=RegexModel(
