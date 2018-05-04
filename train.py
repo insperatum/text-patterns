@@ -338,7 +338,7 @@ if __name__ == "__main__":
 	if args.train_first > 0: train(iterations=args.train_first)
 
 	for i in range(M['state']['current_task'], len(data)):
-		if (i==0 or i in group_idxs) and not args.no_network and not(i==0 and args.init_net is not None):
+		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.init_net is not None):
 			train(toConvergence=True)
 		gc.collect()
 		if not args.debug: save()

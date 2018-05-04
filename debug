@@ -22,6 +22,7 @@ echo "Cloining project into in $dir"
 mkdir -p "$dir"
 cd "$dir"
 git clone --quiet -b working --recurse-submodules --depth 1 git@github.com:insperatum/text-patterns.git . || exit
+git remote set-url --push origin no_push
 
 ln -s $init_dir/envs #anaconda-project
 
