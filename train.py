@@ -305,7 +305,7 @@ if __name__ == "__main__":
 				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
 											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
 			else:
-				M['net'] = net = loader.load('init.pt')['net']
+				M['net'] = net = loader.load(args.init_net)['net']
 				assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
 				print("Loaded existing network")
 			
