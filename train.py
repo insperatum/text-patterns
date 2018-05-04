@@ -23,7 +23,7 @@ from propose import Proposal, evalProposal, getProposals, networkCache
 parser = argparse.ArgumentParser()
 parser.add_argument('--fork', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv.p")
-parser.add_argument('--init_net', type=str, default=None)#"/om/user/lbh/text-patterns/init.pt")
+parser.add_argument('--init_net', type=str, default="/om/user/lbh/text-patterns/init.pt")
 parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
@@ -108,7 +108,7 @@ def networkStep():
 	networkCache.clear()
 	return network_score
 
-def train(toConvergence=False, iterations=None, saveEvery=1000):
+def train(toConvergence=False, iterations=None, saveEvery=500):
 	refreshVocabulary()
 	from_iteration = M['state']['task_iterations'][-1] if M['state']['task_iterations'] else 0
 	while True:
@@ -301,9 +301,9 @@ if __name__ == "__main__":
 			M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
 			
 			if args.init_net is None: 
-				print("Creating new network")
 				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
 											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
+				print("Created new network")
 			else:
 				M['net'] = net = loader.load(args.init_net)['net']
 				assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
@@ -339,6 +339,7 @@ if __name__ == "__main__":
 
 	for i in range(M['state']['current_task'], len(data)):
 		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.init_net is not None):
+			if not args.debug: save()
 			train(toConvergence=True)
 		gc.collect()
 		if not args.debug: save()
@@ -347,4 +348,5 @@ if __name__ == "__main__":
 		addTask(M['state']['current_task'])
 		M['state']['current_task'] += 1
 		gc.collect()
-		if not args.debug: save()
+	
+	if not args.debug: save()
