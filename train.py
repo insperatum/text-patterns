@@ -328,9 +328,9 @@ if __name__ == "__main__":
 	print("\nTraining...")
 	#refreshVocabulary()
 
-	def save():
+	def save(checkpoint=False):
 		print("Saving...")
-		if M['state']['current_task']%1==0: loader.saveCheckpoint(M)
+		if checkpoint: loader.saveCheckpoint(M)
 		loader.saveRender(M)
 		loader.save(M)
 		print("Saved.")
@@ -339,14 +339,12 @@ if __name__ == "__main__":
 
 	for i in range(M['state']['current_task'], len(data)):
 		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.init_net is not None):
-			if not args.debug: save()
 			train(toConvergence=True)
-		gc.collect()
-		if not args.debug: save()
+			gc.collect()
+			if not args.debug: save(checkpoint=True)
 
 		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace'], depth=1) for c in M['trace'].baseConcepts))
 		addTask(M['state']['current_task'])
 		M['state']['current_task'] += 1
 		gc.collect()
-	
-	if not args.debug: save()
+		if not args.debug: save()
