@@ -68,4 +68,4 @@ for i in range(99999):
 		print("HIT (%2.2f%%)" % (confidence*100))
 		misses += 1
 
-	print("Accuracy: %2.2f%%" % (hits/misses * 100))
+	print("Accuracy: %2.2f%%" % (hits/(hits+misses) * 100))
