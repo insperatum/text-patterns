@@ -105,7 +105,4 @@ def loadData(file, n_examples, n_tasks, max_length):
 
 	# data = sorted(data, key=lambda examples: (max(len(x) for x in examples), -len(set(examples))))
 
-	with open("data/data_filtered.pt", 'wb') as f:
-		pickle.dump(data, f)
-
 	return data, group_idxs, test_data
