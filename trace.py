@@ -108,6 +108,9 @@ class Concept:
 	def __str__(self):
 		return type(self).__name__ + str(self.id)
 
+	def get_observations(self, trace):
+		raise NotImplementedError()
+
 	def n_observations(self, trace):
 		raise NotImplementedError()
 	
@@ -207,6 +210,10 @@ class PYConcept(Concept):
 		
 	def n_observations(self, trace):
 		return trace.getState(self).nCustomers
+
+	def get_observations(self, trace):
+		state = trace.getState(self)
+		return [obs.value for obs in state.table_nCustomers.keys() for _ in range(state.table_nCustomers[obs])]
 
 	def refresh_cache(self, trace):
 		state = trace.getState(self)
@@ -381,6 +388,10 @@ class RegexConcept(Concept):
 
 	def n_observations(self, trace):
 		return sum(trace.getState(self).observations.values())
+
+	def get_observations(self, trace):
+		state = trace.getState(self)
+		return [obs.value for obs in state.observations.keys() for _ in range(state.observations[obs])]
 
 	def sample(self, trace):
 		state = trace.getState(self)
