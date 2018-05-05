@@ -12,7 +12,8 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default=max(('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt"), key=os.path.getmtime)) #Most recent model
-parser.add_argument('--shot', type=int, default=10)
+parser.add_argument('--shot', type=int, default=3)
+parser.add_argument('--way', type=int, default=10)
 args = parser.parse_args()
 
 print("Loading", args.model)
@@ -46,8 +47,8 @@ misses=0
 for i in range(99999):
 	print("-"*20, "\n")
 	
-	classes = [random.choice(test_data) for _ in range(args.shot)]
-	exampless = [list(np.random.choice(X, size=3)) for X in classes]
+	classes = [random.choice(test_data) for _ in range(args.way)]
+	exampless = [list(np.random.choice(X, size=args.shot)) for X in classes]
 
 	print("Support Sets:")
 	for examples in exampless: print(examples)
