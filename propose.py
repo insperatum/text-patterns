@@ -78,7 +78,7 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 	else:
 		start_time = time.time()
 		regex_count = getNetworkRegexes(net, current_trace, examples)
-		if printTimes: print("Get network regexes: %dms" % (time.time()-start_time))
+		if printTimes: print("Get network regexes: %dms" % (100*(time.time()-start_time)))
 		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
 
 	start_time = time.time()
@@ -103,11 +103,11 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 			t,c = t.addPY(c)
 			t,c = t.addPY(c)
 			proposals.append(Proposal(depth, tuple(examples), t, c, None, None, None))
-	if printTimes: print("Make proposals: %dms" % (time.time()-start_time))
+	if printTimes: print("Make proposals: %dms" % (100*(time.time()-start_time)))
 
 	start_time = time.time()
 	proposals = [evalProposal(proposal, examples) for proposal in proposals]
-	if printTimes: print("Evaluate proposals: %dms" % (time.time()-start_time))
+	if printTimes: print("Evaluate proposals: %dms" % (100*(time.time()-start_time)))
 
 	proposals = [x for x in proposals if x.valid]
 	proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
