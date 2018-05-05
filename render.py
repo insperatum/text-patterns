@@ -31,7 +31,7 @@ def saveConcepts(M, filename):
 		counter = Counter(observations)	
 		if len(counter)>5:
 			total = sum(counter.values())
-			sampled_observations = np.random.choice(counter.keys(), p=[x/total for x in counter.values()], replace=False)
+			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False)
 			obs_str = ", ".join(list(s if s is not "" else "" for s in sampled_observations) + ["..."])
 		else:
 			obs_str = ", ".join(list(s if s is not "" else "" for s in counter))
