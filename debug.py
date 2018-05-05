@@ -18,7 +18,7 @@ print("Loading", args.model)
 M = loader.load(args.model)
 if torch.cuda.is_available(): M['net'].cuda()
 
-data, group_idxs = loader.loadData(M['args'].data_file, M['args'].n_examples, M['args'].n_tasks, M['args'].max_length)
+data, group_idxs, test_data = loader.loadData(M['args'].data_file, M['args'].n_examples, M['args'].n_tasks, M['args'].max_length)
 
 net = M['net']
 trace = M['trace']

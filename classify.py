@@ -63,10 +63,10 @@ for i in range(99999):
 
 	confidence = math.exp(max(score1, score2) - util.logsumexp([score1, score2]))
 	if score1>score2:
-		print("HIT (%2.2f%%)" % (confidence*100))
+		print("HIT (confidence %2.2f%%)" % (confidence*100))
 		hits += 1
 	else:
-		print("HIT (%2.2f%%)" % (confidence*100))
+		print("HIT (confidence %2.2f%%)" % (confidence*100))
 		misses += 1
 
 	print("Accuracy: %2.2f%%" % (hits/(hits+misses) * 100))
