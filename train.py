@@ -1,17 +1,15 @@
 import os
 import torch
-import matplotlib
-matplotlib.use("Agg")
 import random
 import argparse
 import gc
+import queue
+import string
 
 import numpy as np
 from scipy import stats
-import string
 from collections import Counter
 import torch.multiprocessing as mp
-import queue
 
 from model import RegexModel
 import pregex as pre
@@ -25,20 +23,21 @@ from propose import Proposal, evalProposal, getProposals, networkCache
 parser = argparse.ArgumentParser()
 parser.add_argument('--fork', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv.p")
+parser.add_argument('--init_net', type=str, default="/om/user/lbh/text-patterns/init.pt")
 parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
-parser.add_argument('--min_iterations', type=int, default=50) #minimum number of training iterations before next concept
+parser.add_argument('--min_iterations', type=int, default=1000) #minimum number of training iterations before next concept
 
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
 parser.add_argument('--embedding_size', type=int, default=128)
 
-parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
+parser.add_argument('--n_tasks', type=int, default=25) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
-parser.add_argument('--n_examples', type=int, default=500)
-parser.add_argument('--initial_concept', type=str, default="dot") 
+parser.add_argument('--n_examples', type=int, default=100)
+parser.add_argument('--initial_concept', type=str, default=None) 
 
 model_default_params = {'alpha':0.01, 'geom_p':0.01, 'pyconcept_alpha':1, 'pyconcept_d':0.5}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references, or to alpha if no references
@@ -54,7 +53,8 @@ parser.add_argument('--debug', dest='debug', action='store_true')
 parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
 parser.add_argument('--no-initial-concept', dest='initial_concept', action='store_const', const=None)
-parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False)
+parser.add_argument('--debug-network', dest='debug_network', action='store_const', const=True)
+parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False)
 args = parser.parse_args()
 if args.fork is None:
 	for k,v in model_default_params.items():
@@ -74,6 +74,7 @@ def getInstance(n_examples):
 	while True:
 		r = M['trace'].model.sampleregex(M['trace'], conceptDist = args.helmholtz_dist)
 		target = r.flatten()
+		#inputs = ([r.sample(M['trace']) for i in range(n_examples)],)
 		inputs = ([r.sample(M['trace']) for i in range(n_examples)],)
 		if len(target)<args.max_length and all(len(x)<args.max_length for x in inputs[0]): break
 	return {'inputs':inputs, 'target':target}
@@ -100,24 +101,29 @@ def networkStep():
 
 	M['state']['network_losses'].append(-network_score)
 	M['state']['iteration'] += 1
-	if M['state']['iteration']%10==0: print("Iteration %d" % M['state']['iteration'], "| Network loss: %2.2f" % M['state']['network_losses'][-1])
+	if M['state']['iteration']%10==0:
+		print("Iteration %d" % M['state']['iteration'], "| Network loss: %2.2f" % M['state']['network_losses'][-1])
+		if args.debug_network: print(inputs[0], target[0], net.sample(inputs)[0])
+	
 	networkCache.clear()
 	return network_score
 
-def train(toConvergence=False, iterations=None, saveEvery=2000):
+def train(toConvergence=False, iterations=None, saveEvery=500):
+	refreshVocabulary()
 	from_iteration = M['state']['task_iterations'][-1] if M['state']['task_iterations'] else 0
 	while True:
 		if toConvergence:
 			window_size = args.min_iterations
-			min_grad=2e-3
+			#min_grad=2e-3
 			if len(M['state']['network_losses']) <= from_iteration + window_size:
 				networkStep()
 			else:
 				window = M['state']['network_losses'][-window_size:]
 				regress = stats.linregress(range(window_size), window)
-				regress_slope = stats.linregress(range(window_size), [window[i] + min_grad*i for i in range(len(window))])
-				p_ratio = regress.pvalue / regress_slope.pvalue
-				if p_ratio < 2 and not args.debug: 
+				#regress_slope = stats.linregress(range(window_size), [window[i] + min_grad*i for i in range(len(window))])
+				#p_ratio = regress.pvalue / regress_slope.pvalue
+				#if p_ratio < 2 and not args.debug: 
+				if regress.slope<-1/1000:
 					networkStep()
 				else:
 					break #Break when converged
@@ -127,7 +133,7 @@ def train(toConvergence=False, iterations=None, saveEvery=2000):
 			else:
 				break
 
-		if len(M['state']['network_losses']) % saveEvery == 0:
+		if not args.debug and len(M['state']['network_losses']) % saveEvery == 0:
 			loader.save(M)
 
 
@@ -228,7 +234,8 @@ def addTask(task_idx):
 			counterexample_args = q_counterexamples.get(timeout=0.1)
 			onCounterexamples(queueProposal, *counterexample_args)
 		except queue.Empty:
-			if not args.no_network: networkStep()
+			pass
+			#if not args.no_network: networkStep()
 
 	solutions = []
 	nSolutions = 0
@@ -243,7 +250,7 @@ def addTask(task_idx):
 	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 	M['trace'] = accepted.final_trace
 	M['task_observations'][task_idx] = accepted.observations
-	refreshVocabulary()
+	#refreshVocabulary()
 	M['state']['task_iterations'].append(M['state']['iteration'])
 	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score) + "\n")
 
@@ -267,15 +274,19 @@ if __name__ == "__main__":
 
 	# ------------- Load Model & Data --------------
 	# Data
-	data = loader.loadData(args.data_file, args.n_examples, args.n_tasks, args.max_length)
+	data, group_idxs = loader.loadData(args.data_file, args.n_examples, args.n_tasks, args.max_length)
 
 	# Model
-	try:
-		M = loader.load(modelfile)
-		print("Loaded model ", modelfile)
-		M['args'] = args
+	M = None
+	if not args.debug:
+		try:
+			M = loader.load(modelfile)
+			print("Loaded model ", modelfile)
+			M['args'] = args
+		except FileNotFoundError:
+			pass
 
-	except FileNotFoundError:
+	if M is None:
 		if args.fork is not None:
 			M = loader.load(args.fork, use_cuda)
 			M['args'] = args
@@ -288,8 +299,16 @@ if __name__ == "__main__":
 		else:
 			M = {}
 			M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
-			M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
-									 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
+			
+			if args.init_net is None: 
+				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
+											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
+				print("Created new network")
+			else:
+				M['net'] = net = loader.load(args.init_net)['net']
+				assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
+				print("Loaded existing network")
+			
 			M['args'] = args
 			M['task_observations'] = [[] for d in range(len(data))]
 			M['trace'] = Trace(model=RegexModel(
@@ -307,12 +326,11 @@ if __name__ == "__main__":
 	if use_cuda: M['net'].cuda()
 
 	print("\nTraining...")
-	refreshVocabulary()
-	if use_cuda:  M['net'].cuda()
+	#refreshVocabulary()
 
-	def save():
+	def save(checkpoint=False):
 		print("Saving...")
-		if M['state']['current_task']%1==0: loader.saveCheckpoint(M)
+		if checkpoint: loader.saveCheckpoint(M)
 		loader.saveRender(M)
 		loader.save(M)
 		print("Saved.")
@@ -320,12 +338,13 @@ if __name__ == "__main__":
 	if args.train_first > 0: train(iterations=args.train_first)
 
 	for i in range(M['state']['current_task'], len(data)):
-		if not args.no_network: train(toConvergence=True)
-		gc.collect()
-		save()
+		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.init_net is not None):
+			train(toConvergence=True)
+			gc.collect()
+			if not args.debug: save(checkpoint=True)
 
 		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace'], depth=1) for c in M['trace'].baseConcepts))
 		addTask(M['state']['current_task'])
 		M['state']['current_task'] += 1
 		gc.collect()
-		save()
+		if not args.debug: save()

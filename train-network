@@ -22,11 +22,12 @@ echo "Cloining project into in $dir"
 mkdir -p "$dir"
 cd "$dir"
 git clone --quiet -b working --recurse-submodules --depth 1 git@github.com:insperatum/text-patterns.git . || exit
+git remote set-url --push origin no_push
 
 ln -s $init_dir/envs #anaconda-project
 
 echo "Launching"
-extra_args="--train_first=100000 --n_tasks=0"
+extra_args="--train_first=100000 --n_tasks=0 --debug-network"
 
 if [ "$1" == "-i" ]; then
 	anaconda-project run train $extra_args ${@:2}

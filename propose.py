@@ -53,8 +53,9 @@ def getNetworkRegexes(net, current_trace, examples):
 	else:
 		regex_count = Counter()
 		for i in range(10):
-			inputs = [examples] * 500
-			outputs = net.sample(inputs)
+			inputs = [[(example,) for example in examples]] * 500
+			outputs = net.sample(inputs) 
+
 			for o in outputs:
 				try:
 					r = pre.create(o, lookup=lookup)
@@ -64,7 +65,9 @@ def getNetworkRegexes(net, current_trace, examples):
 		networkCache[examples] = regex_count
 	return regex_count
 
-def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Includes proposals from network, and proposals on existing concepts
+#Regex, CRP, Regex+CRP, Regex+CRP+CRP
+def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp", "siblingcrp")): #Includes proposals from network, and proposals on existing concepts
+	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp", "siblingcrp"] for x in modes))
 	examples = sorted(examples)[:10] #Hashable for cache. Up to 10 input examples
 	isCached = tuple(examples) in networkCache
 
@@ -74,11 +77,29 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 		regex_count = getNetworkRegexes(net, current_trace, examples)
 		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
 	
-	proposals = [Proposal(depth, tuple(examples), *current_trace.addregex(r), None, None, None) for r in network_regexes] + \
-		[Proposal(depth, tuple(examples), current_trace.fork(), c, None, None, None) for c in current_trace.baseConcepts] + \
-		[Proposal(depth, tuple(examples), *current_trace.addregex(
-			pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), None, None, None)] #Exactly the examples
 
+	proposals = [Proposal(depth, tuple(examples), *current_trace.addregex(
+			pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), None, None, None)] #Exactly the examples
+	for c in current_trace.baseConcepts:
+		proposals.append(Proposal(depth, tuple(examples), current_trace.fork(), c, None, None, None))
+		if "crp" in modes:
+			t,c = current_trace.addPY(c)
+			proposals.append(Proposal(depth, tuple(examples), t, c, None, None, None))
+
+	for r in network_regexes:
+		if "regex" in modes:
+			t,c = current_trace.addregex(r)
+			proposals.append(Proposal(depth, tuple(examples), t, c, None, None, None))
+		if "regex-crp" in modes:
+			t,c = current_trace.addregex(r)
+			t,c = t.addPY(c)
+			proposals.append(Proposal(depth, tuple(examples), t, c, None, None, None))
+		if "regex-crp-crp" in modes:
+			t,c = current_trace.addregex(r)
+			t,c = t.addPY(c)
+			t,c = t.addPY(c)
+			proposals.append(Proposal(depth, tuple(examples), t, c, None, None, None))
+	
 	proposals = [evalProposal(proposal, examples) for proposal in proposals]
 	proposals = [x for x in proposals if x.valid]
 	proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
@@ -87,12 +108,5 @@ def getProposals(net, current_trace, examples, depth=0, include_crp=True): #Incl
 	proposals = proposals[:10]
 
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
-
-	if include_crp:
-		crp_proposals = []
-		for proposal in proposals:
-			new_trace, new_concept = proposal.trace.addPY(proposal.concept)
-			crp_proposals.append(Proposal(depth, tuple(examples), new_trace, new_concept, None, None, None))
-		proposals = [p for i in range(len(proposals)) for p in (proposals[i], crp_proposals[i])]
 
 	return proposals

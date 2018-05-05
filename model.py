@@ -16,17 +16,20 @@ class RegexModel:
 		self.geom_p = geom_p
 		self.pyconcept_alpha = pyconcept_alpha
 		self.pyconcept_d = pyconcept_d
+		self.refresh()
 
+	def refresh(self):
 		self.p_regex_no_concepts = {
 			pre.String: 0.5,
 			pre.Concat: 0.1,
 			pre.Alt: 0.1,
-			pre.KleeneStar: 0.2/3, pre.Plus: 0.2/3, pre.Maybe: 0.2/3
+			pre.KleeneStar: 0.2/3, pre.Plus: 0.2/3, pre.Maybe: 0.2/3,
+			CONCEPT: 0
 			#Doesn't include CONCEPT
 		}
 		for x in self.character_classes: self.p_regex_no_concepts[x] = 0.1 / len(self.character_classes)
 
-		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: pConcept}
+		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: self.pConcept}
 
 		valid_no_recursion = [pre.String, CONCEPT] + self.character_classes
 		self.p_regex_no_recursion = \
@@ -48,7 +51,9 @@ class RegexModel:
 		conceptDist: 'default' assumes base concept probabilities as defined in trace
 					 'uniform' assumes uniform distribution over base concepts
 		"""
-		if depth==maxDepth:
+		if depth==0:
+			p_regex = self.p_regex_no_concepts
+		elif depth==maxDepth:
 			p_regex = self.p_regex_no_recursion if trace.baseConcepts else self.p_regex_no_concepts_no_recursion
 		else:
 			p_regex = self.p_regex if trace.baseConcepts else self.p_regex_no_concepts
@@ -75,7 +80,9 @@ class RegexModel:
 				return RegexWrapper(np.random.choice(trace.baseConcepts))
 
 	def scoreregex(self, r, trace, depth=0):
-		if depth==maxDepth:
+		if depth==0:
+			logp_regex = self.logp_regex_no_concepts
+		elif depth==maxDepth:
 			logp_regex = self.logp_regex_no_recursion if trace.baseConcepts else self.logp_regex_no_concepts_no_recursion
 		else:
 			logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts

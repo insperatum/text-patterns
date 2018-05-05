@@ -29,7 +29,7 @@ class TempList():
 		new.tempAdd = self.tempAdd + [value]
 		new.refresh()
 		return new
-
+	
 	def remove(self, value):
 		new = copy.copy(self)
 		if value in self.tempAdd:
@@ -107,6 +107,9 @@ class Concept:
 
 	def __str__(self):
 		return type(self).__name__ + str(self.id)
+
+	def get_observations(self, trace):
+		raise NotImplementedError()
 
 	def n_observations(self, trace):
 		raise NotImplementedError()
@@ -187,9 +190,9 @@ class PYConcept(Concept):
 	def str(self, trace, depth=default_string_depth):
 		state = trace.getState(self)
 		if depth==0:
-			return "P" + str(trace.baseConcepts.index(self))
+			return "P%d" % self.id
 		else:
-			return "P" + str(trace.baseConcepts.index(self)) + "(" + state.baseConcept.str(trace, depth=depth-1) + ")"
+			return "P%d(%s)" % (self.id, state.baseConcept.str(trace, depth=depth-1))
 
 	def createState(self, baseConcept):
 		return PYConcept.State(baseConcept = baseConcept,
@@ -207,6 +210,10 @@ class PYConcept(Concept):
 		
 	def n_observations(self, trace):
 		return trace.getState(self).nCustomers
+
+	def get_observations(self, trace):
+		state = trace.getState(self)
+		return [obs.value for obs in state.table_nCustomers.keys() for _ in range(state.table_nCustomers[obs])]
 
 	def refresh_cache(self, trace):
 		state = trace.getState(self)
@@ -324,30 +331,30 @@ class PYConcept(Concept):
 
 		return out
 
-	def unobserve(self, trace, observation):
-		state = trace.getState(self)
-
-		if state.table_nCustomers[observation]>1: #Take one customer off table
-			p_existing_table = (state.nCustomers-1 - d*len(currentTables))/(alpha+state.nCustomers-1) 
-			trace.score -= math.log(p_existing_table * (state.table_nCustomers[table]-1) / (state.nCustomers-1))
-			newState = state._replace(
-				nCustomers = state.nCustomers - 1,
-				table_nCustomers = state.table_nCustomers.set(observation, state.table_nCustomers[observation]-1),
-			)
-			
-		else: #Delete table
-			for obs in observation.children:
-				trace = trace.unobserve(obs)
-			p_new_table = (alpha + d*len(currentTables))/(alpha+state.nCustomers-1)
-			trace.score -= math.log(p_new_table)
-			newState = state._replace(
-				nCustomers = state.nCustomers - 1,
-				value_tables = state.value_tables.set(observation.value, [x for x in state.value_tables[observation.value] if x != observation]),
-				table_nCustomers = state.table_nCustomers.set(observation, state.table_nCustomers[observation] - 1),
-			)
-
-		trace._setState(self, newState)
-		return trace		
+#	def unobserve(self, trace, observation):
+#		state = trace.getState(self)
+#
+#		if state.table_nCustomers[observation]>1: #Take one customer off table
+#			p_existing_table = (state.nCustomers-1 - d*len(currentTables))/(alpha+state.nCustomers-1) 
+#			trace.score -= math.log(p_existing_table * (state.table_nCustomers[table]-1) / (state.nCustomers-1))
+#			newState = state._replace(
+#				nCustomers = state.nCustomers - 1,
+#				table_nCustomers = state.table_nCustomers.set(observation, state.table_nCustomers[observation]-1),
+#			)
+#			
+#		else: #Delete table
+#			for obs in observation.children:
+#				trace = trace.unobserve(obs)
+#			p_new_table = (alpha + d*len(currentTables))/(alpha+state.nCustomers-1)
+#			trace.score -= math.log(p_new_table)
+#			newState = state._replace(
+#				nCustomers = state.nCustomers - 1,
+#				value_tables = state.value_tables.set(observation.value, [x for x in state.value_tables[observation.value] if x != observation]),
+#				table_nCustomers = state.table_nCustomers.set(observation, state.table_nCustomers[observation] - 1),
+#			)
+#
+#		trace._setState(self, newState)
+#		return trace		
 
 
 
@@ -364,9 +371,9 @@ class RegexConcept(Concept):
 	def str(self, trace, depth=default_string_depth):
 		state = trace.getState(self)
 		if depth==0:
-			return "R" + str(self.id)
+			return "R%d" % self.id 
 		else:
-			return "R" + str(self.id) + "(" + state.regex.str(lambda concept: concept.str(trace, depth=depth-1)) + ")"
+			return "R%d(%s)" % (self.id, state.regex.str(lambda concept: concept.str(trace, depth=depth-1))) 
 
 	def createState(self, regex):
 		return RegexConcept.State(observations = TempDict(), regex = regex)
@@ -382,6 +389,10 @@ class RegexConcept(Concept):
 	def n_observations(self, trace):
 		return sum(trace.getState(self).observations.values())
 
+	def get_observations(self, trace):
+		state = trace.getState(self)
+		return [obs.value for obs in state.observations.keys() for _ in range(state.observations[obs])]
+
 	def sample(self, trace):
 		state = trace.getState(self)
 		regex = state.regex
@@ -391,7 +402,6 @@ class RegexConcept(Concept):
 		state = trace.getState(self)
 		regex = state.regex
 
-		initScore = trace.score
 		score, S = regex.match(value, state=regexState(trace=trace, observations=(), n=n), mergeState=True)
 
 		if score == float("-inf"):
@@ -415,7 +425,6 @@ class RegexConcept(Concept):
 		regex = state.regex
 
 		out = []
-		initScore = trace.score
 		for numCharacters, (score, S) in regex.match(value, state=regexState(trace=trace, observations=(), n=n), mergeState=True, returnPartials=True):
 			matched_value = value[:numCharacters]
 			new_trace = S.trace.fork()
@@ -432,8 +441,6 @@ class RegexConcept(Concept):
 	def unobserve(self, trace, observation):
 		state = trace.getState(self)
 		regex = state.regex
-
-		initScore = trace.score
 
 		for obs in observation.children:
 			trace = trace.unobserve(obs)
@@ -480,6 +487,7 @@ class Trace:
 		self.state = {} #dict<Concept, State>
 		self.nextConceptID = 0
 		self.baseConcepts = []
+		self.allConcepts = []
 		self.baseConcept_nReferences = {} #dict<Concept, int> number of times concept is referenced by other concepts
 		self.baseConcept_nReferences_total = 0
 		self.baseConcept_nTaskReferences = {} #dict<Concept, int> number of times concept is referenced by other concepts
@@ -489,6 +497,7 @@ class Trace:
 		fork = copy.copy(self)
 		fork.state = copy.copy(self.state)
 		fork.baseConcepts = copy.copy(self.baseConcepts)
+		fork.allConcepts = copy.copy(self.allConcepts)
 		fork.baseConcept_nReferences = copy.copy(self.baseConcept_nReferences)
 		fork.baseConcept_nTaskReferences = copy.copy(self.baseConcept_nTaskReferences)
 		return fork
@@ -509,6 +518,9 @@ class Trace:
 		return concept.observe_partial(self.fork(), value, n)
 
 	def unobserve(self, observation):
+		raise Exception("""
+			Todo: Make sure to update baseConcept_nTaskReferences
+		""")
 		return observation.concept.unobserve(self.fork(), observation)
 
 	def observe_all(self, concept, values, max_n_counterexamples=5, task=None):
@@ -534,9 +546,7 @@ class Trace:
 	def unobserve_all(self, observations):
 		trace = self.fork()
 		raise Exception("""
-			Todo:
-				(1) Make sure that we unobserve the correct number of observations
-				(2) Make sure to update baseConcept_nTaskReferences
+			Todo: Make sure that we unobserve the correct number of observations
 		""")
 		for observation in observations:
 			trace = observation.concept.unobserve(trace, observation)
@@ -577,22 +587,23 @@ class Trace:
 		regex_concept = trace._addConcept(RegexConcept, regex)
 		concept = trace._addConcept(PYConcept, regex_concept)
 		trace.baseConcepts.append(concept)
+		trace.allConcepts.append(regex_concept)
+		trace.allConcepts.append(concept)
 		return trace, concept
 
 	def addPY(self, concept):
 		trace = self.fork()
 		concept = trace._addConcept(PYConcept, concept)
 		trace.baseConcepts.append(concept)
+		trace.allConcepts.append(concept)
 		return trace, concept
 
 	def addregex(self, regex):
 		trace = self.fork()
 		concept = trace._addConcept(RegexConcept, regex)
 		trace.baseConcepts.append(concept)
+		trace.allConcepts.append(concept)
 		return trace, concept
-
-
-
 
 # ------------ Unit tests ------------
 
@@ -600,7 +611,7 @@ if __name__=="__main__":
 	import pickle
 	import os
 
-	trace = trace()
+	trace = Trace()
 	trace, firstName = trace.addPYregex(pre.create("\\w+"))
 	trace, lastName  = trace.addPYregex(pre.create("\\w+"))
 

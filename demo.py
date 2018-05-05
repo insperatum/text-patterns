@@ -1,5 +1,5 @@
 import loader
-from propose import Proposal, evalProposal, getProposals, networkCache, getNetworkRegexes
+from propose import getProposals, getNetworkRegexes
 import util
 
 import torch
@@ -65,7 +65,7 @@ if mode.lower() in ["g", "generation"]:
 				else:
 					examples.append(s)
 
-		proposals = getProposals(M['net'], M['trace'], examples, include_crp=False)
+		proposals = getProposals(M['net'], M['trace'], examples)
 		for proposal in proposals[:5]:
 			print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))
 			for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
@@ -84,7 +84,7 @@ elif mode.lower() in ["c", "classification"]:
 		return examples
 
 	def conditionalProbability(examples_support, examples_test): #p(examples_test | examples_support)
-		proposals = getProposals(M['net'], M['trace'], examples_support, include_crp=False)
+		proposals = getProposals(M['net'], M['trace'], examples_support)
 
 		#Normalise scores
 		total_logprob = util.logsumexp([proposal.final_trace.score for proposal in proposals])

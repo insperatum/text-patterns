@@ -3,3 +3,5 @@
 /results/
 /__pycache__/
 /scratch.py
+/init.pt
+*.swp

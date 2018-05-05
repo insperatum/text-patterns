@@ -1,11 +1,14 @@
-import torch
-import shutil
+import math
 from collections import Counter
-import numpy as np
 import pickle
 import util
+import shutil
+
+import torch
+import numpy as np
 
 import render
+import pregex as pre
 
 # Save/Load
 def load(file, cuda=False):
@@ -13,22 +16,6 @@ def load(file, cuda=False):
 	M['model_file'] = file
 
 	# Legacy
-	trace = M['trace']
-	if len(trace.baseConcepts)>0 and trace.baseConcepts[0].id != 0:
-		for i in range(len(trace.baseConcepts)):
-			v0 = trace.state.get(trace.baseConcepts[i], None)
-			v1 = trace.baseConcept_nReferences.get(trace.baseConcepts[i], None)
-			v2 = trace.baseConcept_nTaskReferences.get(trace.baseConcepts[i], None)
-			if v0 is not None: del trace.state[trace.baseConcepts[i]]
-			if v1 is not None: del trace.baseConcept_nReferences[trace.baseConcepts[i]]
-			if v2 is not None: del trace.baseConcept_nTaskReferences[trace.baseConcepts[i]]
-			trace.baseConcepts[i].id = i
-			if v0 is not None: trace.state[trace.baseConcepts[i]] = v0
-			if v1 is not None: trace.baseConcept_nReferences[trace.baseConcepts[i]] = v1
-			if v2 is not None: trace.baseConcept_nTaskReferences[trace.baseConcepts[i]] = v2
-
-	if not hasattr(trace, 'nextConceptID'):
-		trace.nextConceptID=len(trace.baseConcepts)
 
 	return M
 
@@ -92,14 +79,24 @@ def loadData(file, n_examples, n_tasks, max_length):
 			data.append(task)
 			tasks_unique.append(unique)
 	
-	data_by_max_length = [[examples for examples in data if max(len(x) for x in examples)==i] for i in range(max_length)]
+	grouped_data = [[examples for examples in data if max(len(x) for x in examples[:100])==i] for i in range(max_length)]
+	grouped_data = [X for X in grouped_data if len(X)>0]
 
-	for i in range(max_length):
-		rand.shuffle(data_by_max_length[i])
-		data_by_max_length[i] = data_by_max_length[i][:n_tasks]
-		data_by_max_length[i] = sorted(data_by_max_length[i], key=lambda examples: -util.entropy(examples))
+	#pos_int_regex = pre.create("0|((1|2|3|4|5|6|7|8|9)\d*)")
+	#float_regex = pre.Concat([pos_int_regex, pre.create("\.\d+")])
+	num_regex = pre.create("0|((1|2|3|4|5|6|7|8|9)\d*)(\.\d+)?")
 
-	data = [x for examples in data_by_max_length for x in examples]
+	for i in range(len(grouped_data)):
+		rand.shuffle(grouped_data[i])
+		for fil in [num_regex]:
+			fil_idxs = [j for j,xs in enumerate(grouped_data[i]) if all(fil.match(x) > float("-inf") for x in xs)]
+			grouped_data[i] = [grouped_data[i][j] for j in range(len(grouped_data[i])) if j not in fil_idxs[math.ceil(0.2*n_tasks):]]
+
+		grouped_data[i] = grouped_data[i][:n_tasks]
+		grouped_data[i] = sorted(grouped_data[i], key=lambda examples: -util.entropy(examples))
+
+	data = [x for examples in grouped_data for x in examples]
+	group_idxs = list(np.cumsum([len(X) for X in grouped_data])) 
 	# rand.shuffle(data)
 	# if args.n_tasks is not None:
 	# 	data = data[args.skip_tasks:args.n_tasks + args.skip_tasks]
@@ -109,4 +106,4 @@ def loadData(file, n_examples, n_tasks, max_length):
 	with open("data/data_filtered.pt", 'wb') as f:
 		pickle.dump(data, f)
 
-	return data
+	return data, group_idxs
