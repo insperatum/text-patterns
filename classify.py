@@ -20,10 +20,6 @@ if torch.cuda.is_available(): M['net'].cuda()
 print("Loading data")
 data, group_idxs, test_data = loader.loadData(M['args'].data_file, M['args'].n_examples, M['args'].n_tasks, M['args'].max_length)
 
-print("Few shot (g)eneration, (c)lassification, or (n)etwork predictions?")
-mode = input()
-
-
 def conditionalProbability(examples_support, examples_test): #p(examples_test | examples_support)
 	proposals = getProposals(M['net'], M['trace'], examples_support)
 
