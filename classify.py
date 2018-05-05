@@ -23,7 +23,7 @@ print("Loading data")
 data, group_idxs, test_data = loader.loadData(M['args'].data_file, M['args'].n_examples, M['args'].n_tasks, M['args'].max_length)
 
 def conditionalProbability(examples_support, examples_test): #p(examples_test | examples_support)
-	proposals = getProposals(M['net'], M['trace'], examples_support, modes=("regex",))
+	proposals = getProposals(M['net'], M['trace'], examples_support, modes=("regex",), printTimes=True)
 
 	#Normalise scores
 	total_logprob = util.logsumexp([proposal.final_trace.score for proposal in proposals])
