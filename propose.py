@@ -66,8 +66,8 @@ def getNetworkRegexes(net, current_trace, examples):
 	return regex_count
 
 #Regex, CRP, Regex+CRP, Regex+CRP+CRP
-def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp-crp")): #Includes proposals from network, and proposals on existing concepts
-	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp"] for x in modes))
+def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp", "siblingcrp")): #Includes proposals from network, and proposals on existing concepts
+	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp", "siblingcrp"] for x in modes))
 	examples = sorted(examples)[:10] #Hashable for cache. Up to 10 input examples
 	isCached = tuple(examples) in networkCache
 

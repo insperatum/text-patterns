@@ -34,9 +34,9 @@ parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
 parser.add_argument('--embedding_size', type=int, default=128)
 
-parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
+parser.add_argument('--n_tasks', type=int, default=25) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
-parser.add_argument('--n_examples', type=int, default=500)
+parser.add_argument('--n_examples', type=int, default=100)
 parser.add_argument('--initial_concept', type=str, default=None) 
 
 model_default_params = {'alpha':0.01, 'geom_p':0.01, 'pyconcept_alpha':1, 'pyconcept_d':0.5}

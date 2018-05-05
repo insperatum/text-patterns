@@ -1,11 +1,14 @@
-import torch
-import shutil
+import math
 from collections import Counter
-import numpy as np
 import pickle
 import util
+import shutil
+
+import torch
+import numpy as np
 
 import render
+import pregex as pre
 
 # Save/Load
 def load(file, cuda=False):
@@ -76,11 +79,19 @@ def loadData(file, n_examples, n_tasks, max_length):
 			data.append(task)
 			tasks_unique.append(unique)
 	
-	grouped_data = [[examples for examples in data if max(len(x) for x in examples)==i] for i in range(max_length)]
+	grouped_data = [[examples for examples in data if max(len(x) for x in examples[:100])==i] for i in range(max_length)]
 	grouped_data = [X for X in grouped_data if len(X)>0]
+
+	#pos_int_regex = pre.create("0|((1|2|3|4|5|6|7|8|9)\d*)")
+	#float_regex = pre.Concat([pos_int_regex, pre.create("\.\d+")])
+	num_regex = pre.create("0|((1|2|3|4|5|6|7|8|9)\d*)(\.\d+)?")
 
 	for i in range(len(grouped_data)):
 		rand.shuffle(grouped_data[i])
+		for fil in [num_regex]:
+			fil_idxs = [j for j,xs in enumerate(grouped_data[i]) if all(fil.match(x) > float("-inf") for x in xs)]
+			grouped_data[i] = [grouped_data[i][j] for j in range(len(grouped_data[i])) if j not in fil_idxs[math.ceil(0.2*n_tasks):]]
+
 		grouped_data[i] = grouped_data[i][:n_tasks]
 		grouped_data[i] = sorted(grouped_data[i], key=lambda examples: -util.entropy(examples))
 

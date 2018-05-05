@@ -29,7 +29,7 @@ class TempList():
 		new.tempAdd = self.tempAdd + [value]
 		new.refresh()
 		return new
-
+	
 	def remove(self, value):
 		new = copy.copy(self)
 		if value in self.tempAdd:
@@ -507,6 +507,9 @@ class Trace:
 		return concept.observe_partial(self.fork(), value, n)
 
 	def unobserve(self, observation):
+		raise Exception("""
+			Todo: Make sure to update baseConcept_nTaskReferences
+		""")
 		return observation.concept.unobserve(self.fork(), observation)
 
 	def observe_all(self, concept, values, max_n_counterexamples=5, task=None):
@@ -532,9 +535,7 @@ class Trace:
 	def unobserve_all(self, observations):
 		trace = self.fork()
 		raise Exception("""
-			Todo:
-				(1) Make sure that we unobserve the correct number of observations
-				(2) Make sure to update baseConcept_nTaskReferences
+			Todo: Make sure that we unobserve the correct number of observations
 		""")
 		for observation in observations:
 			trace = observation.concept.unobserve(trace, observation)
@@ -592,9 +593,6 @@ class Trace:
 		trace.baseConcepts.append(concept)
 		trace.allConcepts.append(concept)
 		return trace, concept
-
-
-
 
 # ------------ Unit tests ------------
 

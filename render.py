@@ -1,3 +1,5 @@
+from collections import Counter
+
 import matplotlib
 matplotlib.use("Agg")
 
@@ -16,15 +18,23 @@ def saveConcepts(M, filename):
 	dot = Digraph()
 	isMini = {}
 	for concept in concepts:
-		samples = [concept.sample(trace) for _ in range(5)]
-		unique_samples = set(samples)
-		many_samples = [concept.sample(trace) for _ in range(500)]
+#		samples = [concept.sample(trace) for _ in range(5)]
+#		unique_samples = set(samples)
+#		many_samples = [concept.sample(trace) for _ in range(500)]
+			
+#		if any(x not in unique_samples for x in many_samples):
+#			sample_str = ", ".join(list(s if s is not "" else "" for s in unique_samples) + ["..."])
+#		else:
+#			sample_str = ", ".join(list(s if s is not "" else "" for s in unique_samples))
 		
-		
-		if any(x not in unique_samples for x in many_samples):
-			sample_str = ", ".join(list(s if s is not "" else "&#949;" for s in unique_samples) + ["..."])
+		observations = concept.get_observations(trace)
+		counter = Counter(observations)	
+		if len(counter)>5:
+			total = sum(counter.values())
+			sampled_observations = np.random.choice(counter.keys(), p=[x/total for x in counter.values()], replace=False)
+			obs_str = ", ".join(list(s if s is not "" else "" for s in sampled_observations) + ["..."])
 		else:
-			sample_str = ", ".join(list(s if s is not "" else "&#949;" for s in unique_samples))
+			obs_str = ", ".join(list(s if s is not "" else "" for s in counter))
 		
 		
 		isRegex = type(concept) is RegexConcept
@@ -44,7 +54,8 @@ def saveConcepts(M, filename):
 		else:				
 			dot.node(str(concept.id), "<" 
 				+ name_prefix
-				+ "<font point-size='%d'>"%size + html.escape(sample_str) + "</font>"
+				#+ "<font point-size='%d'>"%size + html.escape(sample_str) + "</font>"
+				+ "<font point-size='%d'>"%size + html.escape(obs_str) + "</font>"
 				+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
 		
