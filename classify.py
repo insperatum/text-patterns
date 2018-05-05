@@ -44,6 +44,8 @@ def conditionalProbability(examples_support, examples_test): #p(examples_test | 
 	return util.logsumexp([trace.score for trace in new_traces])
 
 
+hits=0
+misses=0
 for i in range(99999):
 	print("-"*20, "\n")
 
@@ -62,7 +64,12 @@ for i in range(99999):
 	score2 = conditionalProbability(examples2, examples_test)
 	print("Class 2 posterior predictive:", score2)
 
-	print()
-	prediction = "class 1" if score1>score2 else "class 2",
 	confidence = math.exp(max(score1, score2) - util.logsumexp([score1, score2]))
-	print("Prediction: %s"%prediction, "(confidence %2.2f%%)"%(confidence*100))
+	if score1>score2:
+		print("HIT (%2.2f%%)" % (confidence*100))
+		hits += 1
+	else:
+		print("HIT (%2.2f%%)" % (confidence*100))
+		misses += 1
+
+	print("Accuracy: %2.2f%%" % (hits/misses * 100))
