@@ -21,7 +21,7 @@ print("Loading data")
 data, group_idxs, test_data = loader.loadData(M['args'].data_file, M['args'].n_examples, M['args'].n_tasks, M['args'].max_length)
 
 def conditionalProbability(examples_support, examples_test): #p(examples_test | examples_support)
-	proposals = getProposals(M['net'], M['trace'], examples_support)
+	proposals = getProposals(M['net'], M['trace'], examples_support, modes=("regex",))
 
 	#Normalise scores
 	total_logprob = util.logsumexp([proposal.final_trace.score for proposal in proposals])
@@ -45,28 +45,22 @@ misses=0
 for i in range(99999):
 	print("-"*20, "\n")
 
-	class1 = random.choice(test_data)
-	examples1 = np.random.choice(class1, size=3)
-	print(examples1)
-	class2 = random.choice(test_data)
-	examples2 = np.random.choice(class2, size=3)
-	print(examples2)
+	classes = [random.choice(test_data) for _ in range(5)]
+	exampless = [np.random.choice(X, size=3) for X in classes]
 
-	examples_test = [random.choice(class1)]
-	print(examples_test)
-	print()
-	score1 = conditionalProbability(examples1, examples_test)
-	print("Class 1 posterior predictive:", score1)
-	print()
-	score2 = conditionalProbability(examples2, examples_test)
-	print("Class 2 posterior predictive:", score2)
+	print("Support Sets:", exampless)
+	examples_test = [random.choice(classes[0])]
+	print("Test:", examples_test[0])
+	
+	scores = [conditionalProbability(examples, examples_test) for examples in exampless]
+	print("Scores:", scores)
 
-	confidence = math.exp(max(score1, score2) - util.logsumexp([score1, score2]))
-	if score1>score2:
+	confidence = math.exp(max(scores) - util.logsumexp(scores))
+	if max(scores) == scores[0]:
 		print("HIT (confidence %2.2f%%)" % (confidence*100))
 		hits += 1
 	else:
-		print("HIT (confidence %2.2f%%)" % (confidence*100))
+		print("MISS (confidence %2.2f%%)" % (confidence*100))
 		misses += 1
 
 	print("Accuracy: %2.2f%%" % (hits/(hits+misses) * 100))
