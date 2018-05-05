@@ -2,6 +2,8 @@ from trace import RegexWrapper
 from collections import Counter, namedtuple
 import pregex as pre
 
+import time
+
 import numpy as np
 import util
 
@@ -54,7 +56,7 @@ def getNetworkRegexes(net, current_trace, examples):
 		regex_count = Counter()
 		for i in range(10):
 			inputs = [[(example,) for example in examples]] * 500
-			outputs = net.sample(inputs) 
+			outputs = net.sample(inputs)
 
 			for o in outputs:
 				try:
@@ -66,7 +68,7 @@ def getNetworkRegexes(net, current_trace, examples):
 	return regex_count
 
 #Regex, CRP, Regex+CRP, Regex+CRP+CRP
-def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp")): #Includes proposals from network, and proposals on existing concepts
+def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp"), printTimes=False): #Includes proposals from network, and proposals on existing concepts
 	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp"] for x in modes))
 	examples = sorted(examples)[:10] #Hashable for cache. Up to 10 input examples
 	isCached = tuple(examples) in networkCache
@@ -74,10 +76,12 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 	if net is None:
 		network_regexes = []
 	else:
+		start_time = time.time()
 		regex_count = getNetworkRegexes(net, current_trace, examples)
+		if printTimes: print("Get network regexes: %dms" % (time.time()-start_time))
 		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
-	
 
+	start_time = time.time()
 	proposals = [Proposal(depth, tuple(examples), *current_trace.addregex(
 			pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), None, None, None)] #Exactly the examples
 	for c in current_trace.baseConcepts:
@@ -99,8 +103,12 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 			t,c = t.addPY(c)
 			t,c = t.addPY(c)
 			proposals.append(Proposal(depth, tuple(examples), t, c, None, None, None))
-	
+	if printTimes: print("Make proposals: %dms" % (time.time()-start_time))
+
+	start_time = time.time()
 	proposals = [evalProposal(proposal, examples) for proposal in proposals]
+	if printTimes: print("Evaluate proposals: %dms" % (time.time()-start_time))
+
 	proposals = [x for x in proposals if x.valid]
 	proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 	# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}

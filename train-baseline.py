@@ -33,7 +33,7 @@ args = parser.parse_args()
 iteration=0
 data, group_idxs, test_data = loader.loadData(args.data_file, args.n_examples, args.n_tasks, args.max_length)
 
-use_cuda = torch.cuda.is_available() and not args.no_cuda
+use_cuda = torch.cuda.is_available()
 net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=string.printable,
 							 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
 print("Created network")
@@ -47,9 +47,9 @@ def getInstance(n_examples):
 	Returns a single problem instance, as input/target strings
 	"""
 	while True:
-		testclass = random.choice(test_data)
-		inputs = (list(np.random.choice(testclass, size=n_examples)),)
-		target = random.choice(testclass)
+		trainclass = random.choice(data)
+		inputs = (list(np.random.choice(trainclass, size=n_examples)),)
+		target = random.choice(trainclass)
 		if len(target)<args.max_length and all(len(x)<args.max_length for x in inputs[0]):
 			break
 	return {'inputs':inputs, 'target':target}
@@ -66,11 +66,14 @@ def getBatch(batch_size):
 
 # SGD
 def networkStep():
+	global iteration
 	inputs, target = getBatch(args.batch_size)
 	network_score = net.optimiser_step(inputs, target)
 
-	print("Iteration %d" % iteration, "| Network loss: %2.2f" % (-network_score))
-	print(inputs[0], net.sample(inputs)[0])	
+	iteration += 1
+	if iteration%10==0:
+		print("Iteration %d" % iteration, "| Network loss: %2.2f" % (-network_score))
+		print(inputs[0], "--->", "".join(net.sample(inputs)[0]))	
 	return network_score
 
 def train(iterations=10000, saveEvery=500):
@@ -81,7 +84,7 @@ def train(iterations=10000, saveEvery=500):
 			break
 
 		if iteration % saveEvery == 0:
-			with open("baseline.pt") as f:
+			with open("baseline.pt", 'wb') as f:
 				torch.save(net, f)
 
 if __name__ == "__main__":
