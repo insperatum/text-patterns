@@ -53,7 +53,8 @@ for i in range(99999):
 	print(examples2)
 
 	examples_test = [random.choice(class1)]
-
+	print(examples_test)
+	print()
 	score1 = conditionalProbability(examples1, examples_test)
 	print("Class 1 posterior predictive:", score1)
 	print()
