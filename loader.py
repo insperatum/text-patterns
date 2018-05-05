@@ -86,15 +86,17 @@ def loadData(file, n_examples, n_tasks, max_length):
 	#float_regex = pre.Concat([pos_int_regex, pre.create("\.\d+")])
 	num_regex = pre.create("0|((1|2|3|4|5|6|7|8|9)\d*)(\.\d+)?")
 
+	test_data = []
 	for i in range(len(grouped_data)):
 		rand.shuffle(grouped_data[i])
 		for fil in [num_regex]:
 			fil_idxs = [j for j,xs in enumerate(grouped_data[i]) if all(fil.match(x) > float("-inf") for x in xs)]
 			grouped_data[i] = [grouped_data[i][j] for j in range(len(grouped_data[i])) if j not in fil_idxs[math.ceil(0.2*n_tasks):]]
 
+		test_data.extend(grouped_data[i][n_tasks:n_tasks*2])
 		grouped_data[i] = grouped_data[i][:n_tasks]
 		grouped_data[i] = sorted(grouped_data[i], key=lambda examples: -util.entropy(examples))
-
+		
 	data = [x for examples in grouped_data for x in examples]
 	group_idxs = list(np.cumsum([len(X) for X in grouped_data])) 
 	# rand.shuffle(data)
@@ -106,4 +108,4 @@ def loadData(file, n_examples, n_tasks, max_length):
 	with open("data/data_filtered.pt", 'wb') as f:
 		pickle.dump(data, f)
 
-	return data, group_idxs
+	return data, group_idxs, test_data
