@@ -46,12 +46,16 @@ for i in range(99999):
 	print("-"*20, "\n")
 
 	classes = [random.choice(test_data) for _ in range(5)]
-	exampless = [np.random.choice(X, size=3) for X in classes]
+	exampless = [list(np.random.choice(X, size=3)) for X in classes]
 
-	print("Support Sets:", exampless)
-	examples_test = [random.choice(classes[0])]
-	print("Test:", examples_test[0])
+	print("Support Sets:")
+	for examples in exampless: print(examples)
 	
+	examples_test = [random.choice(classes[0])]
+	print("Test:")
+	print(examples_test[0])
+	print()
+
 	scores = [conditionalProbability(examples, examples_test) for examples in exampless]
 	print("Scores:", scores)
 
