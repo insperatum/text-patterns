@@ -106,6 +106,7 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 	if printTimes: print("Make proposals: %dms" % (100*(time.time()-start_time)))
 
 	start_time = time.time()
+	if printTimes: print("Evaluating %d proposals" % len(proposals))
 	proposals = [evalProposal(proposal, examples) for proposal in proposals]
 	if printTimes: print("Evaluate proposals: %dms" % (100*(time.time()-start_time)))
 
