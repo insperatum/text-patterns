@@ -75,7 +75,7 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 
 	valid_proposals = []
 	def addProposal(trace, concept):
-		p = evalProposal(Proposal(depth, examples, trace, concept, None, None, None))
+		p = evalProposal(Proposal(depth, examples, trace, concept, None, None, None), examples)
 		if p.valid: valid_proposals.append(p)
 
 	addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)]))) #Exactly the examples
