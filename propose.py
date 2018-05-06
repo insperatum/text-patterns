@@ -85,6 +85,7 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 			t,c = current_trace.addPY(c)
 			addProposal(t, c)
 	
+	init_proposals = [x for x in valid_proposals]
 	if net is not None:	
 		n_basic_proposals = len(valid_proposals)
 		for r in getNetworkRegexes(net, current_trace, examples):
@@ -105,6 +106,8 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 	# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
 	proposals = valid_proposals[:nProposals]
 
-	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
+	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(
+		"{N}" if proposal not in init_proposals else "" +
+		proposal.concept.str(proposal.trace) for proposal in proposals))
 
 	return proposals
