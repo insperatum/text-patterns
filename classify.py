@@ -25,7 +25,7 @@ print("Loading data")
 data, group_idxs, test_data = loader.loadData(M['args'].data_file, M['args'].n_examples, M['args'].n_tasks, M['args'].max_length)
 
 def conditionalProbability(examples_support, examples_test): #p(examples_test | examples_support)
-	proposals = getProposals(M['net'], M['trace'], examples_support, modes=("regex",), printTimes=True)
+	proposals = getProposals(M['net'], M['trace'], examples_support, modes=("regex",))
 
 	#Normalise scores
 	total_logprob = util.logsumexp([proposal.final_trace.score for proposal in proposals])
@@ -52,21 +52,21 @@ def p_ratio(examples_support, examples_test):
 	if examples_support in prob_cache:
 		logp_support = prob_cache[examples_support]
 	else:
-		proposals_support = getProposals(M['net'], M['trace'], examples_support, modes=("regex",), printTimes=True, nProposals=args.nProposals)
+		proposals_support = getProposals(M['net'], M['trace'], examples_support, modes=("regex",), nProposals=args.nProposals)
 		logp_support = util.logsumexp([proposal.final_trace.score for proposal in proposals_support])
 		prob_cache[examples_support] = logp_support
 	
 	if examples_test in prob_cache:
 		logp_test = prob_cache[examples_test]
 	else:
-		proposals_test = getProposals(M['net'], M['trace'], examples_test, modes=("regex",), printTimes=True, nProposals=args.nProposals)
+		proposals_test = getProposals(M['net'], M['trace'], examples_test, modes=("regex",), nProposals=args.nProposals)
 		logp_test = util.logsumexp([proposal.final_trace.score for proposal in proposals_test])
 		prob_cache[examples_test] = logp_test
 
 	if examples_joint in prob_cache:
 		logp_joint = prob_cache[examples_joint]
 	else:
-		proposals_joint = getProposals(M['net'], M['trace'], examples_joint, modes=("regex",), printTimes=True, nProposals=args.nProposals)
+		proposals_joint = getProposals(M['net'], M['trace'], examples_joint, modes=("regex",), nProposals=args.nProposals)
 		logp_joint = util.logsumexp([proposal.final_trace.score for proposal in proposals_joint])
 		prob_cache[examples_joint] = logp_joint
 
