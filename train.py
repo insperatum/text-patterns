@@ -253,11 +253,11 @@ def addTask(task_idx):
 	
 	print("Evaluated", nEvaluated, "proposals", "(%d solutions)" % nSolutions)
 	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
+	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
 	M['trace'] = accepted.final_trace
 	M['task_observations'][task_idx] = accepted.observations
 	#refreshVocabulary()
 	M['state']['task_iterations'].append(M['state']['iteration'])
-	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score) + "\n")
 
 
 
