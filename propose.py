@@ -45,7 +45,7 @@ def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task
 
 networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' found outputs, so far 
 
-def getNetworkRegexes(net, current_trace, examples):
+def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=10):
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
 	examples = tuple(sorted(examples))
 	if examples in networkCache:
@@ -53,20 +53,20 @@ def getNetworkRegexes(net, current_trace, examples):
 			yield r
 	else:
 		networkCache[examples]={'valid':[], 'all':set()}
-	
-	while True:
 		inputs = [[(example,) for example in examples]] * 500
-		outputs_count=Counter(net.sample(inputs))
 
-		for o in sorted(outputs_count, key=outputs_count.get):
-			if o not in networkCache[examples]['all']:
-				networkCache[examples]['all'].add(o)
-				try:
-					r = pre.create(o, lookup=lookup)
-					networkCache[examples]['valid'].append(r)
-					yield r
-				except pre.ParseException:
-					pass
+		for i in range(maxNetworkEvals):
+			print("Calling network")
+			outputs_count=Counter(net.sample(inputs))
+			for o in sorted(outputs_count, key=outputs_count.get):
+				if o not in networkCache[examples]['all']:
+					networkCache[examples]['all'].add(o)
+					try:
+						r = pre.create(o, lookup=lookup)
+						networkCache[examples]['valid'].append(r)
+						yield r
+					except pre.ParseException:
+						pass
 
 def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp"), nProposals=10): #Includes proposals from network, and proposals on existing concepts
 	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp"] for x in modes))
