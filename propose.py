@@ -53,17 +53,18 @@ def getNetworkRegexes(net, current_trace, examples):
 	if examples in networkCache:
 		regex_count = networkCache[examples]
 	else:
-		regex_count = Counter()
+		outputs_count = Counter()
 		for i in range(10):
 			inputs = [[(example,) for example in examples]] * 500
-			outputs = net.sample(inputs)
+			outputs_count.update(net.sample(inputs))
 
-			for o in outputs:
-				try:
-					r = pre.create(o, lookup=lookup)
-					regex_count[r] += 1
-				except pre.ParseException:
-					pass
+		regex_count = Counter()
+		for o in outputs_count:
+			try:
+				r = pre.create(o, lookup=lookup)
+				regex_count[r] += outputs_count[o]
+			except pre.ParseException:
+				pass
 		networkCache[examples] = regex_count
 	return regex_count
 
