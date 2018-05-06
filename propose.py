@@ -2,8 +2,6 @@ from trace import RegexWrapper
 from collections import Counter, namedtuple
 import pregex as pre
 
-import time
-
 import numpy as np
 import util
 
@@ -45,77 +43,68 @@ def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task
 		if doPrint: print(proposal.concept.str(proposal.trace), "got score: %3.3f" % trace.score, "of which observation: %3.3f" % (trace.score-proposal.trace.score), flush=True)
 		return proposal._replace(final_trace=trace, observations=observations, valid=True)
 
-networkCache = {}
+networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' found outputs, so far 
 
 def getNetworkRegexes(net, current_trace, examples):
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
-	examples = tuple(examples)
+	examples = tuple(sorted(examples))
 	if examples in networkCache:
-		regex_count = networkCache[examples]
+		for r in networkCache[examples]['valid']:
+			yield r
 	else:
-		outputs_count = Counter()
-		for i in range(10):
-			inputs = [[(example,) for example in examples]] * 500
-			outputs_count.update(net.sample(inputs))
+		networkCache[examples]={'valid':[], 'all':set()}
+	
+	while True:
+		inputs = [[(example,) for example in examples]] * 500
+		outputs_count=Counter(net.sample(inputs))
 
-		regex_count = Counter()
-		for o in outputs_count:
-			try:
-				r = pre.create(o, lookup=lookup)
-				regex_count[r] += outputs_count[o]
-			except pre.ParseException:
-				pass
-		networkCache[examples] = regex_count
-	return regex_count
+		for o in sorted(outputs_count, key=outputs_count.get):
+			if o not in networkCache[examples]['all']:
+				networkCache['all'].add(o)
+				try:
+					r = pre.create(o, lookup=lookup)
+					networkCache['valid'].append(r)
+					yield r
+				except pre.ParseException:
+					pass
 
-#Regex, CRP, Regex+CRP, Regex+CRP+CRP
-def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp"), nProposals=10, printTimes=False): #Includes proposals from network, and proposals on existing concepts
+def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp"), nProposals=10): #Includes proposals from network, and proposals on existing concepts
 	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp"] for x in modes))
-	examples = sorted(examples)[:10] #Hashable for cache. Up to 10 input examples
-	isCached = tuple(examples) in networkCache
+	examples = tuple(sorted(examples))
+	isCached = examples in networkCache
 
-	if net is None:
-		network_regexes = []
-	else:
-		start_time = time.time()
-		regex_count = getNetworkRegexes(net, current_trace, examples)
-		if printTimes: print("Get network regexes: %dms" % (100*(time.time()-start_time)))
-		network_regexes = sorted(regex_count, key=regex_count.get, reverse=True)
+	valid_proposals = []
+	def addProposal(trace, concept):
+		p = evalProposal(Proposal(depth, examples, trace, concept, None, None, None))
+		if p.valid: valid_proposals.append(p)
 
-	start_time = time.time()
-	proposals = [Proposal(depth, tuple(examples), *current_trace.addregex(
-			pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), None, None, None)] #Exactly the examples
+	addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)]))) #Exactly the examples
+
 	for c in current_trace.baseConcepts:
-		proposals.append(Proposal(depth, tuple(examples), current_trace.fork(), c, None, None, None))
+		addProposal(current_trace.fork(), c)
 		if "crp" in modes:
 			t,c = current_trace.addPY(c)
-			proposals.append(Proposal(depth, tuple(examples), t, c, None, None, None))
+			addProposal(t, c)
+	
+	if net is not None:	
+		eval_to_len = len(valid_proposals) + nProposals
+		for r in getNetworkRegexes(net, current_trace, examples):
+			if any(x in modes for x in ("regex", "regex-crp", "regex-crp-crp")):
+				t,c = current_trace.addregex(r)
+				if "regex" in modes: addProposal(t, c)
+				if any(x in modes for x in ("regex-crp", "regex-crp-crp")):
+					t,c = t.addPY(c)
+					if "regex-crp" in modes: addProposal(t, c)
+					if "regex-crp-crp" in modes:
+						t,c = t.addPY(c)
+						addProposal(t, c)
+			if len(valid_proposals)>=eval_to_len:
+				break
 
-	for r in network_regexes:
-		if "regex" in modes:
-			t,c = current_trace.addregex(r)
-			proposals.append(Proposal(depth, tuple(examples), t, c, None, None, None))
-		if "regex-crp" in modes:
-			t,c = current_trace.addregex(r)
-			t,c = t.addPY(c)
-			proposals.append(Proposal(depth, tuple(examples), t, c, None, None, None))
-		if "regex-crp-crp" in modes:
-			t,c = current_trace.addregex(r)
-			t,c = t.addPY(c)
-			t,c = t.addPY(c)
-			proposals.append(Proposal(depth, tuple(examples), t, c, None, None, None))
-	if printTimes: print("Make proposals: %dms" % (100*(time.time()-start_time)))
-
-	start_time = time.time()
-	if printTimes: print("Evaluating %d proposals" % len(proposals))
-	proposals = [evalProposal(proposal, examples) for proposal in proposals]
-	if printTimes: print("Evaluate proposals: %dms" % (100*(time.time()-start_time)))
-
-	proposals = [x for x in proposals if x.valid]
-	proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
+	valid_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 	# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
 	# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
-	proposals = proposals[:nProposals]
+	proposals = valid_proposals[:nProposals]
 
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
 
