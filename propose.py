@@ -68,7 +68,7 @@ def getNetworkRegexes(net, current_trace, examples):
 	return regex_count
 
 #Regex, CRP, Regex+CRP, Regex+CRP+CRP
-def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp"), printTimes=False): #Includes proposals from network, and proposals on existing concepts
+def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp"), nProposals=10, printTimes=False): #Includes proposals from network, and proposals on existing concepts
 	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp"] for x in modes))
 	examples = sorted(examples)[:10] #Hashable for cache. Up to 10 input examples
 	isCached = tuple(examples) in networkCache
@@ -113,7 +113,7 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 	proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 	# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
 	# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
-	proposals = proposals[:10]
+	proposals = proposals[:nProposals]
 
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(proposal.concept.str(proposal.trace) for proposal in proposals))
 
