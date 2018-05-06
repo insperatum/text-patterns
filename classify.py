@@ -46,7 +46,7 @@ prob_cache = {}
 def p_ratio(examples_support, examples_test):
 	examples_support = tuple(sorted(examples_support))
 	examples_test = tuple(sorted(examples_test))
-	examples_joint = sorted(examples_support + examples_test)
+	examples_joint = tuple(sorted(examples_support + examples_test))
 
 	if examples_support in prob_cache:
 		logp_support = prob_cache[examples_support]
