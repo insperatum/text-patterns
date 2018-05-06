@@ -41,6 +41,35 @@ def conditionalProbability(examples_support, examples_test): #p(examples_test | 
 	#Conditional probability
 	return util.logsumexp([trace.score for trace in new_traces])
 
+prob_cache = {}
+def p_ratio(examples_support, examples_test):
+	examples_support = tuple(sorted(examples_support))
+	examples_test = tuple(sorted(examples_test))
+	examples_joint = sorted(examples_support + examples_test)
+
+	if examples_support in prob_cache:
+		logp_support = prob_cache[examples_support]
+	else:
+		proposals_support = getProposals(M['net'], M['trace'], examples_support, modes=("regex",), printTimes=True)
+		logp_support = util.logsumexp([proposal.final_trace.score for proposal in proposals_support])
+		prob_cache[examples_support] = logp_support
+	
+	if examples_test in prob_cache:
+		logp_test = prob_cache[examples_test]
+	else:
+		proposals_test = getProposals(M['net'], M['trace'], examples_test, modes=("regex",), printTimes=True)
+		logp_test = util.logsumexp([proposal.final_trace.score for proposal in proposals_test])
+		prob_cache[examples_test] = logp_test
+
+	if examples_joint in prob_cache:
+		logp_joint = prob_cache[examples_joint]
+	else:
+		proposals_joint = getProposals(M['net'], M['trace'], examples_joint, modes=("regex",), printTimes=True)
+		logp_joint = util.logsumexp([proposal.final_trace.score for proposal in proposals_joint])
+		prob_cache[examples_joint] = logp_joint
+
+	score = logp_joint - logp_test - logp_support
+	return score
 
 hits=0
 misses=0
@@ -58,7 +87,8 @@ for i in range(99999):
 	print(examples_test[0])
 	print()
 
-	scores = [conditionalProbability(examples, examples_test) for examples in exampless]
+	#scores = [conditionalProbability(examples, examples_test) for examples in exampless]
+	scores = [p_ratio(examples, examples_test) for examples in exampless]
 	print("Scores:", scores)
 
 	confidence = math.exp(max(scores) - util.logsumexp(scores))
