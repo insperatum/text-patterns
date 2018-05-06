@@ -1,5 +1,6 @@
 import os
 import torch
+
 import random
 import argparse
 import gc
@@ -274,7 +275,7 @@ if __name__ == "__main__":
 
 	# ------------- Load Model & Data --------------
 	# Data
-	data, group_idxs = loader.loadData(args.data_file, args.n_examples, args.n_tasks, args.max_length)
+	data, group_idxs, test_data = loader.loadData(args.data_file, args.n_examples, args.n_tasks, args.max_length)
 
 	# Model
 	M = None

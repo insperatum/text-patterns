@@ -71,7 +71,7 @@ if mode.lower() in ["g", "generation"]:
 			for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
 
 elif mode.lower() in ["c", "classification"]:
-
+	raise NotImplementedError() #which classification mode? Total correlation?
 	def getExamples():
 		examples = []
 		nextInput = True

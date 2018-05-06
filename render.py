@@ -32,9 +32,9 @@ def saveConcepts(M, filename):
 		if len(counter)>5:
 			total = sum(counter.values())
 			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=4)
-			obs_str = ", ".join(list(s if s is not "" else "" for s in sampled_observations) + ["..."])
+			obs_str = ", ".join(list(s if s is not "" else "eps" for s in sampled_observations) + ["..."])
 		else:
-			obs_str = ", ".join(list(s if s is not "" else "" for s in counter))
+			obs_str = ", ".join(list(s if s is not "" else "eps" for s in counter))
 		
 		
 		isRegex = type(concept) is RegexConcept
