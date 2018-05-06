@@ -6,6 +6,7 @@ import argparse
 import gc
 import queue
 import string
+import time
 
 import numpy as np
 from scipy import stats
@@ -174,13 +175,16 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 			continue
 
 		l_active[worker_idx] = True
+		start_time=time.time()
 		solution = evalProposal(proposal, task, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
+		took = time.time()-start_time
+
 		nEvaluated += 1
 		if solution.valid:
 			solutions.append(solution)
-			print("(Worker %d)"%worker_idx, "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
+			print("(Worker %d, %ds)"%(worker_idx, int(took)), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
 		else:
-			print("(Worker %d)"%worker_idx, "Failed:", proposal.concept.str(proposal.trace), flush=True)
+			print("(Worker %d, %ds)"%(worker_idx, int(took)), "Failed:", proposal.concept.str(proposal.trace), flush=True)
 		
 	q_solutions.put(
 		{"nEvaluated": nEvaluated,
