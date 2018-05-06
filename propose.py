@@ -60,10 +60,10 @@ def getNetworkRegexes(net, current_trace, examples):
 
 		for o in sorted(outputs_count, key=outputs_count.get):
 			if o not in networkCache[examples]['all']:
-				networkCache['all'].add(o)
+				networkCache[examples]['all'].add(o)
 				try:
 					r = pre.create(o, lookup=lookup)
-					networkCache['valid'].append(r)
+					networkCache[examples]['valid'].append(r)
 					yield r
 				except pre.ParseException:
 					pass
