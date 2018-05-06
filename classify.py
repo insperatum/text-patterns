@@ -15,6 +15,7 @@ parser.add_argument('--nProposals', type=int, default=10)
 parser.add_argument('--model', type=str, default=max(('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt"), key=os.path.getmtime)) #Most recent model
 parser.add_argument('--shot', type=int, default=3)
 parser.add_argument('--way', type=int, default=10)
+parser.add_argument('--n', type=int, default=1000)
 args = parser.parse_args()
 
 print("Loading", args.model)
@@ -74,7 +75,7 @@ def p_ratio(examples_support, examples_test):
 
 hits=0
 misses=0
-for i in range(99999):
+for i in range(args.n):
 	print("-"*20, "\n")
 	
 	classes = [random.choice(test_data) for _ in range(args.way)]

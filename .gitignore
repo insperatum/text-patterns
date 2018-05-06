@@ -1,7 +1,7 @@
-/envs/
-/experiments/
-/results/
-/__pycache__/
+/envs
+/experiments
+/results
+/__pycache__
 /scratch.py
 /*.pt
 *.swp
