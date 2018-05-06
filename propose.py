@@ -87,7 +87,7 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 			addProposal(t, c)
 	
 	if net is not None:	
-		eval_to_len = len(valid_proposals) + nProposals
+		n_basic_proposals = len(valid_proposals)
 		for r in getNetworkRegexes(net, current_trace, examples):
 			if any(x in modes for x in ("regex", "regex-crp", "regex-crp-crp")):
 				t,c = current_trace.addregex(r)
@@ -98,7 +98,8 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 					if "regex-crp-crp" in modes:
 						t,c = t.addPY(c)
 						addProposal(t, c)
-			if len(valid_proposals)>=eval_to_len:
+			print(len(valid_proposals) - n_basic_proposals)
+			if len(valid_proposals)>=n_basic_proposals + nProposals:
 				break
 
 	valid_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
