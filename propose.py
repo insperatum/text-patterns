@@ -56,7 +56,6 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=10):
 		inputs = [[(example,) for example in examples]] * 500
 
 		for i in range(maxNetworkEvals):
-			print("Calling network")
 			outputs_count=Counter(net.sample(inputs))
 			for o in sorted(outputs_count, key=outputs_count.get):
 				if o not in networkCache[examples]['all']:
@@ -98,7 +97,6 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 					if "regex-crp-crp" in modes:
 						t,c = t.addPY(c)
 						addProposal(t, c)
-			print(len(valid_proposals) - n_basic_proposals)
 			if len(valid_proposals)>=n_basic_proposals + nProposals:
 				break
 
