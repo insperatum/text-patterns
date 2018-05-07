@@ -30,8 +30,9 @@ parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
-parser.add_argument('--min_iterations', type=int, default=1000) #minimum number of training iterations before next concept
+parser.add_argument('--min_iterations', type=int, default=500) #minimum number of training iterations before next concept
 
+parser.add_argument('--n_proposals', type=int, default=10)
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
 parser.add_argument('--embedding_size', type=int, default=128)
@@ -41,7 +42,7 @@ parser.add_argument('--skip_tasks', type=int, default=0)
 parser.add_argument('--n_examples', type=int, default=100)
 parser.add_argument('--initial_concept', type=str, default=None) 
 
-model_default_params = {'alpha':0.01, 'geom_p':0.01, 'pyconcept_alpha':1, 'pyconcept_d':0.5}
+model_default_params = {'alpha':1, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references, or to alpha if no references
 parser.add_argument('--geom_p', type=float, default=None) #probability of adding another concept (geometric)
 parser.add_argument('--pyconcept_alpha', type=float, default=None)
@@ -142,14 +143,14 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 
 		#Retry by including counterexamples in support set
 		sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
-		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1)
+		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_proposals)
 		for counterexample_proposal in counterexample_proposals[:5]:
 			print("Adding proposal", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
 			queueProposal(counterexample_proposal)
 		
 		#Deal with counter examples separately (with Alt)
 		sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
-		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples, depth=proposal.depth+1)
+		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_proposals)
 		for counterexample_proposal in counterexample_proposals[:5]: 
 			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
@@ -225,7 +226,7 @@ def addTask(task_idx):
 			p=np.array(list(example_counter.values()))/sum(example_counter.values()),
 			replace=True))
 		pre_trace = M['trace']
-		new_proposals = getProposals(M['net'] if not args.no_network else None, pre_trace, examples)
+		new_proposals = getProposals(M['net'] if not args.no_network else None, pre_trace, examples, nProposals=args.n_proposals)
 		for proposal in new_proposals:	queueProposal(proposal)
 		if i==0: launchWorkers()
 
