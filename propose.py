@@ -90,13 +90,13 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 		for r in getNetworkRegexes(net, current_trace, examples):
 			if any(x in modes for x in ("regex", "regex-crp", "regex-crp-crp")):
 				t,c = current_trace.addregex(r)
-				if "regex" in modes: addProposal(t, c, cur_proposals)
+				if "regex" in modes: addProposal(t, c, net_proposals)
 				if any(x in modes for x in ("regex-crp", "regex-crp-crp")):
 					t,c = t.addPY(c)
-					if "regex-crp" in modes: addProposal(t, c, cur_proposals)
+					if "regex-crp" in modes: addProposal(t, c, net_proposals)
 					if "regex-crp-crp" in modes:
 						t,c = t.addPY(c)
-						addProposal(t, c, cur_proposals)
+						addProposal(t, c, net_proposals)
 			if len(net_proposals)>=nProposals:
 				break
 
