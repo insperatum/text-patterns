@@ -123,7 +123,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 				regress = stats.linregress(range(window_size), window)
 				
 				print("Iteration %d" % M['state']['iteration'], "| Network loss: %2.2f" % M['state']['network_losses'][-1], "| Slope: %4.4f" % regress.slope)
-			if len(M['state']['network_losses']) >= from_iteration + window_size and regress.slope>-1/1000:
+			if len(M['state']['network_losses']) >= from_iteration + window_size and regress.slope>-0.0001:
 				break #Break when converged
 		else:
 			if len(M['state']['network_losses']) <= from_iteration + iterations:
