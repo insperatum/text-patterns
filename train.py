@@ -147,13 +147,14 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 		#Retry by including counterexamples in support set
 		sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
 		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1)
-		for counterexample_proposal in counterexample_proposals[:4]:
+		for counterexample_proposal in counterexample_proposals[:5]:
+			print("Adding proposal", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "kink =", kinkscore, flush=True)
 			queueProposal(counterexample_proposal)
 		
 		#Deal with counter examples separately (with Alt)
 		sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
 		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples, depth=proposal.depth+1)
-		for counterexample_proposal in counterexample_proposals[:4]: 
+		for counterexample_proposal in counterexample_proposals[:5]: 
 			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
 				ps = [p_valid, 1-p_valid]))
@@ -182,9 +183,9 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 		nEvaluated += 1
 		if solution.valid:
 			solutions.append(solution)
-			print("(Worker %d, %ds)"%(worker_idx, int(took)), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
+			print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
 		else:
-			print("(Worker %d, %ds)"%(worker_idx, int(took)), "Failed:", proposal.concept.str(proposal.trace), flush=True)
+			print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), flush=True)
 		
 	q_solutions.put(
 		{"nEvaluated": nEvaluated,
@@ -202,7 +203,6 @@ def addTask(task_idx):
 	manager = mp.Manager()
 	q_proposals = manager.Queue()
 
-	proposals = []
 	proposal_strings_sofar = [] #TODO: this better. Want to avoid duplicate proposals. For now, just using string representation to check...
 
 	def queueProposal(proposal): #add to evaluation queue
@@ -211,6 +211,15 @@ def addTask(task_idx):
 		if proposal_string not in proposal_strings_sofar:
 			q_proposals.put(proposal)
 			proposal_strings_sofar.append(proposal_string)
+
+	n_workers = max(1, cpus-1)
+	q_counterexamples = manager.Queue()
+	q_solutions = manager.Queue()
+	l_active = manager.list([True for _ in range(n_workers)])
+
+	def launchWorkers():
+		for worker_idx in range(n_workers):
+			mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, l_active, task_idx, data[task_idx])).start()
 
 	for i in range(10 if not args.debug else 3):
 		num_examples = random.randint(args.min_examples, args.max_examples)
@@ -221,18 +230,8 @@ def addTask(task_idx):
 			replace=True))
 		pre_trace = M['trace']
 		new_proposals = getProposals(M['net'] if not args.no_network else None, pre_trace, examples)
-		for proposal in new_proposals:
-			queueProposal(proposal)
-
-	n_workers = max(1, cpus-1)
-
-	q_counterexamples = manager.Queue()
-	q_solutions = manager.Queue()
-	l_active = manager.list([True for _ in range(n_workers)])
-	for p in proposals:
-		q_proposals.put(p)
-	for worker_idx in range(n_workers):
-		mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, l_active, task_idx, data[task_idx])).start()
+		for proposal in new_proposals:	queueProposal(proposal)
+		if i==0: launchWorkers()
 
 	while any(l_active) or not q_counterexamples.empty():
 		try:
