@@ -111,7 +111,7 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 	proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(
-		("{N}" if proposal in net_proposals else "") +
+		("N:" if proposal in net_proposals else "") +
 		proposal.concept.str(proposal.trace) for proposal in proposals))
 
 	return proposals
