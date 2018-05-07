@@ -2,6 +2,8 @@ from trace import RegexWrapper
 from collections import Counter, namedtuple
 import pregex as pre
 
+import math
+
 import numpy as np
 import util
 
@@ -105,7 +107,8 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 	
 	# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
 	# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
-	proposals = cur_proposals[:nProposals] + net_proposals[:nProposals]
+	proposals = cur_proposals[:math.ceil(nProposals/2)] + net_proposals[:math.floor(nProposals/2)]
+	proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(
 		("{N}" if proposal in net_proposals else "") +
