@@ -72,42 +72,43 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 	examples = tuple(sorted(examples))
 	isCached = examples in networkCache
 
-	valid_proposals = []
-	def addProposal(trace, concept):
+	cur_proposals = []
+	net_proposals = []
+	def addProposal(trace, concept, add_to):
 		p = evalProposal(Proposal(depth, examples, trace, concept, None, None, None), examples)
-		if p.valid: valid_proposals.append(p)
+		if p.valid: add_to.append(p)
 
-	addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)]))) #Exactly the examples
+	addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), cur_proposals) #Exactly the examples
 
 	for c in current_trace.baseConcepts:
-		addProposal(current_trace.fork(), c)
+		addProposal(current_trace.fork(), c, cur_proposals)
 		if "crp" in modes:
 			t,c = current_trace.addPY(c)
-			addProposal(t, c)
+			addProposal(t, c, cur_proposals)
 	
-	init_proposals = [x for x in valid_proposals]
 	if net is not None:	
-		n_basic_proposals = len(valid_proposals)
 		for r in getNetworkRegexes(net, current_trace, examples):
 			if any(x in modes for x in ("regex", "regex-crp", "regex-crp-crp")):
 				t,c = current_trace.addregex(r)
-				if "regex" in modes: addProposal(t, c)
+				if "regex" in modes: addProposal(t, c, cur_proposals)
 				if any(x in modes for x in ("regex-crp", "regex-crp-crp")):
 					t,c = t.addPY(c)
-					if "regex-crp" in modes: addProposal(t, c)
+					if "regex-crp" in modes: addProposal(t, c, cur_proposals)
 					if "regex-crp-crp" in modes:
 						t,c = t.addPY(c)
-						addProposal(t, c)
-			if len(valid_proposals)>=n_basic_proposals + nProposals:
+						addProposal(t, c, cur_proposals)
+			if len(net_proposals)>=nProposals:
 				break
 
-	valid_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
+	cur_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
+	net_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
+	
 	# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
 	# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
-	proposals = valid_proposals[:nProposals]
+	proposals = cur_proposals[:nProposals] + net_proposals[:nProposals]
 
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(
-		"{N}" if proposal not in init_proposals else "" +
+		"{N}" if proposal in net_proposals else "" +
 		proposal.concept.str(proposal.trace) for proposal in proposals))
 
 	return proposals
