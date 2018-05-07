@@ -7,6 +7,7 @@ import gc
 import queue
 import string
 import time
+import math
 
 import numpy as np
 from scipy import stats
@@ -103,10 +104,9 @@ def networkStep():
 
 	M['state']['network_losses'].append(-network_score)
 	M['state']['iteration'] += 1
-	if M['state']['iteration']%10==0:
-		print("Iteration %d" % M['state']['iteration'], "| Network loss: %2.2f" % M['state']['network_losses'][-1])
-		if args.debug_network: print(inputs[0], target[0], net.sample(inputs)[0])
-	
+
+	if M['state']['iteration']%10==0 and args.debug_network: print(inputs[0], target[0], net.sample(inputs)[0])
+
 	networkCache.clear()
 	return network_score
 
@@ -115,22 +115,21 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 	from_iteration = M['state']['task_iterations'][-1] if M['state']['task_iterations'] else 0
 	while True:
 		if toConvergence:
-			window_size = args.min_iterations
-			#min_grad=2e-3
-			window = M['state']['network_losses'][-window_size:]
-			regress = stats.linregress(range(window_size), window)
-			#regress_slope = stats.linregress(range(window_size), [window[i] + min_grad*i for i in range(len(window))])
-			#p_ratio = regress.pvalue / regress_slope.pvalue
-			#if p_ratio < 2 and not args.debug: 
-			if len(M['state']['network_losses']) <= from_iteration + window_size or regress.slope<-1/1000:
-				networkStep()
-				if M['state']['iteration']%10==0:
-					print("(slope:%4.4f)" % regress.slope)
-			else:
+			networkStep()
+			
+			if M['state']['iteration']%10==0:
+				window_size = args.min_iterations
+				window = M['state']['network_losses'][math.max(from_iteration, len(M['state']['network_losses']-window_size)):]
+				regress = stats.linregress(range(window_size), window)
+				
+				print("Iteration %d" % M['state']['iteration'], "| Network loss: %2.2f" % M['state']['network_losses'][-1], "| Slope: %4.4f" % regress.slope)
+			if len(M['state']['network_losses']) >= from_iteration + window_size and regress.slope>-1/1000:
 				break #Break when converged
 		else:
 			if len(M['state']['network_losses']) <= from_iteration + iterations:
 				networkStep()
+				if M['state']['iteration']%10==0:
+					print("Iteration %d" % M['state']['iteration'], "| Network loss: %2.2f" % M['state']['network_losses'][-1])
 			else:
 				break
 
@@ -147,7 +146,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 		sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
 		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1)
 		for counterexample_proposal in counterexample_proposals[:5]:
-			print("Adding proposal", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "kink =", kinkscore, flush=True)
+			print("Adding proposal", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
 			queueProposal(counterexample_proposal)
 		
 		#Deal with counter examples separately (with Alt)
@@ -158,7 +157,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
 				ps = [p_valid, 1-p_valid]))
 			new_proposal = Proposal(proposal.depth+1, tuple(proposal.examples) + tuple(sampled_counterexamples), trace, concept, None, None, None)
-			print("Adding proposal", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, "kink =", kinkscore, flush=True)
+			print("Adding proposal", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
 			queueProposal(new_proposal)
 		
 
