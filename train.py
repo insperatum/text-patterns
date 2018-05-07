@@ -7,7 +7,6 @@ import gc
 import queue
 import string
 import time
-import math
 
 import numpy as np
 from scipy import stats
@@ -119,7 +118,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 			
 			if M['state']['iteration']%10==0:
 				window_size = args.min_iterations
-				window = M['state']['network_losses'][math.max(from_iteration, len(M['state']['network_losses']-window_size)):]
+				window = M['state']['network_losses'][max(from_iteration, len(M['state']['network_losses']-window_size)):]
 				regress = stats.linregress(range(window_size), window)
 				
 				print("Iteration %d" % M['state']['iteration'], "| Network loss: %2.2f" % M['state']['network_losses'][-1], "| Slope: %4.4f" % regress.slope)

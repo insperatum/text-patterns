@@ -87,6 +87,7 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 		if "crp" in modes:
 			t,c = current_trace.addPY(c)
 			addProposal(t, c, cur_proposals)
+
 	
 	if net is not None:	
 		for r in getNetworkRegexes(net, current_trace, examples):
