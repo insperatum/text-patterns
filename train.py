@@ -33,6 +33,7 @@ parser.add_argument('--max_length', type=int, default=15) #maximum length of inp
 parser.add_argument('--min_iterations', type=int, default=500) #minimum number of training iterations before next concept
 
 parser.add_argument('--n_proposals', type=int, default=10)
+parser.add_argument('--n_counterproposals', type=int, default=5)
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
 parser.add_argument('--embedding_size', type=int, default=128)
@@ -143,14 +144,14 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 
 		#Retry by including counterexamples in support set
 		sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
-		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_proposals)
+		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals)
 		for counterexample_proposal in counterexample_proposals[:5]:
 			print("Adding proposal", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
 			queueProposal(counterexample_proposal)
 		
 		#Deal with counter examples separately (with Alt)
 		sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
-		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_proposals)
+		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals)
 		for counterexample_proposal in counterexample_proposals[:5]: 
 			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
