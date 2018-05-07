@@ -88,7 +88,10 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 			t,c = current_trace.addPY(c)
 			addProposal(t, c, cur_proposals)
 
-	
+	n_cur = math.ceil(nProposals/2)
+	n_net = math.floor(nProposals/2)
+	m_net = n_net * 5
+
 	if net is not None:	
 		for r in getNetworkRegexes(net, current_trace, examples):
 			if any(x in modes for x in ("regex", "regex-crp", "regex-crp-crp")):
@@ -100,7 +103,7 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 					if "regex-crp-crp" in modes:
 						t,c = t.addPY(c)
 						addProposal(t, c, net_proposals)
-			if len(net_proposals)>=nProposals:
+			if len(net_proposals)>=m_net:
 				break
 
 	cur_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
@@ -108,7 +111,7 @@ def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "
 	
 	# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
 	# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
-	proposals = cur_proposals[:math.ceil(nProposals/2)] + net_proposals[:math.floor(nProposals/2)]
+	proposals = cur_proposals[:n_cur] + net_proposals[:n_net]
 	proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 
 	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(
