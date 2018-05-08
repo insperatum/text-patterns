@@ -264,7 +264,7 @@ def checkForMistakes():
 	if upper_concept is not None:
 		assert not any(x not in string.ascii_uppercase for x in M['trace'].getState(upper_concept).value_tables.keys()), "Uppercase concept failed"
 	if digit_concept is not None:
-		assert not any(x not in string.digits for x in M['trace'].getState(upper_concept).value_tables.keys()), "Digits concept failed"
+		assert not any(x not in string.digits for x in M['trace'].getState(digit_concept).value_tables.keys()), "Digits concept failed"
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------
 
