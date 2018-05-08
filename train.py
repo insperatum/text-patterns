@@ -160,6 +160,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 					ps = [p_valid, 1-p_valid]))
 				new_proposal = Proposal(proposal.depth+1, tuple(proposal.examples) + tuple(sampled_counterexamples), trace, concept, None, None, None)
 				print("(kink score %2.2f)" % (kinkscore or 0), "ADDING:", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
+				print("(ps=", [p_valid, 1-p_valid], flush=True)
 				queueProposal(new_proposal)
 		else:
 			print("(kink score %2.2f)" % kinkscore, "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace))
