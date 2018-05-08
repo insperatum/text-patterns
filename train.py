@@ -145,14 +145,14 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			#Retry by including counterexamples in support set
 			sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
 			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals)
-			for counterexample_proposal in counterexample_proposals[:5]:
+			for counterexample_proposal in counterexample_proposals:
 				print("Adding proposal", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
 				queueProposal(counterexample_proposal)
 			
 			#Deal with counter examples separately (with Alt)
 			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
 			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals)
-			for counterexample_proposal in counterexample_proposals[:5]: 
+			for counterexample_proposal in counterexample_proposals: 
 				trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 					[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
 					ps = [p_valid, 1-p_valid]))
