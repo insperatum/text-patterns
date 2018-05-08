@@ -16,6 +16,7 @@ def load(file, cuda=False):
 	M['model_file'] = file
 
 	# Legacy
+	if 'task_concepts' not in M: M['task_concepts'] = [None for _ in range(len(M['task_observations']))]
 
 	return M
 

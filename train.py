@@ -308,7 +308,7 @@ if __name__ == "__main__":
 					print("set model." + str(param) + "=" + str(val))
 		else:
 			M = {}
-			M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[], 'task_concepts':[]}
+			M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
 			
 			if args.init_net is None: 
 				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
@@ -323,7 +323,8 @@ if __name__ == "__main__":
 				print("Loaded existing network")
 			
 			M['args'] = args
-			M['task_observations'] = [[] for d in range(len(data))]
+			M['task_observations'] = [[] for _ in range(len(data))]
+			M['task_concepts'] = [[] for _ in range(len(data))]
 			M['trace'] = Trace(model=RegexModel(
 				alpha=args.alpha,
 				geom_p=args.geom_p,
