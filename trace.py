@@ -537,7 +537,7 @@ class Trace:
 		""")
 		return observation.concept.unobserve(self.fork(), observation)
 
-	def observe_all(self, concept, values, max_n_counterexamples=5, task=None):
+	def observe_all(self, concept, values, max_n_counterexamples=5, task=None, weight=1):
 		observations = []
 		counterexamples = []
 		trace = self.fork()
@@ -555,6 +555,7 @@ class Trace:
 			return None, None, counterexamples, p_valid
 		else:
 			if task is not None: trace.baseConcept_nTaskReferences[concept] = trace.baseConcept_nTaskReferences.get(concept, 0) + 1
+			if weight != 1: trace.score = self.score + weight*(trace.score-self.score)
 			return trace, observations, None, None
 
 	def unobserve_all(self, observations):

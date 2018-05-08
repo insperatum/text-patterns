@@ -147,7 +147,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples),
 					depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples)
 			for counterexample_proposal in counterexample_proposals:
-				print("Adding proposal", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
+				print("(kink score %2.2f)" % kinkscore, "ADDING:", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 				queueProposal(counterexample_proposal)
 			
 			#Deal with counter examples separately (with Alt)
@@ -162,7 +162,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 				print("Adding proposal", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
 				queueProposal(new_proposal)
 		else:
-			print(counterexamples[:5], "got kink score", kinkscore, "on", proposal.concept.str(proposal.trace))
+			print("(kink score %2.2f)" % kinkscore, "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace))
 
 
 def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, l_active, task_idx, task):
