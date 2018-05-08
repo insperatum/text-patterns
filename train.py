@@ -315,7 +315,10 @@ if __name__ == "__main__":
 											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
 				print("Created new network")
 			else:
-				M['net'] = net = loader.load(args.init_net)['net']
+				_M = loader.load(args.init_net)
+				M['net'] = net = _M['net'] 
+				M['state']['network_losses'] = _M['state']['network_losses']
+				M['state']['iteration'] = _M['state']['iteration']
 				assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
 				print("Loaded existing network")
 			

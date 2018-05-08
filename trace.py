@@ -114,7 +114,10 @@ class Concept:
 	def n_observations(self, trace):
 		raise NotImplementedError()
 	
-	def str(self, trace, depth=default_string_depth):
+	def get_name(self):
+		return "#"+str(self.id)
+
+	def str(self, trace, depth=default_string_depth, include_self=True):
 		return str(self)
 
 	def createState(self):
@@ -187,12 +190,15 @@ class PYConcept(Concept):
 		"""
 		pass
 
-	def str(self, trace, depth=default_string_depth):
+	def str(self, trace, depth=default_string_depth, include_self=True):
 		state = trace.getState(self)
+		
 		if depth==0:
-			return "P%d" % self.id
+			return self.get_name(trace)
+		elif include_self:
+			return self.get_name(trace) + "(%s)" % state.baseConcept.str(trace, depth=depth-1)
 		else:
-			return "P%d(%s)" % (self.id, state.baseConcept.str(trace, depth=depth-1))
+			return state.baseConcept.str(trace, depth=depth-1)
 
 	def createState(self, baseConcept):
 		return PYConcept.State(baseConcept = baseConcept,
@@ -368,12 +374,14 @@ class RegexConcept(Concept):
 		"""
 		pass
 
-	def str(self, trace, depth=default_string_depth):
+	def str(self, trace, depth=default_string_depth, include_self=True):
 		state = trace.getState(self)
 		if depth==0:
-			return "R%d" % self.id 
+			return self.get_name(trace)
+		elif include_self:
+			return self.get_name(trace) + "(%s)" % state.regex.str(lambda concept: concept.str(trace, depth=depth-1), escape_strings=False) 
 		else:
-			return "R%d(%s)" % (self.id, state.regex.str(lambda concept: concept.str(trace, depth=depth-1))) 
+			return state.regex.str(lambda concept: concept.str(trace, depth=depth-1), escape_strings=False) 
 
 	def createState(self, regex):
 		return RegexConcept.State(observations = TempDict(), regex = regex)
