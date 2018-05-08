@@ -61,9 +61,9 @@ parser.add_argument('--error-on-mistake', dest='error_on_mistake', action='store
 parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False)
 
 args = parser.parse_args()
-if args.fork is None:
-	for k,v in model_default_params.items():
-		if getattr(args,k) is None: setattr(args, k, v)
+#if args.fork is None:
+#	for k,v in model_default_params.items():
+#		if getattr(args,k) is None: setattr(args, k, v)
 
 default_vocabulary = list(string.printable) + \
         [pre.OPEN, pre.CLOSE, pre.String, pre.Concat, pre.Alt, pre.KleeneStar, pre.Plus, pre.Maybe]
@@ -295,50 +295,51 @@ if __name__ == "__main__":
 			M = loader.load(modelfile)
 			print("Loaded model ", modelfile)
 			M['args'] = args
+
 		except FileNotFoundError:
-			pass
-
-	if M is None:
-		if args.fork is not None:
-			M = loader.load(args.fork, use_cuda)
-			M['args'] = args
-			print("Forked model", args.fork)
-			for param in model_default_params:
-				val = getattr(args, param)
-				if val is not None:
-					setattr(M['trace'].model, param, val)
-					print("set model." + str(param) + "=" + str(val))
+			if args.fork is not None:
+				M = loader.load(args.fork, use_cuda)
+				M['args'] = args
+				print("Forked model", args.fork)
+	
+	if M is not None:
+		for param in model_default_params:
+			val = getattr(args, param)
+			if val is not None:
+				setattr(M['trace'].model, param, val)
+				print("set model." + str(param) + "=" + str(val))
+	else:
+		M = {}
+		M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
+		
+		if args.init_net is None: 
+			M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
+										 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
+			print("Created new network")
 		else:
-			M = {}
-			M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
-			
-			if args.init_net is None: 
-				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
-											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
-				print("Created new network")
-			else:
-				_M = loader.load(args.init_net)
-				M['net'] = net = _M['net'] 
-				M['state']['network_losses'] = _M['state']['network_losses']
-				M['state']['iteration'] = _M['state']['iteration']
-				assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
-				print("Loaded existing network")
-			
-			M['args'] = args
-			M['task_observations'] = [[] for _ in range(len(data))]
-			M['task_concepts'] = [[] for _ in range(len(data))]
-			M['trace'] = Trace(model=RegexModel(
-				alpha=args.alpha,
-				geom_p=args.geom_p,
-				pyconcept_alpha=args.pyconcept_alpha,
-				pyconcept_d=args.pyconcept_d))
+			_M = loader.load(args.init_net)
+			M['net'] = net = _M['net'] 
+			M['state']['network_losses'] = _M['state']['network_losses']
+			M['state']['iteration'] = _M['state']['iteration']
+			assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
+			print("Loaded existing network")
+		
+		M['args'] = args
+		M['task_observations'] = [[] for _ in range(len(data))]
+		M['task_concepts'] = [[] for _ in range(len(data))]
+		M['trace'] = Trace(model=RegexModel(
+			alpha=args.alpha if args.alpha is not None else model_default_params['alpha'],
+			geom_p=args.geom_p if args.geom_p is not None else model_default_params['geom_p'],
+			pyconcept_alpha=args.pyconcept_alpha if args.pyconcept_alpha is not None else model_default_params['pyconcept_alpha'],
+			pyconcept_d=args.pyconcept_d if args.pyconcept_d is not None else model_default_params['pyconcept_d']))
 
-			for (s, c) in [(".", pre.dot), ("d", pre.d), ("s", pre.s), ("w", pre.w), ("l", pre.l), ("u", pre.u)]:
-				if s in args.initial_concepts: M['trace'], init_concept = M['trace'].initregex(c)
+		for (s, c) in [(".", pre.dot), ("d", pre.d), ("s", pre.s), ("w", pre.w), ("l", pre.l), ("u", pre.u)]:
+			if s in args.initial_concepts: M['trace'], init_concept = M['trace'].initregex(c)
 
-			print("Created new model")
-		M['data_file'] = args.data_file
-		M['save_to'] = save_to
+		print("Created new model")
+	
+	M['data_file'] = args.data_file
+	M['save_to'] = save_to
 
 	if use_cuda: M['net'].cuda()
 
