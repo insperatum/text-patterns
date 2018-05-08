@@ -484,7 +484,7 @@ class RegexWrapper(pre.Pregex):
 		initScore = regexState.trace.score
 		for new_trace, observation, numCharacters in regexState.trace.observe_partial(self.concept, string, n=regexState.n):
 			new_trace = new_trace.fork()
-			score = new_trace.score - initScore
+			score = (new_trace.score - initScore)/regexState.n #Score per match
 			new_regexState = regexState._replace(trace=new_trace, observations=regexState.observations + (observation,))
 			yield pre.PartialMatch(numCharacters=numCharacters, score=score, reported_score=0, continuation=None, state=new_regexState)
 
