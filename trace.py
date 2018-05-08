@@ -114,7 +114,10 @@ class Concept:
 	def n_observations(self, trace):
 		raise NotImplementedError()
 	
-	def str(self, trace, depth=default_string_depth):
+	def get_name(self):
+		return "#"+str(self.id)
+
+	def str(self, trace, depth=default_string_depth, include_self=True):
 		return str(self)
 
 	def createState(self):
@@ -187,12 +190,15 @@ class PYConcept(Concept):
 		"""
 		pass
 
-	def str(self, trace, depth=default_string_depth):
+	def str(self, trace, depth=default_string_depth, include_self=True):
 		state = trace.getState(self)
+		
 		if depth==0:
-			return "P%d" % self.id
+			return self.get_name()
+		elif include_self:
+			return self.get_name() + "(%s)" % state.baseConcept.str(trace, depth=depth-1)
 		else:
-			return "P%d(%s)" % (self.id, state.baseConcept.str(trace, depth=depth-1))
+			return state.baseConcept.str(trace, depth=depth-1)
 
 	def createState(self, baseConcept):
 		return PYConcept.State(baseConcept = baseConcept,
@@ -368,12 +374,14 @@ class RegexConcept(Concept):
 		"""
 		pass
 
-	def str(self, trace, depth=default_string_depth):
+	def str(self, trace, depth=default_string_depth, include_self=True):
 		state = trace.getState(self)
 		if depth==0:
-			return "R%d" % self.id 
+			return self.get_name()
+		elif include_self:
+			return self.get_name() + "(%s)" % state.regex.str(lambda concept: concept.str(trace, depth=depth-1), escape_strings=False) 
 		else:
-			return "R%d(%s)" % (self.id, state.regex.str(lambda concept: concept.str(trace, depth=depth-1))) 
+			return state.regex.str(lambda concept: concept.str(trace, depth=depth-1), escape_strings=False) 
 
 	def createState(self, regex):
 		return RegexConcept.State(observations = TempDict(), regex = regex)
@@ -476,7 +484,7 @@ class RegexWrapper(pre.Pregex):
 		initScore = regexState.trace.score
 		for new_trace, observation, numCharacters in regexState.trace.observe_partial(self.concept, string, n=regexState.n):
 			new_trace = new_trace.fork()
-			score = new_trace.score - initScore
+			score = (new_trace.score - initScore)/regexState.n #Score per match
 			new_regexState = regexState._replace(trace=new_trace, observations=regexState.observations + (observation,))
 			yield pre.PartialMatch(numCharacters=numCharacters, score=score, reported_score=0, continuation=None, state=new_regexState)
 
@@ -511,11 +519,17 @@ class Trace:
 	def __repr__(self):
 		return repr({"score": self.score, "state": self.state})
 
-	def observe(self, concept, value, n=1): 
-		return concept.observe(self.fork(), value, n)
+	def observe(self, concept, value, n=1, weight=1): 
+		new_trace, new_observation = concept.observe(self.fork(), value, n)
+		if weight != 1: new_trace.score = self.score + weight*(new_trace.score-self.score)
+		return new_trace, new_observation
 
-	def observe_partial(self, concept, value, n=1): 
-		return concept.observe_partial(self.fork(), value, n)
+	def observe_partial(self, concept, value, n=1, weight=1): 
+		partials = concept.observe_partial(self.fork(), value, n)
+		if weight != 1:
+			for (new_trace, new_observation, numCharacters) in partials:
+				new_trace.score = self.score + weight*(new_trace.score-self.score)
+		return partials
 
 	def unobserve(self, observation):
 		raise Exception("""
@@ -523,7 +537,7 @@ class Trace:
 		""")
 		return observation.concept.unobserve(self.fork(), observation)
 
-	def observe_all(self, concept, values, max_n_counterexamples=5, task=None):
+	def observe_all(self, concept, values, max_n_counterexamples=5, task=None, weight=1):
 		observations = []
 		counterexamples = []
 		trace = self.fork()
@@ -541,6 +555,7 @@ class Trace:
 			return None, None, counterexamples, p_valid
 		else:
 			if task is not None: trace.baseConcept_nTaskReferences[concept] = trace.baseConcept_nTaskReferences.get(concept, 0) + 1
+			if weight != 1: trace.score = self.score + weight*(trace.score-self.score)
 			return trace, observations, None, None
 
 	def unobserve_all(self, observations):
@@ -561,12 +576,16 @@ class Trace:
 	def _setState(self, concept, state):
 		self.state[concept] = state
 
-	def _addConcept(self, conceptClass, *args, **kwargs):
+	def _newConcept(self, conceptClass, *args, **kwargs):
 		concept = conceptClass(id=self.nextConceptID)
 		self.nextConceptID += 1
 		state = concept.createState(*args, **kwargs)
 		self.state[concept] = state
-		
+		return concept
+
+	def _addConcept(self, conceptClass, *args, **kwargs):
+		concept = self._newConcept(conceptClass, *args, **kwargs)
+
 		prior = concept.priorScore(self)
 		conceptsReferenced = concept.conceptsReferenced(self)
 
@@ -601,6 +620,13 @@ class Trace:
 	def addregex(self, regex):
 		trace = self.fork()
 		concept = trace._addConcept(RegexConcept, regex)
+		trace.baseConcepts.append(concept)
+		trace.allConcepts.append(concept)
+		return trace, concept
+
+	def initregex(self, regex):
+		trace = self.fork()
+		concept = trace._newConcept(RegexConcept, regex)
 		trace.baseConcepts.append(concept)
 		trace.allConcepts.append(concept)
 		return trace, concept

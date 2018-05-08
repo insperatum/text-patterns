@@ -16,6 +16,7 @@ def load(file, cuda=False):
 	M['model_file'] = file
 
 	# Legacy
+	if 'task_concepts' not in M: M['task_concepts'] = [None for _ in range(len(M['task_observations']))]
 
 	return M
 
@@ -51,8 +52,15 @@ def save(M, append_str=""):
 		render.saveTrainingError(M, M['save_to'] + "plot.png")
 
 
-def saveCheckpoint(M):
-	torch.save(M, M['save_to'] + "model_task" + str(M['state']['current_task']) + "_iter" + str(M['state']['iteration']) + ".pt")
+def saveCheckpoint(M, saveNet=True):
+	if saveNet:
+		torch.save(M, M['save_to'] + "model_task" + str(M['state']['current_task']) + "_iter" + str(M['state']['iteration']) + ".pt")
+	else:
+		net = M['net']
+		M['net']=None
+		torch.save(M, M['save_to'] + "model_task" + str(M['state']['current_task']) + "_iter" + str(M['state']['iteration']) + "_no_net.pt")
+		M['net']=net
+
 
 def saveRender(M):
 	render.saveConcepts(M, M['save_to'] + "concepts" + "_task" + str(M['state']['current_task']) + ".gv")

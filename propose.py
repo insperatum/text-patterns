@@ -12,17 +12,17 @@ def proposal_strip(self):
 	return self._replace(final_trace=None, observations=None, valid=None)
 Proposal.strip = proposal_strip
 
-def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task_idx=None):
+def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1):
 	assert(proposal.final_trace is None and proposal.observations is None and proposal.valid is None)
 
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
 		return proposal._replace(valid=False)
 
-	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, examples, task=task_idx)
+	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, examples, task=task_idx, weight=likelihoodWeighting)
 	if trace is None:
 		if onCounterexamples is not None:
 			if doPrint: print(proposal.concept.str(proposal.trace), "failed on", counterexamples, flush=True)
-			onCounterexamples(proposal, counterexamples, p_valid)
+			onCounterexamples(proposal, counterexamples, p_valid, None)
 		return proposal._replace(valid=False)
 	else:
 		if onCounterexamples is not None:
@@ -69,15 +69,16 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=30):
 					except pre.ParseException:
 						pass
 
-def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp"), nProposals=10): #Includes proposals from network, and proposals on existing concepts
+def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp"), nProposals=10, nEffectiveExamples=None): #Includes proposals from network, and proposals on existing concepts
 	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp"] for x in modes))
 	examples = tuple(sorted(examples))
+	likelihoodWeighting = nEffectiveExamples/len(examples) if nEffectiveExamples is not None else 1
 	isCached = examples in networkCache
 
 	cur_proposals = []
 	net_proposals = []
 	def addProposal(trace, concept, add_to):
-		p = evalProposal(Proposal(depth, examples, trace, concept, None, None, None), examples)
+		p = evalProposal(Proposal(depth, examples, trace, concept, None, None, None), examples, likelihoodWeighting=likelihoodWeighting)
 		if p.valid: add_to.append(p)
 
 	addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), cur_proposals) #Exactly the examples

@@ -33,14 +33,25 @@ def saveConcepts(M, filename):
 			total = sum(counter.values())
 			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=4)
 			obs_str = ", ".join(list(s if s is not "" else "eps" for s in sampled_observations) + ["..."])
-		else:
+		elif len(counter)>0:
 			obs_str = ", ".join(list(s if s is not "" else "eps" for s in counter))
+		else:
+			obs_str = "(no observations)"
 		
 		
 		isRegex = type(concept) is RegexConcept
 		size = 8
-		
-		name_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=1)) + "</font><br/>"
+	
+		if concept.id==0:
+			name_prefix = "<font point-size='%d'><u><b>Alphabet</b></u></font><br/>" % int(size*1.2)
+		else:
+			name_prefix = "<font point-size='%d'><u><b>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=0)) + "</b></u></font><br/>"
+
+		if isRegex:
+			content_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=1, include_self=False)) + "</font><br/>"
+		else:
+			content_prefix = ""
+
 		nTaskReferences = trace.baseConcept_nTaskReferences.get(concept, 0)
 		nConceptReferences = trace.baseConcept_nReferences.get(concept, 0)
 
@@ -54,9 +65,10 @@ def saveConcepts(M, filename):
 		else:				
 			dot.node(str(concept.id), "<" 
 				+ name_prefix
+				+ content_prefix
 				#+ "<font point-size='%d'>"%size + html.escape(sample_str) + "</font>"
 				+ "<font point-size='%d'>"%size + html.escape(obs_str) + "</font>"
-				+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
+				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
 		
 	for concept in concepts:

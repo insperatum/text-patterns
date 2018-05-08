@@ -1,1 +1,6 @@
-$(grep ^sbatch slurm-logs/$(ls -t slurm-logs | head -n1))
+a=$(grep ^sbatch slurm-logs/$(ls -t slurm-logs | tail -n1))
+echo $a $@
+slurm_id=$($a $@ | cut -d" " -f4)
+b=./slurm-logs/${slurm_id}.out
+echo $b
+watch tail -n50 $b
