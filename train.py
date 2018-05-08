@@ -137,21 +137,23 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 
 
 # ----------- Solve a task ------------------
-def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
+def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None, nEffectiveExamples=None):
 	if p_valid>0.5 and proposal.depth==0:
 		if kinkscore is None or kinkscore < args.counterexample_threshold:
 			counterexamples_unique = list(set(counterexamples))
 
 			#Retry by including counterexamples in support set
 			sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
-			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals)
+			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples),
+					depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples)
 			for counterexample_proposal in counterexample_proposals:
 				print("Adding proposal", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
 				queueProposal(counterexample_proposal)
 			
 			#Deal with counter examples separately (with Alt)
 			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
-			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals)
+			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples,
+					depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples)
 			for counterexample_proposal in counterexample_proposals: 
 				trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
 					[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
@@ -235,7 +237,7 @@ def addTask(task_idx):
 	while any(l_active) or not q_counterexamples.empty():
 		try:
 			counterexample_args = q_counterexamples.get(timeout=0.1)
-			onCounterexamples(queueProposal, *counterexample_args)
+			onCounterexamples(queueProposal, *counterexample_args, nEffectiveExamples=len(data[task_idx]))
 		except queue.Empty:
 			pass
 			#if not args.no_network: networkStep()

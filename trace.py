@@ -519,11 +519,17 @@ class Trace:
 	def __repr__(self):
 		return repr({"score": self.score, "state": self.state})
 
-	def observe(self, concept, value, n=1): 
-		return concept.observe(self.fork(), value, n)
+	def observe(self, concept, value, n=1, weight=1): 
+		new_trace, new_observation = concept.observe(self.fork(), value, n)
+		if weight != 1: new_trace.score = self.score + weight*(new_trace.score-self.score)
+		return new_trace, new_observation
 
-	def observe_partial(self, concept, value, n=1): 
-		return concept.observe_partial(self.fork(), value, n)
+	def observe_partial(self, concept, value, n=1, weight=1): 
+		partials = concept.observe_partial(self.fork(), value, n)
+		if weight != 1:
+			for (new_trace, new_observation, numCharacters) in partials:
+				new_trace.score = self.score + weight*(new_trace.score-self.score)
+		return partials
 
 	def unobserve(self, observation):
 		raise Exception("""
