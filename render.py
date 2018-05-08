@@ -43,8 +43,9 @@ def saveConcepts(M, filename):
 		size = 8
 	
 		if concept.id==0:
-			name_prefix = "<font point-size='%d'><u><b>Base Concept</b></u></font><br/>"
-			content_prefix = "<font point-size='%d'>(all characters)</font><br/>"
+			name_prefix = "<font point-size='%d'><u><b>All Characters</b></u></font><br/>"
+			#content_prefix = "<font point-size='%d'>(all characters)</font><br/>"
+			content_prefix = ""
 		else:
 			name_prefix = "<font point-size='%d'><u><b>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=0)) + "</b></u></font><br/>"
 			content_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=1, include_self=False)) + "</font><br/>"
@@ -65,7 +66,7 @@ def saveConcepts(M, filename):
 				+ content_prefix
 				#+ "<font point-size='%d'>"%size + html.escape(sample_str) + "</font>"
 				+ "<font point-size='%d'>"%size + html.escape(obs_str) + "</font>"
-				+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
+				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
 		
 	for concept in concepts:
