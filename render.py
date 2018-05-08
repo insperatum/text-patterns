@@ -43,12 +43,14 @@ def saveConcepts(M, filename):
 		size = 8
 	
 		if concept.id==0:
-			name_prefix = "<font point-size='%d'><u><b>All Characters</b></u></font><br/>" %int(size)
-			#content_prefix = "<font point-size='%d'>(all characters)</font><br/>"
-			content_prefix = ""
+			name_prefix = "<font point-size='%d'><u><b>Alphabet</b></u></font><br/>" % int(size*1.2)
 		else:
 			name_prefix = "<font point-size='%d'><u><b>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=0)) + "</b></u></font><br/>"
+
+		if isRegex:
 			content_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=1, include_self=False)) + "</font><br/>"
+		else:
+			content_prefix = ""
 
 		nTaskReferences = trace.baseConcept_nTaskReferences.get(concept, 0)
 		nConceptReferences = trace.baseConcept_nReferences.get(concept, 0)
