@@ -43,7 +43,7 @@ def saveConcepts(M, filename):
 		size = 8
 	
 		if concept.id==0:
-			name_prefix = "<font point-size='%d'><u><b>All Characters</b></u></font><br/>"
+			name_prefix = "<font point-size='%d'><u><b>All Characters</b></u></font><br/>" %int(size)
 			#content_prefix = "<font point-size='%d'>(all characters)</font><br/>"
 			content_prefix = ""
 		else:
