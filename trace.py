@@ -561,12 +561,16 @@ class Trace:
 	def _setState(self, concept, state):
 		self.state[concept] = state
 
-	def _addConcept(self, conceptClass, *args, **kwargs):
+	def _newConcept(self, conceptClass, *args, **kwargs):
 		concept = conceptClass(id=self.nextConceptID)
 		self.nextConceptID += 1
 		state = concept.createState(*args, **kwargs)
 		self.state[concept] = state
-		
+		return concept
+
+	def _addConcept(self, conceptClass, *args, **kwargs):
+		concept = self._newConcept(conceptClass, *args, **kwargs)
+
 		prior = concept.priorScore(self)
 		conceptsReferenced = concept.conceptsReferenced(self)
 
@@ -601,6 +605,13 @@ class Trace:
 	def addregex(self, regex):
 		trace = self.fork()
 		concept = trace._addConcept(RegexConcept, regex)
+		trace.baseConcepts.append(concept)
+		trace.allConcepts.append(concept)
+		return trace, concept
+
+	def initregex(self, regex):
+		trace = self.fork()
+		concept = trace._newConcept(RegexConcept, regex)
 		trace.baseConcepts.append(concept)
 		trace.allConcepts.append(concept)
 		return trace, concept

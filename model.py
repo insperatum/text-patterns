@@ -9,25 +9,23 @@ CONCEPT = "CONCEPT"
 maxDepth=2
 
 class RegexModel:
-	def __init__(self, character_classes, alpha, geom_p, pyconcept_alpha, pyconcept_d, pConcept=0.2):
+	def __init__(self, alpha, geom_p, pyconcept_alpha, pyconcept_d, pConcept=0.2):
 		self.pConcept = pConcept
-		self.character_classes = character_classes #= [pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u]
 		self.alpha = alpha
 		self.geom_p = geom_p
 		self.pyconcept_alpha = pyconcept_alpha
 		self.pyconcept_d = pyconcept_d
+		self.character_classes=[]
 		self.refresh()
 
 	def refresh(self):
 		self.p_regex_no_concepts = {
 			pre.String: 0.5,
-			pre.Concat: 0.1,
-			pre.Alt: 0.1,
-			pre.KleeneStar: 0.2/3, pre.Plus: 0.2/3, pre.Maybe: 0.2/3,
+			pre.Concat: 0.1, pre.Alt: 0.1, pre.KleeneStar: 0.1, pre.Plus: 0.1, pre.Maybe: 0.1,
 			CONCEPT: 0
 			#Doesn't include CONCEPT
 		}
-		for x in self.character_classes: self.p_regex_no_concepts[x] = 0.1 / len(self.character_classes)
+		#for x in self.character_classes: self.p_regex_no_concepts[x] = 0.1 / len(self.character_classes)
 
 		self.p_regex = {**{k: p*(1-self.pConcept) for k,p in self.p_regex_no_concepts.items()}, CONCEPT: self.pConcept}
 

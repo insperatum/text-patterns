@@ -15,7 +15,7 @@ import torch.multiprocessing as mp
 
 from model import RegexModel
 import pregex as pre
-from trace import Trace, RegexWrapper
+from trace import Trace, RegexWrapper, PYConcept
 from pinn import RobustFill
 import loader
 from propose import Proposal, evalProposal, getProposals, networkCache
@@ -34,14 +34,15 @@ parser.add_argument('--min_iterations', type=int, default=500) #minimum number o
 
 parser.add_argument('--n_proposals', type=int, default=10)
 parser.add_argument('--n_counterproposals', type=int, default=5)
+parser.add_argument('--counterexample_threshold', type=float, default=0.6)
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
 parser.add_argument('--embedding_size', type=int, default=128)
 
-parser.add_argument('--n_tasks', type=int, default=25) #Per max_length
+parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
-parser.add_argument('--n_examples', type=int, default=100)
-parser.add_argument('--initial_concept', type=str, default=None) 
+parser.add_argument('--n_examples', type=int, default=500)
+parser.add_argument('--initial_concepts', type=str, default='.') 
 
 model_default_params = {'alpha':1, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references, or to alpha if no references
@@ -50,24 +51,22 @@ parser.add_argument('--pyconcept_alpha', type=float, default=None)
 parser.add_argument('--pyconcept_d', type=float, default=None)
 
 parser.add_argument('--helmholtz_dist', type=str, default="uniform") #During sleep, sample concepts from true weighted dist(default) or uniform
-parser.add_argument('--regex-primitives', dest='regex_primitives', action='store_true')
 
 parser.add_argument('--train_first', type=int, default=0)
 parser.add_argument('--debug', dest='debug', action='store_true')
 parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
-parser.add_argument('--no-initial-concept', dest='initial_concept', action='store_const', const=None)
 parser.add_argument('--debug-network', dest='debug_network', action='store_const', const=True)
-parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False)
+parser.add_argument('--error-on-mistake', dest='error_on_mistake', action='store_const', const=True)
+parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False)
+
 args = parser.parse_args()
 if args.fork is None:
 	for k,v in model_default_params.items():
 		if getattr(args,k) is None: setattr(args, k, v)
 
-character_classes=[pre.dot, pre.d, pre.s, pre.w, pre.l, pre.u] if args.regex_primitives else [pre.dot]
 default_vocabulary = list(string.printable) + \
-        [pre.OPEN, pre.CLOSE, pre.String, pre.Concat, pre.Alt, pre.KleeneStar, pre.Plus, pre.Maybe] + \
-        character_classes
+        [pre.OPEN, pre.CLOSE, pre.String, pre.Concat, pre.Alt, pre.KleeneStar, pre.Plus, pre.Maybe]
 
 # ----------- Network training ------------------
 # Sample
@@ -139,27 +138,29 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 
 # ----------- Solve a task ------------------
 def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
-	if p_valid>0.5 and proposal.depth==0 and (kinkscore is None or kinkscore < 0.6):
-		counterexamples_unique = list(set(counterexamples))
+	if p_valid>0.5 and proposal.depth==0:
+		if kinkscore is None or kinkscore < args.counterexample_threshold:
+			counterexamples_unique = list(set(counterexamples))
 
-		#Retry by including counterexamples in support set
-		sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
-		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals)
-		for counterexample_proposal in counterexample_proposals[:5]:
-			print("Adding proposal", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
-			queueProposal(counterexample_proposal)
-		
-		#Deal with counter examples separately (with Alt)
-		sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
-		counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals)
-		for counterexample_proposal in counterexample_proposals[:5]: 
-			trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
-				[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
-				ps = [p_valid, 1-p_valid]))
-			new_proposal = Proposal(proposal.depth+1, tuple(proposal.examples) + tuple(sampled_counterexamples), trace, concept, None, None, None)
-			print("Adding proposal", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
-			queueProposal(new_proposal)
-		
+			#Retry by including counterexamples in support set
+			sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
+			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals)
+			for counterexample_proposal in counterexample_proposals[:5]:
+				print("Adding proposal", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
+				queueProposal(counterexample_proposal)
+			
+			#Deal with counter examples separately (with Alt)
+			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
+			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals)
+			for counterexample_proposal in counterexample_proposals[:5]: 
+				trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
+					[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
+					ps = [p_valid, 1-p_valid]))
+				new_proposal = Proposal(proposal.depth+1, tuple(proposal.examples) + tuple(sampled_counterexamples), trace, concept, None, None, None)
+				print("Adding proposal", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, flush=True)
+				queueProposal(new_proposal)
+		else:
+			print(counterexamples[:5], "got kinkscore", kinkscore)
 
 
 def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, l_active, task_idx, task):
@@ -253,10 +254,17 @@ def addTask(task_idx):
 	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
 	M['trace'] = accepted.final_trace
 	M['task_observations'][task_idx] = accepted.observations
+	M['task_concepts'][task_idx] = accepted.concept
 	#refreshVocabulary()
 	M['state']['task_iterations'].append(M['state']['iteration'])
 
-
+def checkForMistakes():
+	upper_concept = next((c for c in M['trace'].baseConcepts if type(c) is PYConcept and all(x in M['trace'].getState(c).value_tables.keys() for x in 'ABCDEFG')), None)
+	digit_concept = next((c for c in M['trace'].baseConcepts if type(c) is PYConcept and all(x in M['trace'].getState(c).value_tables.keys() for x in '1234567890')), None)
+	if upper_concept is not None:
+		assert not any(x not in string.ascii_uppercase for x in M['trace'].getState(upper_concept).value_tables.keys()), "Uppercase concept failed"
+	if digit_concept is not None:
+		assert not any(x not in string.digits for x in M['trace'].getState(upper_concept).value_tables.keys()), "Digits concept failed"
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -300,7 +308,7 @@ if __name__ == "__main__":
 					print("set model." + str(param) + "=" + str(val))
 		else:
 			M = {}
-			M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
+			M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[], 'task_concepts':[]}
 			
 			if args.init_net is None: 
 				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
@@ -314,13 +322,14 @@ if __name__ == "__main__":
 			M['args'] = args
 			M['task_observations'] = [[] for d in range(len(data))]
 			M['trace'] = Trace(model=RegexModel(
-			    character_classes=character_classes,
 				alpha=args.alpha,
 				geom_p=args.geom_p,
 				pyconcept_alpha=args.pyconcept_alpha,
 				pyconcept_d=args.pyconcept_d))
-			if args.initial_concept=="dot":
-				M['trace'], init_concept = M['trace'].addregex(pre.dot)
+
+			for (s, c) in [(".", pre.dot), ("d", pre.d), ("s", pre.s), ("w", pre.w), ("l", pre.l), ("u", pre.u)]:
+				if s in args.initial_concepts: M['trace'], init_concept = M['trace'].initregex(c)
+
 			print("Created new model")
 		M['data_file'] = args.data_file
 		M['save_to'] = save_to
@@ -330,9 +339,9 @@ if __name__ == "__main__":
 	print("\nTraining...")
 	#refreshVocabulary()
 
-	def save(checkpoint=False):
+	def save(saveNet=False):
 		print("Saving...")
-		if checkpoint: loader.saveCheckpoint(M)
+		loader.saveCheckpoint(M, saveNet)
 		loader.saveRender(M)
 		loader.save(M)
 		print("Saved.")
@@ -343,10 +352,11 @@ if __name__ == "__main__":
 		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.init_net is not None):
 			train(toConvergence=True)
 			gc.collect()
-			if not args.debug: save(checkpoint=True)
+			if not args.debug: save(saveNet=True)
 
 		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace'], depth=1) for c in M['trace'].baseConcepts))
 		addTask(M['state']['current_task'])
+		if args.error_on_mistake: checkForMistakes()	
 		M['state']['current_task'] += 1
 		gc.collect()
 		if not args.debug: save()
