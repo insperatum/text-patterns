@@ -144,7 +144,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 				#Retry by including counterexamples in support set
 				sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
 				counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.target_examples,
-						net_examples=tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals)
+						net_examples=tuple(proposal.net_examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals)
 				for counterexample_proposal in counterexample_proposals:
 					print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "adding", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 					queueProposal(counterexample_proposal)
