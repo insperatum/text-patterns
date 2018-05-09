@@ -82,7 +82,8 @@ def saveConcepts(M, filename):
 
 		if isMini[concept]:
 			dot.node(str(concept.id), "<"
-				+ "<font point-size='%d'>"%int(size*1) + html_escape(obs_str) + "</font>"
+				#+ "<font point-size='%d'>"%int(size*1) + html_escape(obs_str) + "</font>"
+				+ "<font point-size='%d'>"%int(size*1) + html_escape(obs_sample_str) + "</font>"
 				+ ">", color=color, style=style, width='0.2', height='0.2')
 		else:				
 			dot.node(str(concept.id), "<" 
@@ -90,7 +91,7 @@ def saveConcepts(M, filename):
 				+ content_prefix
 				#+ "<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>"
 				#+ "<br/><font point-size='%d'><i>"%size + html_escape(sample_str) + "</i></font>"
-				+ "<br/><font point-size='%d'><i>"%size + obs_sample_str + "</i></font>"
+				+ "<br/><font point-size='%d'>"%size + obs_sample_str + "</font>"
 				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
 		
