@@ -170,11 +170,11 @@ def onPartialSolution(partialSolution, queueProposal):
 	queueProposal(new_proposal)
 	
 
-def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, task_idx, task):
+def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
 	solutions = []
 	nEvaluated = 0
 
-	while any(l_active) or not q_counterexamples.empty() or not q_partialSolutions.empty():
+	while l_running[0]:
 		try:
 			proposal = q_proposals.get(timeout=1)
 		except queue.Empty:
@@ -229,10 +229,10 @@ def addTask(task_idx):
 	q_solutions = manager.Queue()
 	q_partialSolutions = manager.Queue()
 	l_active = manager.list([True for _ in range(n_workers)])
-
+	l_running = manager.list([True])
 	def launchWorkers():
 		for worker_idx in range(n_workers):
-			mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, task_idx, data[task_idx])).start()
+			mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx])).start()
 
 	isFirst = True
 	for proposal in getProposals(M['net'] if not args.no_network else None, M['trace'], data[task_idx], nProposals=args.n_proposals, subsampleSize=(args.min_examples,args.max_examples)):
@@ -241,17 +241,25 @@ def addTask(task_idx):
 			launchWorkers()
 			isFirst = False
 
-	while any(l_active) or not q_counterexamples.empty():
+	while any(l_active) or not q_counterexamples.empty() or not q_partialSolutions.empty():
 		try:
 			counterexample_args = q_counterexamples.get(timeout=0.1)
 			onCounterexamples(queueProposal, *counterexample_args)
 		except queue.Empty:
 			pass
-		try:
-			partialSolution = q_partialSolutions.get(timeout=0.1)
-			onPartialSolution(partialSolution, queueProposal)
-		except queue.Empty:
-			pass
+
+		partialSolutions = {}
+		while True:
+			try:
+				partialSolution = q_partialSolutions.get(timeout=0.1)
+				if partialSolution.altWith not in partialSolutions: partialSolutions[partialSolution.altWith]=[]
+				partialSolutions[partialSolution.altWith].append(partialSolution)
+			except queue.Empty:
+				pass
+		for ps in partialSolutions.values():
+			partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
+			onPartialSolution(partialAccepted, queueProposal)
+	l_running[0] = False
 
 	solutions = []
 	nSolutions = 0
