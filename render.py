@@ -87,7 +87,7 @@ def saveConcepts(M, filename):
 			color = "lightgrey" if isMini[concept] else "black"
 			dot.edge(str(concept2.id), str(concept.id), color=color)
 
-	dot.format = 'png'#'pdf'
+	dot.format = 'pdf'
 	dot.render(filename)  
 
 def saveTrainingError(M, filename):
