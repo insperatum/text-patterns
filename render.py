@@ -18,14 +18,14 @@ def saveConcepts(M, filename):
 	dot = Digraph()
 	isMini = {}
 	for concept in concepts:
-#		samples = [concept.sample(trace) for _ in range(5)]
-#		unique_samples = set(samples)
-#		many_samples = [concept.sample(trace) for _ in range(500)]
+		samples = [concept.sample(trace) for _ in range(5)]
+		unique_samples = set(samples)
+		many_samples = [concept.sample(trace) for _ in range(500)]
 			
-#		if any(x not in unique_samples for x in many_samples):
-#			sample_str = ", ".join(list(s if s is not "" else "" for s in unique_samples) + ["..."])
-#		else:
-#			sample_str = ", ".join(list(s if s is not "" else "" for s in unique_samples))
+		if any(x not in unique_samples for x in many_samples):
+			sample_str = ", ".join(list(s if s is not "" else "" for s in unique_samples) + ["..."])
+		else:
+			sample_str = ", ".join(list(s if s is not "" else "" for s in unique_samples))
 		
 		observations = concept.get_observations(trace)
 		counter = Counter(observations)	
@@ -66,8 +66,8 @@ def saveConcepts(M, filename):
 			dot.node(str(concept.id), "<" 
 				+ name_prefix
 				+ content_prefix
-				#+ "<font point-size='%d'>"%size + html.escape(sample_str) + "</font>"
 				+ "<font point-size='%d'>"%size + html.escape(obs_str) + "</font>"
+				+ "<font point-size='%d'><i>"%size + html.escape(sample_str) + "</i></font>"
 				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
 		
