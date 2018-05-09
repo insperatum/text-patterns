@@ -511,10 +511,9 @@ class Trace:
 		return fork
 
 	def logpConcept(self, c):
-		#Score each reference proportional to #references, or alpha if no references
-		num_no_references = len(self.baseConcepts) - sum([1 for x in self.baseConcept_nReferences.values() if x > 0])
+		#Score each reference proportional to #references + alpha
 		n_references = self.baseConcept_nReferences.get(c, 0)
-		return math.log(n_references if n_references>0 else self.model.alpha) - math.log(self.baseConcept_nReferences_total + num_no_references*self.model.alpha)
+		return math.log(n_references + self.model.alpha) - math.log(self.baseConcept_nReferences_total + len(self.baseConcepts)*self.model.alpha)
 
 	def __repr__(self):
 		return repr({"score": self.score, "state": self.state})
@@ -537,7 +536,7 @@ class Trace:
 		""")
 		return observation.concept.unobserve(self.fork(), observation)
 
-	def observe_all(self, concept, values, max_n_counterexamples=5, task=None, weight=1):
+	def observe_all(self, concept, values, max_n_counterexamples=None, task=None, weight=1):
 		observations = []
 		counterexamples = []
 		trace = self.fork()
@@ -546,7 +545,7 @@ class Trace:
 			new_trace, new_observation = concept.observe(trace, value, n)
 			if new_trace is None:
 				counterexamples.append(value)
-				if len(counterexamples) >= max_n_counterexamples: break
+				if max_n_counterexamples is not None and len(counterexamples) >= max_n_counterexamples: break
 			else:
 				observations.extend([new_observation]*n)
 				trace = new_trace

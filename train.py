@@ -34,6 +34,7 @@ parser.add_argument('--min_iterations', type=int, default=500) #minimum number o
 
 parser.add_argument('--n_proposals', type=int, default=10)
 parser.add_argument('--n_counterproposals', type=int, default=5)
+parser.add_argument('--counterexample_depth', type=int, default=1)
 parser.add_argument('--counterexample_threshold', type=float, default=0.6)
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
@@ -45,7 +46,7 @@ parser.add_argument('--n_examples', type=int, default=500)
 parser.add_argument('--initial_concepts', type=str, default='.') 
 
 model_default_params = {'alpha':1, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1}
-parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references, or to alpha if no references
+parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references+alpha
 parser.add_argument('--geom_p', type=float, default=None) #probability of adding another concept (geometric)
 parser.add_argument('--pyconcept_alpha', type=float, default=None)
 parser.add_argument('--pyconcept_d', type=float, default=None)
@@ -138,7 +139,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 
 # ----------- Solve a task ------------------
 def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None, nEffectiveExamples=None):
-	if p_valid>0.5 and proposal.depth==0:
+	if p_valid>0.5 and proposal.depth<args.counterexample_depth:
 		if kinkscore is None or kinkscore < args.counterexample_threshold:
 			counterexamples_unique = list(set(counterexamples))
 
@@ -147,7 +148,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples),
 					depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples)
 			for counterexample_proposal in counterexample_proposals:
-				print("(kink score %2.2f)" % (kinkscore or 0), "ADDING:", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
+				print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "ADDING:", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 				queueProposal(counterexample_proposal)
 			
 			#Deal with counter examples separately (with Alt)
@@ -159,11 +160,11 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 					[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
 					ps = [p_valid, 1-p_valid]))
 				new_proposal = Proposal(proposal.depth+1, tuple(proposal.examples) + tuple(sampled_counterexamples), trace, concept, None, None, None)
-				print("(kink score %2.2f)" % (kinkscore or 0), "ADDING:", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
-				print("(ps=", [p_valid, 1-p_valid], flush=True)
+				print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "ADDING:", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
+				#print("(ps=", [p_valid, 1-p_valid], flush=True)
 				queueProposal(new_proposal)
 		else:
-			print("(kink score %2.2f)" % kinkscore, "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace))
+			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace))
 
 
 def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, l_active, task_idx, task):
