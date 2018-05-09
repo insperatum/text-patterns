@@ -15,6 +15,7 @@ alphanumeric = string.ascii_letters + string.digits
 
 def html_escape(s):
 	s = html.escape(html.escape(s))	
+	s = s.replace("&amp;lt;", "&lt;").replace("&amp;gt;", "&gt;")
 	#s = "".join(x if x in alphanumeric else "&#" + str(ord(x)) + ";" for x in s)
 	return s
 
@@ -60,8 +61,12 @@ def saveConcepts(M, filename):
 			if len(sampled_observations) + len(samples)==6:
 				break
 		str_parts = [html_escape(", ".join(list(s if s is not "" else "ε" for s in sampled_observations)))]
+		nRemaining = 5 - len(sampled_observations)
+		if len(counter)>len(sampled_observations):
+			str_parts.append("...")
+			nRemaining -= 1
 		if len(samples)>0:
-			str_parts.append("<i>" + html_escape(", ".join(samples[:5-len(sampled_observations)])) + "</i>")
+			str_parts.append("<i>" + html_escape(", ".join(samples[:nRemaining])) + "</i>")	
 		if len(sampled_observations) + len(samples)==6:
 			str_parts.append("...")
 		obs_sample_str = ", ".join(str_parts)
