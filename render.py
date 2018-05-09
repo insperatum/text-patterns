@@ -12,7 +12,7 @@ import numpy as np
 
 def html_escape(s):
 	s = html.escape(s)
-	s=s.replace(",", "&#44,")
+	s=s.replace(",", "&#44;")
 	#s = s.replace("{", "&{;")
 	return s
 
