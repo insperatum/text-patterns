@@ -150,10 +150,10 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 					queueProposal(counterexample_proposal)
 		
 			
-			#Deal with counter examples separately (with Alt)
-			
-			for counterexample_proposal in getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples,
-					depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples):
+			#Deal with counter examples separately (with Alt)	
+			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
+			for counterexample_proposal in getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples,
+				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples):
 				queueProposal(counterexample_proposal)
 				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0), "adding", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 		else:
@@ -187,18 +187,18 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 		took = time.time()-start_time
 
 		if proposal.altWith is None:
-			if solution.valid:
-				q_partialSolutions.put(solution)
-				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Got partial solution", proposal.concept.str(proposal.trace), flush=True)
-			else:
-				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed partial solution", proposal.concept.str(proposal.trace), flush=True)
-		else:
 			nEvaluated += 1
 			if solution.valid:
 				solutions.append(solution)
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
 			else:
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), flush=True)
+		else:
+			if solution.valid:
+				q_partialSolutions.put(solution)
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Got partial solution", proposal.concept.str(proposal.trace), flush=True)
+			else:
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed partial solution", proposal.concept.str(proposal.trace), flush=True)
 		
 	q_solutions.put(
 		{"nEvaluated": nEvaluated,
