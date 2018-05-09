@@ -143,8 +143,8 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			if proposal.depth==1:
 				#Retry by including counterexamples in support set
 				sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
-				counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.for_examples,
-						examples=tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples)
+				counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.target_examples,
+						net_examples=tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples)
 				for counterexample_proposal in counterexample_proposals:
 					print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "adding", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 					queueProposal(counterexample_proposal)
@@ -160,11 +160,12 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace))
 
 def onPartialSolution(partialSolution, queueProposal):
-	p = len(partialSolution.for_examples) / len(partialSolution.altWith.for_examples)
+	p = len(partialSolution.target_examples) / len(partialSolution.altWith.target_examples)
 	trace, concept = partialSolution.trace.addregex(pre.Alt(
 		[RegexWrapper(partialSolution.altWith.concept), RegexWrapper(partialSolution.concept)], 
 		ps = [1-p, p]))
-	new_proposal = Proposal(partialSolution.depth, [], partialSolution.altWith.for_examples, trace, concept, None, None, None, None)
+	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
+			partialSolution.altWith.target_examples, trace, concept, None, None, None, None)
 	#print("(ps=", [p_valid, 1-p_valid], flush=True)
 	queueProposal(new_proposal)
 	
