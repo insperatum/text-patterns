@@ -68,10 +68,9 @@ def saveConcepts(M, filename):
 			str_parts.append("...")
 			#nRemaining -= 1
 		if len(samples)>0:
-			str_parts.append("<i>" + html_escape(", ".join(samples[:nRemaining])) + "</i>")	
-		if len(sampled_observations) + len(samples)==6:
-			str_parts.append("...")
-		obs_sample_str = ", ".join(str_parts)
+			nSamples = min(nRemaining, 2)
+			str_parts.append("<i>(" + html_escape(", ".join(samples[:nSamples])) + (", ..." if nSamples>len(samples) else "") + ")</i>")	
+		obs_sample_str = "<br/>".join(str_parts)
 
 		isRegex = type(concept) is RegexConcept
 		size = 8
