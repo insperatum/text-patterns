@@ -56,7 +56,7 @@ def saveConcepts(M, filename):
 		else:
 			sampled_observations = sorted(counter, key=counter.get, reverse=True)
 		samples = []
-		for i in range(100):
+		for i in range(1000):
 			sample = concept.sample(trace)
 			if sample not in sampled_observations and sample not in samples:
 				samples.append(sample)
