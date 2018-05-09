@@ -43,12 +43,12 @@ def saveConcepts(M, filename):
 		size = 8
 	
 		if concept.id==0:
-			name_prefix = "<font point-size='%d'><u><b>Alphabet</b></u></font><br/>" % int(size*1.2)
+			name_prefix = "<font point-size='%d'><u><b>Alphabet</b></u></font>" % int(size*1.2)
 		else:
-			name_prefix = "<font point-size='%d'><u><b>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=0)) + "</b></u></font><br/>"
+			name_prefix = "<font point-size='%d'><u><b>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=0)) + "</b></u></font>"
 
 		if isRegex and concept.id != 0:
-			content_prefix = "<font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=1, include_self=False)) + "</font><br/>"
+			content_prefix = "<br/><font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=1, include_self=False)) + "</font>"
 		else:
 			content_prefix = ""
 
@@ -61,13 +61,15 @@ def saveConcepts(M, filename):
 		isMini[concept] = nTaskReferences<=1 and nConceptReferences==0 and not isRegex
 
 		if isMini[concept]:
-			dot.node(str(concept.id), "", color=color, style=style, width='0.2', height='0.2')
+			dot.node(str(concept.id), "<"
+				+ "<font point-size='%d'>"%int(size*0.7) + html.escape(obs_str) + "</font>"
+				+ ">", color=color, style=style, width='0.2', height='0.2')
 		else:				
 			dot.node(str(concept.id), "<" 
 				+ name_prefix
 				+ content_prefix
-				+ "<font point-size='%d'>"%size + html.escape(obs_str) + "</font>"
-				+ "<font point-size='%d'><i>"%size + html.escape(sample_str) + "</i></font>"
+				+ "<br/><font point-size='%d'>"%size + html.escape(obs_str) + "</font>"
+				+ "<br/><font point-size='%d'><i>"%size + html.escape(sample_str) + "</i></font>"
 				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
 		
