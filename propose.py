@@ -1,3 +1,5 @@
+import random
+
 from trace import RegexWrapper
 from collections import Counter, namedtuple
 import pregex as pre
@@ -7,18 +9,18 @@ import math
 import numpy as np
 import util
 
-Proposal = namedtuple("Proposal", ["depth", "examples", "trace", "concept", "final_trace", "observations", "valid"]) #start with depth=0, increase depth when triggering a new proposal
+Proposal = namedtuple("Proposal", ["depth", "examples", "for_examples", "trace", "concept", "altWith", "final_trace", "observations", "valid"]) #start with depth=0, increase depth when triggering a new proposal
 def proposal_strip(self):
 	return self._replace(final_trace=None, observations=None, valid=None)
 Proposal.strip = proposal_strip
 
-def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1):
+def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1):
 	assert(proposal.final_trace is None and proposal.observations is None and proposal.valid is None)
 
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
 		return proposal._replace(valid=False)
 
-	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, examples, task=task_idx, weight=likelihoodWeighting)
+	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, proposal.for_examples, task=task_idx, weight=likelihoodWeighting)
 	if trace is None:
 		if onCounterexamples is not None:
 			if doPrint: print(proposal.concept.str(proposal.trace), "failed on", counterexamples, flush=True)
@@ -28,7 +30,7 @@ def evalProposal(proposal, examples, onCounterexamples=None, doPrint=False, task
 		if onCounterexamples is not None:
 			scores = []
 
-			c = Counter(examples)
+			c = Counter(proposal.for_examples)
 			examples_reordered = [x for example in c for x in [example] * c[example]]
 			for example in c:
 				single_example_trace, observation = proposal.trace.observe(proposal.concept, example)
@@ -69,54 +71,69 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=30):
 					except pre.ParseException:
 						pass
 
-def getProposals(net, current_trace, examples, depth=0, modes=("regex", "crp", "regex-crp"), nProposals=10, nEffectiveExamples=None): #Includes proposals from network, and proposals on existing concepts
+def getProposals(net, current_trace, for_examples, examples=None, depth=0, modes=("regex", "crp", "regex-crp"), nProposals=10, likelihoodWeighting=1, subsampleSize=None, altWith=None): #Includes proposals from network, and proposals on existing concepts
 	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp"] for x in modes))
-	examples = tuple(sorted(examples))
-	likelihoodWeighting = nEffectiveExamples/len(examples) if nEffectiveExamples is not None else 1
-	isCached = examples in networkCache
+	if subsampleSize is not None:
+		nSubsamples = 10
+		for i in range(nSubsamples):
+			for proposal in getProposals(net, current_trace, for_examples, examples, depth, modes, int(nProposals/nSubsamples), likelihoodWeighting, subsampleSize=None):
+				yield proposal
+	else:
+		if examples is None:
+			counter = Counter(for_examples)
+			min_examples, max_examples = subsampleSize
+			num_examples = random.randint(min_examples, max_examples)
+			examples = list(np.random.choice(
+				list(counter.keys()),
+				size=min(num_examples, len(counter)),
+				p=np.array(list(counter.values()))/sum(counter.values()),
+				replace=True))
 
-	cur_proposals = []
-	net_proposals = []
-	def addProposal(trace, concept, add_to):
-		p = evalProposal(Proposal(depth, examples, trace, concept, None, None, None), examples, likelihoodWeighting=likelihoodWeighting)
-		if p.valid: add_to.append(p)
+		examples = tuple(sorted(examples))
+		isCached = examples in networkCache
 
-	addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), cur_proposals) #Exactly the examples
+		cur_proposals = []
+		net_proposals = []
+		def addProposal(trace, concept, add_to):
+			p = evalProposal(Proposal(depth, examples, for_examples, trace, concept, altWith, None, None, None, None), likelihoodWeighting=likelihoodWeighting * len(examples)/len(for_examples))
+			if p.valid: add_to.append(p)
 
-	for c in current_trace.baseConcepts:
-		addProposal(current_trace.fork(), c, cur_proposals)
-		if "crp" in modes:
-			t,c = current_trace.addPY(c)
-			addProposal(t, c, cur_proposals)
+		addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), cur_proposals) #Exactly the examples
 
-	n_cur = math.ceil(nProposals/2)
-	n_net = math.floor(nProposals/2)
-	m_net = n_net * 5
+		for c in current_trace.baseConcepts:
+			addProposal(current_trace.fork(), c, cur_proposals)
+			if "crp" in modes:
+				t,c = current_trace.addPY(c)
+				addProposal(t, c, cur_proposals)
 
-	if net is not None:	
-		for r in getNetworkRegexes(net, current_trace, examples):
-			if any(x in modes for x in ("regex", "regex-crp", "regex-crp-crp")):
-				t,c = current_trace.addregex(r)
-				if "regex" in modes: addProposal(t, c, net_proposals)
-				if any(x in modes for x in ("regex-crp", "regex-crp-crp")):
-					t,c = t.addPY(c)
-					if "regex-crp" in modes: addProposal(t, c, net_proposals)
-					if "regex-crp-crp" in modes:
+		n_cur = math.ceil(nProposals/2)
+		n_net = math.floor(nProposals/2)
+		m_net = n_net * 5
+
+		if net is not None:	
+			for r in getNetworkRegexes(net, current_trace, examples):
+				if any(x in modes for x in ("regex", "regex-crp", "regex-crp-crp")):
+					t,c = current_trace.addregex(r)
+					if "regex" in modes: addProposal(t, c, net_proposals)
+					if any(x in modes for x in ("regex-crp", "regex-crp-crp")):
 						t,c = t.addPY(c)
-						addProposal(t, c, net_proposals)
-			if len(net_proposals)>=m_net:
-				break
+						if "regex-crp" in modes: addProposal(t, c, net_proposals)
+						if "regex-crp-crp" in modes:
+							t,c = t.addPY(c)
+							addProposal(t, c, net_proposals)
+				if len(net_proposals)>=m_net:
+					break
 
-	cur_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
-	net_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
-	
-	# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
-	# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
-	proposals = cur_proposals[:n_cur] + net_proposals[:n_net]
-	proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
+		cur_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
+		net_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
+		
+		# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
+		# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
+		proposals = cur_proposals[:n_cur] + net_proposals[:n_net]
+		proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 
-	if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(
-		("N:" if proposal in net_proposals else "") +
-		proposal.concept.str(proposal.trace) for proposal in proposals))
+		if not isCached: print("Proposals:  ", ", ".join(examples), "--->", ", ".join(
+			("N:" if proposal in net_proposals else "") +
+			proposal.concept.str(proposal.trace) for proposal in proposals))
 
-	return proposals
+		for p in proposals: yield p
