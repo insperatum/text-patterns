@@ -255,7 +255,7 @@ def addTask(task_idx):
 				if partialSolution.altWith not in partialSolutions: partialSolutions[partialSolution.altWith]=[]
 				partialSolutions[partialSolution.altWith].append(partialSolution)
 			except queue.Empty:
-				pass
+				break
 		for ps in partialSolutions.values():
 			partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 			onPartialSolution(partialAccepted, queueProposal)
