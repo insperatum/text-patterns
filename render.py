@@ -66,8 +66,8 @@ def saveConcepts(M, filename):
 		if len(samples)>0:
 			#nRemaining = 5 - len(sampled_observations)
 			#nSamples = min(nRemaining, 2)
-			nSamples=3
-			str_parts.append("<i>(" + html_escape(", ".join(samples[:nSamples])) + (", ..." if nSamples>len(samples) else "") + ")</i>")	
+			nSamples=2
+			str_parts.append("<i>(" + html_escape(", ".join(samples[:nSamples])) + (", ..." if len(samples)>nSamples else "") + ")</i>")	
 		obs_sample_str = "<br/>".join(str_parts)
 
 		isRegex = type(concept) is RegexConcept
