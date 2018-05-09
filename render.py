@@ -47,6 +47,17 @@ def saveConcepts(M, filename):
 			obs_str = "(no observations)"
 		
 		
+		total = sum(counter.values())
+		if len(counter)>=3:
+			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=3)
+		else:
+			sampled_observations = sorted(counter, key=counter.get(), reverse=True)
+		obs_sample_str = ", ".join([
+				html_escape(", ".join(list(s if s is not "" else "ε" for s in sampled_observations))),
+				"<i>" + html_escape(", ".join(samples[:5-len(sampled_observations)])) + "</i>",
+				"..."
+				])
+
 		isRegex = type(concept) is RegexConcept
 		size = 8
 	
@@ -70,14 +81,15 @@ def saveConcepts(M, filename):
 
 		if isMini[concept]:
 			dot.node(str(concept.id), "<"
-				+ "<font point-size='%d'>"%int(size*0.7) + html_escape(obs_str) + "</font>"
+				+ "<font point-size='%d'>"%int(size*1) + html_escape(obs_str) + "</font>"
 				+ ">", color=color, style=style, width='0.2', height='0.2')
 		else:				
 			dot.node(str(concept.id), "<" 
 				+ name_prefix
 				+ content_prefix
-				+ "<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>"
-				+ "<br/><font point-size='%d'><i>"%size + html_escape(sample_str) + "</i></font>"
+				#+ "<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>"
+				#+ "<br/><font point-size='%d'><i>"%size + html_escape(sample_str) + "</i></font>"
+				+ "<br/><font point-size='%d'><i>"%size + obs_sample_str + "</i></font>"
 				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
 		
