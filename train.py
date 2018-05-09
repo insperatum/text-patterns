@@ -34,6 +34,7 @@ parser.add_argument('--min_iterations', type=int, default=500) #minimum number o
 
 parser.add_argument('--n_proposals', type=int, default=10)
 parser.add_argument('--n_counterproposals', type=int, default=5)
+parser.add_argument('--counterexample_depth', type=int, default=1)
 parser.add_argument('--counterexample_threshold', type=float, default=0.6)
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
@@ -138,7 +139,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 
 # ----------- Solve a task ------------------
 def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None, nEffectiveExamples=None):
-	if p_valid>0.5 and proposal.depth==0:
+	if p_valid>0.5 and proposal.depth<args.counterexample_depth:
 		if kinkscore is None or kinkscore < args.counterexample_threshold:
 			counterexamples_unique = list(set(counterexamples))
 
