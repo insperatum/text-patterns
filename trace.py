@@ -511,10 +511,9 @@ class Trace:
 		return fork
 
 	def logpConcept(self, c):
-		#Score each reference proportional to #references, or alpha if no references
-		num_no_references = len(self.baseConcepts) - sum([1 for x in self.baseConcept_nReferences.values() if x > 0])
+		#Score each reference proportional to #references + alpha
 		n_references = self.baseConcept_nReferences.get(c, 0)
-		return math.log(n_references if n_references>0 else self.model.alpha) - math.log(self.baseConcept_nReferences_total + num_no_references*self.model.alpha)
+		return math.log(n_references + self.model.alpha) - math.log(self.baseConcept_nReferences_total + len(self.baseConcepts)*self.model.alpha)
 
 	def __repr__(self):
 		return repr({"score": self.score, "state": self.state})
