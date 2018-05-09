@@ -51,7 +51,7 @@ def saveConcepts(M, filename):
 		if len(counter)>=3:
 			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=3)
 		else:
-			sampled_observations = sorted(counter, key=counter.get(), reverse=True)
+			sampled_observations = sorted(counter, key=counter.get, reverse=True)
 		obs_sample_str = ", ".join([
 				html_escape(", ".join(list(s if s is not "" else "ε" for s in sampled_observations))),
 				"<i>" + html_escape(", ".join(samples[:5-len(sampled_observations)])) + "</i>",
