@@ -183,7 +183,7 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 
 		l_active[worker_idx] = True
 		start_time=time.time()
-		solution = evalProposal(proposal, task, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
+		solution = evalProposal(proposal, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
 		took = time.time()-start_time
 
 		if proposal.altWith is None:
