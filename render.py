@@ -56,7 +56,7 @@ def saveConcepts(M, filename):
 		for i in range(100):
 			sample = concept.sample(trace)
 			if sample not in sampled_observations and sample not in samples:
-				sample.append(sample)
+				samples.append(sample)
 			if len(sampled_observations) + len(samples)==6:
 				break
 		str_parts = [
