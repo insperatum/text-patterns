@@ -10,6 +10,11 @@ from trace import RegexConcept
 import html
 import numpy as np
 
+def html_escape(s):
+	s = html.escape(s)
+	s = s.replace("{", "&{;")
+	return s
+
 def saveConcepts(M, filename):
 	print("Rendering to:%s"%filename)
 	trace = M['trace']
@@ -23,18 +28,18 @@ def saveConcepts(M, filename):
 		many_samples = [concept.sample(trace) for _ in range(500)]
 			
 		if any(x not in unique_samples for x in many_samples):
-			sample_str = ", ".join(list(s if s is not "" else "" for s in unique_samples) + ["..."])
+			sample_str = ", ".join(list(s if s is not "" else "ε" for s in unique_samples) + ["..."])
 		else:
-			sample_str = ", ".join(list(s if s is not "" else "" for s in unique_samples))
+			sample_str = ", ".join(list(s if s is not "" else "ε" for s in unique_samples))
 		
 		observations = concept.get_observations(trace)
 		counter = Counter(observations)	
 		if len(counter)>5:
 			total = sum(counter.values())
 			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=4)
-			obs_str = ", ".join(list(s if s is not "" else "eps" for s in sampled_observations) + ["..."])
+			obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations) + ["..."])
 		elif len(counter)>0:
-			obs_str = ", ".join(list(s if s is not "" else "eps" for s in counter))
+			obs_str = ", ".join(list(s if s is not "" else "ε" for s in counter))
 		else:
 			obs_str = "(no observations)"
 		
@@ -45,10 +50,10 @@ def saveConcepts(M, filename):
 		if concept.id==0:
 			name_prefix = "<font point-size='%d'><u><b>Alphabet</b></u></font>" % int(size*1.2)
 		else:
-			name_prefix = "<font point-size='%d'><u><b>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=0)) + "</b></u></font>"
+			name_prefix = "<font point-size='%d'><u><b>"%(int(size*1.5)) + html_escape(concept.str(trace, depth=0)) + "</b></u></font>"
 
 		if isRegex and concept.id != 0:
-			content_prefix = "<br/><font point-size='%d'>"%(int(size*1.5)) + html.escape(concept.str(trace, depth=1, include_self=False)) + "</font>"
+			content_prefix = "<br/><font point-size='%d'>"%(int(size*1.5)) + html_escape(concept.str(trace, depth=1, include_self=False)) + "</font>"
 		else:
 			content_prefix = ""
 
@@ -62,13 +67,13 @@ def saveConcepts(M, filename):
 
 		if isMini[concept]:
 			dot.node(str(concept.id), "<"
-				+ "<font point-size='%d'>"%int(size*0.7) + html.escape(obs_str) + "</font>"
+				+ "<font point-size='%d'>"%int(size*0.7) + html_escape(obs_str) + "</font>"
 				+ ">", color=color, style=style, width='0.2', height='0.2')
 		else:				
 			dot.node(str(concept.id), "<" 
 				+ name_prefix
 				+ content_prefix
-				+ "<br/><font point-size='%d'>"%size + html.escape(obs_str) + "</font>"
+				+ "<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>"
 				+ "<br/><font point-size='%d'><i>"%size + html.escape(sample_str) + "</i></font>"
 				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
