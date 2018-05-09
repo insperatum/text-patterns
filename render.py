@@ -14,8 +14,8 @@ import string
 alphanumeric = string.ascii_letters + string.digits
 
 def html_escape(s):
-	#s = html.escape(s)	
-	s = "".join(x if x in alphanumeric else "&#" + str(ord(x)) + ";" for x in s)
+	s = html.escape(s)	
+	#s = "".join(x if x in alphanumeric else "&#" + str(ord(x)) + ";" for x in s)
 	return s
 
 def saveConcepts(M, filename):
@@ -87,7 +87,7 @@ def saveConcepts(M, filename):
 			color = "lightgrey" if isMini[concept] else "black"
 			dot.edge(str(concept2.id), str(concept.id), color=color)
 
-	dot.format = 'pdf'
+	dot.format = 'png'#'pdf'
 	dot.render(filename)  
 
 def saveTrainingError(M, filename):
