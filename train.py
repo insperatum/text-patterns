@@ -137,14 +137,14 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 
 
 # ----------- Solve a task ------------------
-def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None, nEffectiveExamples=None):
+def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
 	if p_valid>0.5 and proposal.depth<args.counterexample_depth:
 		if kinkscore is None or kinkscore < args.counterexample_threshold:
 			if proposal.depth==1:
 				#Retry by including counterexamples in support set
 				sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
 				counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.target_examples,
-						net_examples=tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples)
+						net_examples=tuple(proposal.examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals)
 				for counterexample_proposal in counterexample_proposals:
 					print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "adding", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 					queueProposal(counterexample_proposal)
@@ -153,7 +153,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			#Deal with counter examples separately (with Alt)	
 			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
 			for counterexample_proposal in getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples,
-				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples):
+				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals):
 				queueProposal(counterexample_proposal)
 				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0), "adding", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 		else:
@@ -244,7 +244,7 @@ def addTask(task_idx):
 	while any(l_active) or not q_counterexamples.empty():
 		try:
 			counterexample_args = q_counterexamples.get(timeout=0.1)
-			onCounterexamples(queueProposal, *counterexample_args, nEffectiveExamples=len(data[task_idx]))
+			onCounterexamples(queueProposal, *counterexample_args)
 		except queue.Empty:
 			pass
 		try:
