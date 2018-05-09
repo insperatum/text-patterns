@@ -59,10 +59,9 @@ def saveConcepts(M, filename):
 				samples.append(sample)
 			if len(sampled_observations) + len(samples)==6:
 				break
-		str_parts = [
-				html_escape(", ".join(list(s if s is not "" else "ε" for s in sampled_observations))),
-				"<i>" + html_escape(", ".join(samples[:5-len(sampled_observations)])) + "</i>"
-				]	
+		str_parts = [html_escape(", ".join(list(s if s is not "" else "ε" for s in sampled_observations)))]
+		if len(samples)>0:
+			str_parts.append("<i>" + html_escape(", ".join(samples[:5-len(sampled_observations)])) + "</i>")
 		if len(sampled_observations) + len(samples)==6:
 			str_parts.append("...")
 		obs_sample_str = ", ".join(str_parts)
