@@ -79,7 +79,7 @@ def saveConcepts(M, filename):
 			name_prefix = "<font point-size='%d'><u><b>"%(int(size*1.5)) + html_escape(concept.str(trace, depth=0)) + "</b></u></font>"
 
 		if isRegex and concept.id != 0:
-			content_prefix = "<br/><font point-size='%d'>"%(int(size*1.5)) + html_escape(concept.str(trace, depth=1, include_self=False)) + "</font>"
+			content_prefix = "<font point-size='%d'>: "%(int(size*1.5)) + html_escape(concept.str(trace, depth=1, include_self=False)) + "</font>"
 		else:
 			content_prefix = ""
 
