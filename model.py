@@ -86,7 +86,7 @@ class RegexModel:
 			logp_regex = self.logp_regex if trace.baseConcepts else self.logp_regex_no_concepts
 
 		if type(r) is RegexWrapper and r.concept in trace.baseConcepts:
-			return logp_regex[CONCEPT] + trace.logpConcept(r.concept)
+			return logp_regex[CONCEPT]# + trace.logpConcept(r.concept) deal with this in trace._addConcept
 		elif r in self.character_classes:
 			return logp_regex[r]
 		else:
