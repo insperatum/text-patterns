@@ -66,7 +66,7 @@ def saveConcepts(M, filename):
 		nRemaining = 5 - len(sampled_observations)
 		if len(counter)>len(sampled_observations):
 			str_parts.append("...")
-			nRemaining -= 1
+			#nRemaining -= 1
 		if len(samples)>0:
 			str_parts.append("<i>" + html_escape(", ".join(samples[:nRemaining])) + "</i>")	
 		if len(sampled_observations) + len(samples)==6:
@@ -97,7 +97,7 @@ def saveConcepts(M, filename):
 		if isMini[concept]:
 			dot.node(str(concept.id), "<"
 				#+ "<font point-size='%d'>"%int(size*1) + html_escape(obs_str) + "</font>"
-				+ "<font point-size='%d'>"%int(size*1) + html_escape(obs_sample_str) + "</font>"
+				+ "<font point-size='%d'>"%int(size*1) + obs_sample_str + "</font>"
 				+ ">", color=color, style=style, width='0.2', height='0.2')
 		else:				
 			dot.node(str(concept.id), "<" 
