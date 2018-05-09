@@ -26,25 +26,25 @@ def saveConcepts(M, filename):
 	dot = Digraph()
 	isMini = {}
 	for concept in concepts:
-		samples = [concept.sample(trace) for _ in range(5)]
-		unique_samples = set(samples)
-		many_samples = [concept.sample(trace) for _ in range(500)]
+		#samples = [concept.sample(trace) for _ in range(5)]
+		#unique_samples = set(samples)
+		#many_samples = [concept.sample(trace) for _ in range(500)]
 			
-		if any(x not in unique_samples for x in many_samples):
-			sample_str = ", ".join(list(s if s is not "" else "ε" for s in unique_samples) + ["..."])
-		else:
-			sample_str = ", ".join(list(s if s is not "" else "ε" for s in unique_samples))
+		#if any(x not in unique_samples for x in many_samples):
+		#	sample_str = ", ".join(list(s if s is not "" else "ε" for s in unique_samples) + ["..."])
+		#else:
+		#	sample_str = ", ".join(list(s if s is not "" else "ε" for s in unique_samples))
 		
 		observations = concept.get_observations(trace)
 		counter = Counter(observations)	
-		if len(counter)>5:
-			total = sum(counter.values())
-			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=4)
-			obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations) + ["..."])
-		elif len(counter)>0:
-			obs_str = ", ".join(list(s if s is not "" else "ε" for s in counter))
-		else:
-			obs_str = "(no observations)"
+		#if len(counter)>5:
+		#	total = sum(counter.values())
+		#	sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=4)
+		#	obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations) + ["..."])
+		#elif len(counter)>0:
+		#	obs_str = ", ".join(list(s if s is not "" else "ε" for s in counter))
+		#else:
+		#	obs_str = "(no observations)"
 		
 		
 		total = sum(counter.values())
@@ -52,12 +52,20 @@ def saveConcepts(M, filename):
 			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=3)
 		else:
 			sampled_observations = sorted(counter, key=counter.get, reverse=True)
-		print(sampled_observations)
-		obs_sample_str = ", ".join([
+		samples = []
+		for i in range(100):
+			sample = concept.sample(trace)
+			if sample not in sampled_observations and sample not in samples:
+				sample.append(sample)
+			if len(sampled_observations) + len(samples)==6:
+				break
+		str_parts = [
 				html_escape(", ".join(list(s if s is not "" else "ε" for s in sampled_observations))),
-				"<i>" + html_escape(", ".join(list(unique_samples)[:5-len(sampled_observations)])) + "</i>",
-				"..."
-				])
+				"<i>" + html_escape(", ".join(samples[:5-len(sampled_observations)])) + "</i>"
+				]	
+		if len(sampled_observations) + len(samples)==6:
+			str_parts.append("...")
+		obs_sample_str = ", ".join(str_parts)
 
 		isRegex = type(concept) is RegexConcept
 		size = 8
