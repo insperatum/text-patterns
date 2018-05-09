@@ -14,7 +14,7 @@ import string
 alphanumeric = string.ascii_letters + string.digits
 
 def html_escape(s):
-	s = html.escape(s)	
+	s = html.escape(html.escape(s))	
 	#s = "".join(x if x in alphanumeric else "&#" + str(ord(x)) + ";" for x in s)
 	return s
 
