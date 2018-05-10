@@ -279,7 +279,7 @@ def addTask(task_idx):
 	M['task_concepts'][task_idx] = accepted.concept
 	#refreshVocabulary()
 	M['state']['task_iterations'].append(M['state']['iteration'])
-	print([c.str(accepted.final_trace) for x in accepted.final_trace.baseConcepts]),
+	print([c.str(accepted.final_trace) for c in accepted.final_trace.baseConcepts]),
 	raise Exception()
 
 def checkForMistakes():
