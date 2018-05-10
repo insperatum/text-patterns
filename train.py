@@ -155,7 +155,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 					"adding joint", counterexample_proposal.concept.str(counterexample_proposal.trace),
 					"for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), 
 					"(for %d examples)" % len(counterexample_proposal.target_examples),
-					"altWith?", counterexample_proposal.altWith is not None,
+					"altWith?", "No" if counterexample_proposal.altWith==None else str(len(counterexample_proposal.altWith.target_examples))+"examples",
 					flush=True)
 				queueProposal(counterexample_proposal)
 				
