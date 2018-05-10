@@ -196,9 +196,9 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 			nEvaluated += 1
 			if solution.valid:
 				solutions.append(solution)
-				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
 			else:
-				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), flush=True)
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
 		else:
 			if solution.valid:
 				q_partialSolutions.put(solution)
@@ -275,9 +275,6 @@ def addTask(task_idx):
 	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
 	M['trace'] = accepted.final_trace
-	print('baseConcepts:')
-	print([x.str(accepted.trace) for x in accepted.trace.baseConcepts])
-	print([x.str(accepted.final_trace) for x in accepted.final_trace.baseConcepts])
 	M['task_observations'][task_idx] = accepted.observations
 	M['task_concepts'][task_idx] = accepted.concept
 	#refreshVocabulary()
