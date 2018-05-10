@@ -16,7 +16,6 @@ Proposal.strip = proposal_strip
 
 def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1):
 	assert(proposal.final_trace is None and proposal.observations is None and proposal.valid is None)
-	print("eval ll*", likelihoodWeighting, flush=True)
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
 		return proposal._replace(valid=False)
 
