@@ -9,7 +9,7 @@ import math
 import numpy as np
 import util
 
-Proposal = namedtuple("Proposal", ["depth", "net_examples", "target_examples", "trace", "concept", "altWith", "final_trace", "observations", "valid"]) #start with depth=0, increase depth when triggering a new proposal
+Proposal = namedtuple("Proposal", ["depth", "net_examples", "target_examples", "init_trace", "trace", "concept", "altWith", "final_trace", "observations", "valid"]) #start with depth=0, increase depth when triggering a new proposal
 def proposal_strip(self):
 	return self._replace(final_trace=None, observations=None, valid=None)
 Proposal.strip = proposal_strip
@@ -104,7 +104,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		cur_proposals = []
 		net_proposals = []
 		def addProposal(trace, concept, add_to):
-			p = evalProposal(Proposal(depth, tuple(net_examples), tuple(net_examples), trace, concept, altWith, None, None, None), likelihoodWeighting=likelihoodWeighting * len(net_examples)/len(target_examples))
+			p = evalProposal(Proposal(depth, tuple(net_examples), tuple(net_examples), current_trace, trace, concept, altWith, None, None, None), likelihoodWeighting=likelihoodWeighting * len(net_examples)/len(target_examples))
 			if p.valid: add_to.append(p)
 
 		addProposal(*current_trace.addregex(pre.String(net_examples[0]) if len(set(net_examples))==1 else pre.Alt([pre.String(x) for x in set(net_examples)])), cur_proposals) #Exactly the examples
