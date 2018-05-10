@@ -380,7 +380,7 @@ if __name__ == "__main__":
 	M['data_file'] = args.data_file
 	M['save_to'] = save_to
 
-	if use_cuda: M['net'].cuda()
+	if use_cuda and M['net'] is not None: M['net'].cuda()
 
 	print("\nTraining...")
 	#refreshVocabulary()
