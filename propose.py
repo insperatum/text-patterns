@@ -104,7 +104,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		cur_proposals = []
 		net_proposals = []
 		def addProposal(trace, concept, add_to):
-			p = evalProposal(Proposal(depth, net_examples, net_examples, trace, concept, altWith, None, None, None), likelihoodWeighting=likelihoodWeighting * len(net_examples)/len(target_examples))
+			p = evalProposal(Proposal(depth, tuple(net_examples), tuple(net_examples), trace, concept, altWith, None, None, None), likelihoodWeighting=likelihoodWeighting * len(net_examples)/len(target_examples))
 			if p.valid: add_to.append(p)
 
 		addProposal(*current_trace.addregex(pre.String(net_examples[0]) if len(set(net_examples))==1 else pre.Alt([pre.String(x) for x in set(net_examples)])), cur_proposals) #Exactly the examples
@@ -145,4 +145,4 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 			("N:" if proposal in net_proposals else "") +
 			proposal.concept.str(proposal.trace) for proposal in proposals), flush=True)
 
-		for p in proposals: yield p.strip()._replace(target_examples=target_examples)
+		for p in proposals: yield p.strip()._replace(target_examples=tuple(target_examples))
