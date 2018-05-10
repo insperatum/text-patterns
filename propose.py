@@ -16,7 +16,7 @@ Proposal.strip = proposal_strip
 
 def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1):
 	assert(proposal.final_trace is None and proposal.observations is None and proposal.valid is None)
-
+	print("eval ll*", likelihoodWeighting, flush=True)
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
 		return proposal._replace(valid=False)
 
@@ -141,7 +141,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		proposals = cur_proposals[:n_cur] + net_proposals[:n_net]
 		proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 
-		if not isCached: print("Proposals (weight=%2.2f): " % likelihoodWeighting , ", ".join(net_examples), "--->", ", ".join(
+		if not isCached: print("Proposals (ll*%2.2f): " % likelihoodWeighting , ", ".join(net_examples), "--->", ", ".join(
 			("N:" if proposal in net_proposals else "") +
 			proposal.concept.str(proposal.trace) for proposal in proposals), flush=True)
 
