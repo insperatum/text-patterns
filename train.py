@@ -154,8 +154,6 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0),
 					"adding joint", counterexample_proposal.concept.str(counterexample_proposal.trace),
 					"for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), 
-					"(for %d examples)" % len(counterexample_proposal.target_examples),
-					"altWith?", "No" if counterexample_proposal.altWith==None else str(len(counterexample_proposal.altWith.target_examples))+"examples",
 					flush=True)
 				queueProposal(counterexample_proposal)
 				
@@ -168,7 +166,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0),
 					"adding exception", counterexample_proposal.concept.str(counterexample_proposal.trace),
 					"for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), 
-					"(for %d examples)" % len(counterexample_proposal.altWith.target_examples), flush=True)
+					flush=True)
 		else:
 			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace), flush=True)
 
@@ -181,13 +179,8 @@ def onPartialSolution(partialSolution, queueProposal):
 			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, partialSolution.altWith.altWith, None, None, None)
 
 #	print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
-	print("onPartialSolution got:", proposalStr(partialSolution), flush=True)
-	print("onPartialSolution proposes:", new_proposal.concept.str(new_proposal.trace), "for", len(new_proposal.target_examples), "examples", flush=True)
 	queueProposal(new_proposal)
 	
-
-def proposalStr(proposal):
-	return proposal.concept.str(proposal.trace) + (" for %d examples" % len(proposal.target_examples)) + ("" if proposal.altWith is None else " (altWith: " + proposalStr(proposal.altWith) + ")")
 
 def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
 	solutions = []
@@ -205,13 +198,10 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 		solution = evalProposal(proposal, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
 		took = time.time()-start_time
 
-		print("PROPOSAL:", proposalStr(proposal), flush=True)
-		print("SOLUTION:", proposalStr(solution), flush=True)
 		if proposal.altWith is None:
 			nEvaluated += 1
 			if solution.valid:
 				solutions.append(solution)
-				print("proposal for %d examples" % len(proposal.target_examples), "solution for %d examples..." % len(solution.target_examples), flush=True)
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
 				assert(tuple(solution.target_examples) == tuple(task))
 			else:
@@ -238,9 +228,15 @@ def addTask(task_idx):
 	manager = mp.Manager()
 	q_proposals = manager.Queue()
 
-
+	def getProposalID(proposal): #To avoid duplicate proposals
+		return (proposal.concept.str(proposal.trace, depth=-1),
+				getProposalID(proposal.altWith) if proposal.altWith is not None else None)
+	proposalIDs_so_far = []
 	def queueProposal(proposal): #add to evaluation queue
-		q_proposals.put(proposal)
+		proposalID = getProposalID(proposal)
+		if proposalID not in proposalIDs_so_far:
+			proposalIDs_so_far.append(proposalID)
+			q_proposals.put(proposal)
 
 	n_workers = max(1, cpus-1)
 	q_counterexamples = manager.Queue()
