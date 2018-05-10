@@ -178,7 +178,7 @@ def onPartialSolution(partialSolution, queueProposal):
 		[RegexWrapper(partialSolution.altWith.concept), RegexWrapper(partialSolution.concept)], 
 		ps = [1-p, p]))
 	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
-			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, None, None, None, None)
+			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, partialSolution.altWith.altWith, None, None, None)
 
 #	print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
 	print("onPartialSolution got:", proposalStr(partialSolution), flush=True)
@@ -362,18 +362,19 @@ if __name__ == "__main__":
 	else:
 		M = {}
 		M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
-		
-		if args.init_net is None: 
-			M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
-										 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
-			print("Created new network")
-		else:
-			_M = loader.load(args.init_net)
-			M['net'] = net = _M['net'] 
-			M['state']['network_losses'] = _M['state']['network_losses']
-			M['state']['iteration'] = _M['state']['iteration']
-			assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
-			print("Loaded existing network")
+	
+		if not args.no_network:
+			if args.init_net is None: 
+				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
+											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
+				print("Created new network")
+			else:
+				_M = loader.load(args.init_net)
+				M['net'] = net = _M['net'] 
+				M['state']['network_losses'] = _M['state']['network_losses']
+				M['state']['iteration'] = _M['state']['iteration']
+				assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
+				print("Loaded existing network")
 		
 		M['args'] = args
 		M['task_observations'] = [[] for _ in range(len(data))]
