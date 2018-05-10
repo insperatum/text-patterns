@@ -186,7 +186,7 @@ def onPartialSolution(partialSolution, queueProposal):
 	
 
 def proposalStr(proposal):
-	return proposal.concept.str(proposal.trace) + (" for %d examples" % proposal.target_examples) + ("" if proposal.altWith is None else proposalStr(proposal.altWith))
+	return proposal.concept.str(proposal.trace) + (" for %d examples" % len(proposal.target_examples)) + ("" if proposal.altWith is None else proposalStr(proposal.altWith))
 
 def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
 	solutions = []
