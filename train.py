@@ -169,9 +169,11 @@ def onPartialSolution(partialSolution, queueProposal):
 	trace, concept = partialSolution.trace.addregex(pre.Alt(
 		[RegexWrapper(partialSolution.altWith.concept), RegexWrapper(partialSolution.concept)], 
 		ps = [1-p, p]))
-	#print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
 	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
 			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, None, None, None, None)
+
+#	print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
+	print("onPartialSolution proposes:", new_proposal.concept.str(new_proposal.trace), "for", len(new_proposal.target_examples), "examples", flush=True)
 	queueProposal(new_proposal)
 	
 
@@ -195,8 +197,9 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 			nEvaluated += 1
 			if solution.valid:
 				solutions.append(solution)
-				print("solution for %d examples..." % len(solution.target_examples), flush=True)
+				print("proposal for %d examples" % len(proposal.target_examples), "solution for %d examples..." % len(solution.target_examples), flush=True)
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
+				assert(tuple(solution.target_examples) == tuple(task))
 			else:
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
 		else:
