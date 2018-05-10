@@ -10,7 +10,6 @@ import time
 
 import numpy as np
 from scipy import stats
-from collections import Counter
 import torch.multiprocessing as mp
 
 from model import RegexModel
@@ -32,7 +31,7 @@ parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
 parser.add_argument('--min_iterations', type=int, default=500) #minimum number of training iterations before next concept
 
-parser.add_argument('--n_proposals', type=int, default=10)
+parser.add_argument('--n_proposals', type=int, default=100)
 parser.add_argument('--n_counterproposals', type=int, default=5)
 parser.add_argument('--counterexample_depth', type=int, default=1)
 parser.add_argument('--counterexample_threshold', type=float, default=0.6)
@@ -62,6 +61,10 @@ parser.add_argument('--error-on-mistake', dest='error_on_mistake', action='store
 parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False)
 
 args = parser.parse_args()
+if __name__=="__main__":
+	for k,v in vars(args).items():
+		print(k, "=", v)
+	print()
 #if args.fork is None:
 #	for k,v in model_default_params.items():
 #		if getattr(args,k) is None: setattr(args, k, v)
@@ -138,40 +141,45 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 
 
 # ----------- Solve a task ------------------
-def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None, nEffectiveExamples=None):
+def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
 	if p_valid>0.5 and proposal.depth<args.counterexample_depth:
 		if kinkscore is None or kinkscore < args.counterexample_threshold:
-			counterexamples_unique = list(set(counterexamples))
-
 			#Retry by including counterexamples in support set
-			sampled_counterexamples = np.random.choice(counterexamples_unique, size=min(len(counterexamples_unique), 5), replace=False)
-			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, tuple(proposal.examples) + tuple(sampled_counterexamples),
-					depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples)
+			unique_counterexamples = list(set(counterexamples))
+			sampled_counterexamples = np.random.choice(unique_counterexamples, size=min(len(unique_counterexamples), 4), replace=False)
+			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.init_trace, proposal.target_examples,
+					net_examples=tuple(proposal.net_examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal.altWith)
 			for counterexample_proposal in counterexample_proposals:
-				print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "ADDING:", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
+				print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "adding joint", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 				queueProposal(counterexample_proposal)
+		
 			
-			#Deal with counter examples separately (with Alt)
-			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
-			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, sampled_counterexamples,
-					depth=proposal.depth+1, nProposals=args.n_counterproposals, nEffectiveExamples=nEffectiveExamples)
-			for counterexample_proposal in counterexample_proposals: 
-				trace, concept = counterexample_proposal.trace.addregex(pre.Alt(
-					[RegexWrapper(proposal.concept), RegexWrapper(counterexample_proposal.concept)], 
-					ps = [p_valid, 1-p_valid]))
-				new_proposal = Proposal(proposal.depth+1, tuple(proposal.examples) + tuple(sampled_counterexamples), trace, concept, None, None, None)
-				print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "ADDING:", new_proposal.concept.str(new_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
-				#print("(ps=", [p_valid, 1-p_valid], flush=True)
-				queueProposal(new_proposal)
+			#Deal with counter examples separately (with Alt)	
+			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 4), replace=False)
+			unique_counterexamples = list(set(counterexamples))
+			for counterexample_proposal in getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples,
+				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal):
+				queueProposal(counterexample_proposal)
+				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0), "adding exception", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 		else:
-			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace))
+			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace), flush=True)
 
+def onPartialSolution(partialSolution, queueProposal):
+	p = len(partialSolution.target_examples) / len(partialSolution.altWith.target_examples)
+	trace, concept = partialSolution.trace.addregex(pre.Alt(
+		[RegexWrapper(partialSolution.altWith.concept), RegexWrapper(partialSolution.concept)], 
+		ps = [1-p, p]))
+	#print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
+	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
+			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, None, None, None, None)
+	queueProposal(new_proposal)
+	
 
-def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, l_active, task_idx, task):
+def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
 	solutions = []
 	nEvaluated = 0
 
-	while any(l_active) or not q_counterexamples.empty():
+	while l_running[0]:
 		try:
 			proposal = q_proposals.get(timeout=1)
 		except queue.Empty:
@@ -180,15 +188,22 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 
 		l_active[worker_idx] = True
 		start_time=time.time()
-		solution = evalProposal(proposal, task, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
+		solution = evalProposal(proposal, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
 		took = time.time()-start_time
 
-		nEvaluated += 1
-		if solution.valid:
-			solutions.append(solution)
-			print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
+		if proposal.altWith is None:
+			nEvaluated += 1
+			if solution.valid:
+				solutions.append(solution)
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
+			else:
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
 		else:
-			print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), flush=True)
+			if solution.valid:
+				q_partialSolutions.put(solution)
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Got partial solution", proposal.concept.str(proposal.trace), flush=True)
+			else:
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed partial solution", proposal.concept.str(proposal.trace), flush=True)
 		
 	q_solutions.put(
 		{"nEvaluated": nEvaluated,
@@ -200,49 +215,53 @@ def addTask(task_idx):
 	print("\n" + "*"*40 + "\nAdding task %d (n=%d)" % (task_idx, len(data[task_idx])))
 	print("Task: " + ", ".join(list(set(data[task_idx]))))
 
-	example_counter = Counter(data[task_idx])
 	# q_proposals = mp.Queue()
 	
 	manager = mp.Manager()
 	q_proposals = manager.Queue()
 
-	proposal_strings_sofar = [] #TODO: this better. Want to avoid duplicate proposals. For now, just using string representation to check...
 
 	def queueProposal(proposal): #add to evaluation queue
-		proposal = proposal.strip() #Remove any evaluation data
-		proposal_string = proposal.concept.str(proposal.trace, depth=-1) 
-		if proposal_string not in proposal_strings_sofar:
-			q_proposals.put(proposal)
-			proposal_strings_sofar.append(proposal_string)
+		q_proposals.put(proposal)
 
 	n_workers = max(1, cpus-1)
 	q_counterexamples = manager.Queue()
 	q_solutions = manager.Queue()
+	q_partialSolutions = manager.Queue()
 	l_active = manager.list([True for _ in range(n_workers)])
-
+	l_running = manager.list([True])
 	def launchWorkers():
 		for worker_idx in range(n_workers):
-			mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, l_active, task_idx, data[task_idx])).start()
+			mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx])).start()
 
-	for i in range(10 if not args.debug else 3):
-		num_examples = random.randint(args.min_examples, args.max_examples)
-		examples = list(np.random.choice(
-			list(example_counter.keys()),
-			size=min(num_examples, len(example_counter)),
-			p=np.array(list(example_counter.values()))/sum(example_counter.values()),
-			replace=True))
-		pre_trace = M['trace']
-		new_proposals = getProposals(M['net'] if not args.no_network else None, pre_trace, examples, nProposals=args.n_proposals)
-		for proposal in new_proposals:	queueProposal(proposal)
-		if i==0: launchWorkers()
+	isFirst = True
+	for proposal in getProposals(M['net'] if not args.no_network else None, M['trace'], data[task_idx], nProposals=args.n_proposals, subsampleSize=(args.min_examples,args.max_examples)):
+		queueProposal(proposal)
+		if isFirst:
+			launchWorkers()
+			isFirst = False
 
-	while any(l_active) or not q_counterexamples.empty():
+	while any(l_active) or not q_counterexamples.empty() or not q_partialSolutions.empty():
 		try:
 			counterexample_args = q_counterexamples.get(timeout=0.1)
-			onCounterexamples(queueProposal, *counterexample_args, nEffectiveExamples=len(data[task_idx]))
+			onCounterexamples(queueProposal, *counterexample_args)
 		except queue.Empty:
 			pass
-			#if not args.no_network: networkStep()
+
+		partialSolutions = {}
+		while True:
+			try:
+				partialSolution = q_partialSolutions.get(timeout=0.1)
+				if partialSolution.altWith not in partialSolutions: partialSolutions[partialSolution.altWith]=[]
+				partialSolutions[partialSolution.altWith].append(partialSolution)
+			except queue.Empty:
+				break
+		if len(partialSolutions)>0:
+			print("Reading", [len(x) for x in partialSolutions.values()], "partial solutions!")
+		for ps in partialSolutions.values():
+			partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
+			onPartialSolution(partialAccepted, queueProposal)
+	l_running[0] = False
 
 	solutions = []
 	nSolutions = 0
