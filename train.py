@@ -259,7 +259,7 @@ def addTask(task_idx):
 			except queue.Empty:
 				break
 		if len(partialSolutions)>0:
-			print("Reading", [len(x) for x in partialSolutions], "partial solutions!")
+			print("Reading", [len(x) for x in partialSolutions.values()], "partial solutions!")
 		for ps in partialSolutions.values():
 			partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 			onPartialSolution(partialAccepted, queueProposal)
