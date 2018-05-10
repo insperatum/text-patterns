@@ -64,6 +64,7 @@ args = parser.parse_args()
 if __name__=="__main__":
 	for k,v in vars(args).items():
 		print(k, "=", v)
+	print()
 #if args.fork is None:
 #	for k,v in model_default_params.items():
 #		if getattr(args,k) is None: setattr(args, k, v)
@@ -156,6 +157,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			
 			#Deal with counter examples separately (with Alt)	
 			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 4), replace=False)
+			unique_counterexamples = list(set(counterexamples))
 			for counterexample_proposal in getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples,
 				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal):
 				queueProposal(counterexample_proposal)
