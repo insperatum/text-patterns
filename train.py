@@ -61,7 +61,9 @@ parser.add_argument('--error-on-mistake', dest='error_on_mistake', action='store
 parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False)
 
 args = parser.parse_args()
-print(args)
+if __name__=="__main__":
+	for k,v in vars(args).items():
+		print(k, "=", v)
 #if args.fork is None:
 #	for k,v in model_default_params.items():
 #		if getattr(args,k) is None: setattr(args, k, v)
