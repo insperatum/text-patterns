@@ -371,6 +371,8 @@ if __name__ == "__main__":
 				M['state']['iteration'] = _M['state']['iteration']
 				assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
 				print("Loaded existing network")
+		else:
+			M['net']=None
 		
 		M['args'] = args
 		M['task_observations'] = [[] for _ in range(len(data))]
