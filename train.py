@@ -61,6 +61,7 @@ parser.add_argument('--error-on-mistake', dest='error_on_mistake', action='store
 parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False)
 
 args = parser.parse_args()
+print(args)
 #if args.fork is None:
 #	for k,v in model_default_params.items():
 #		if getattr(args,k) is None: setattr(args, k, v)
@@ -153,11 +154,11 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			#Deal with counter examples separately (with Alt)	
 			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 5), replace=False)
 			for counterexample_proposal in getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples,
-				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals):
+				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal):
 				queueProposal(counterexample_proposal)
 				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0), "adding", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 		else:
-			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace))
+			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace), flush=True)
 
 def onPartialSolution(partialSolution, queueProposal):
 	p = len(partialSolution.target_examples) / len(partialSolution.altWith.target_examples)

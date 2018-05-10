@@ -143,6 +143,6 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 		if not isCached: print("Proposals:  ", ", ".join(net_examples), "--->", ", ".join(
 			("N:" if proposal in net_proposals else "") +
-			proposal.concept.str(proposal.trace) for proposal in proposals))
+			proposal.concept.str(proposal.trace) for proposal in proposals), flush=True)
 
 		for p in proposals: yield p.strip()._replace(target_examples=target_examples)
