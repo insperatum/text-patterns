@@ -31,7 +31,7 @@ parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
 parser.add_argument('--min_iterations', type=int, default=500) #minimum number of training iterations before next concept
 
-parser.add_argument('--n_proposals', type=int, default=50)
+parser.add_argument('--n_proposals', type=int, default=100)
 parser.add_argument('--n_counterproposals', type=int, default=5)
 parser.add_argument('--counterexample_depth', type=int, default=1)
 parser.add_argument('--counterexample_threshold', type=float, default=0.6)
@@ -215,14 +215,9 @@ def addTask(task_idx):
 	manager = mp.Manager()
 	q_proposals = manager.Queue()
 
-	proposal_strings_sofar = [] #TODO: this better. Want to avoid duplicate proposals. For now, just using string representation to check...
 
 	def queueProposal(proposal): #add to evaluation queue
-		proposal = proposal.strip() #Remove any evaluation data
-		proposal_string = proposal.concept.str(proposal.trace, depth=-1) 
-		if proposal_string not in proposal_strings_sofar:
-			q_proposals.put(proposal)
-			proposal_strings_sofar.append(proposal_string)
+		q_proposals.put(proposal)
 
 	n_workers = max(1, cpus-1)
 	q_counterexamples = manager.Queue()

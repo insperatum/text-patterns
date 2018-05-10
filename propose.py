@@ -80,6 +80,9 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		counter = Counter(target_examples)
 		min_examples, max_examples = subsampleSize
 		nSubsamples = 10
+		
+		proposal_strings_sofar = [] #TODO: this better. Want to avoid duplicate proposals. For now, just using string representation to check...
+	
 		for i in range(nSubsamples):
 			num_examples = random.randint(min_examples, max_examples)
 			net_examples = list(np.random.choice(
@@ -88,7 +91,10 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 				p=np.array(list(counter.values()))/sum(counter.values()),
 				replace=True))
 			for proposal in getProposals(net, current_trace, target_examples, net_examples, depth, modes, int(nProposals/nSubsamples), likelihoodWeighting, subsampleSize=None):
-				yield proposal
+				proposal_string = proposal.concept.str(proposal.trace, depth=-1)
+				if proposal_string not in proposal_strings_sofar:
+					proposal_strings_sofar.append(proposal_string)
+					yield proposal
 			
 	else:
 		assert(net_examples is not None)
