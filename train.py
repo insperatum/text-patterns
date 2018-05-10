@@ -257,6 +257,8 @@ def addTask(task_idx):
 				partialSolutions[partialSolution.altWith].append(partialSolution)
 			except queue.Empty:
 				break
+		if len(partialSolutions)>0:
+			print("Reading partial Solutions!")
 		for ps in partialSolutions.values():
 			partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 			onPartialSolution(partialAccepted, queueProposal)
