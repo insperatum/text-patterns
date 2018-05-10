@@ -279,6 +279,8 @@ def addTask(task_idx):
 	M['task_concepts'][task_idx] = accepted.concept
 	#refreshVocabulary()
 	M['state']['task_iterations'].append(M['state']['iteration'])
+	print([c.str(accepted.final_trace) for x in accepted.final_trace.baseConcepts]),
+	raise Exception()
 
 def checkForMistakes():
 	upper_concept = next((c for c in M['trace'].baseConcepts if type(c) is PYConcept and all(x in M['trace'].getState(c).value_tables.keys() for x in 'ABCDEFG')), None)
