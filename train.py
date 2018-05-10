@@ -257,7 +257,7 @@ def addTask(task_idx):
 			except queue.Empty:
 				break
 		if len(partialSolutions)>0:
-			print("Reading", [len(x) for x in partialSolutions.values()], "partial solutions!")
+			print("Reading partial solutions...")
 		for ps in partialSolutions.values():
 			partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 			onPartialSolution(partialAccepted, queueProposal)
@@ -280,16 +280,22 @@ def addTask(task_idx):
 	M['task_concepts'][task_idx] = accepted.concept
 	#refreshVocabulary()
 	M['state']['task_iterations'].append(M['state']['iteration'])
-	print([c.str(accepted.final_trace) for c in accepted.final_trace.baseConcepts]),
-	raise Exception()
 
 def checkForMistakes():
 	upper_concept = next((c for c in M['trace'].baseConcepts if type(c) is PYConcept and all(x in M['trace'].getState(c).value_tables.keys() for x in 'ABCDEFG')), None)
 	digit_concept = next((c for c in M['trace'].baseConcepts if type(c) is PYConcept and all(x in M['trace'].getState(c).value_tables.keys() for x in '1234567890')), None)
 	if upper_concept is not None:
-		assert not any(x not in string.ascii_uppercase for x in M['trace'].getState(upper_concept).value_tables.keys()), "Uppercase concept failed"
+		if any(x not in string.ascii_uppercase for x in M['trace'].getState(upper_concept).value_tables.keys()):
+			if args.error_on_mistake:
+				raise Exception("Uppercase concept failed")
+			else:
+				if 'mistake_on_task' not in M: M['mistake_on_task']=M['state']['current_task']
 	if digit_concept is not None:
-		assert not any(x not in string.digits for x in M['trace'].getState(digit_concept).value_tables.keys()), "Digits concept failed"
+		if any(x not in string.digits for x in M['trace'].getState(digit_concept).value_tables.keys()):
+			if args.error_on_mistake:
+				raise Exception("Digits concept failed")
+			else:
+				if 'mistake_on_task' not in M: M['mistake_on_task']=M['state']['current_task']
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -386,7 +392,7 @@ if __name__ == "__main__":
 
 		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace'], depth=1) for c in M['trace'].baseConcepts))
 		addTask(M['state']['current_task'])
-		if args.error_on_mistake: checkForMistakes()	
+		checkForMistakes()	
 		M['state']['current_task'] += 1
 		gc.collect()
 		if not args.debug: save()
