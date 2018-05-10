@@ -169,10 +169,9 @@ def onPartialSolution(partialSolution, queueProposal):
 	trace, concept = partialSolution.trace.addregex(pre.Alt(
 		[RegexWrapper(partialSolution.altWith.concept), RegexWrapper(partialSolution.concept)], 
 		ps = [1-p, p]))
-	print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
+	#print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
 	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
 			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, None, None, None, None)
-	#print("(ps=", [p_valid, 1-p_valid], flush=True)
 	queueProposal(new_proposal)
 	
 
