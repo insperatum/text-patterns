@@ -185,6 +185,9 @@ def onPartialSolution(partialSolution, queueProposal):
 	queueProposal(new_proposal)
 	
 
+def proposalStr(proposal):
+	return proposal.concept.str(proposal.trace) + (" for %d examples" % proposal.target_examples) + ("" if proposal.altWith is None else proposalStr(proposal.altWith))
+
 def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
 	solutions = []
 	nEvaluated = 0
@@ -201,6 +204,8 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 		solution = evalProposal(proposal, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
 		took = time.time()-start_time
 
+		print("PROPOSAL:", proposalStr(proposal), flush=True)
+		print("SOLUTION:", proposalStr(solution), flush=True)
 		if proposal.altWith is None:
 			nEvaluated += 1
 			if solution.valid:
