@@ -289,13 +289,17 @@ def checkForMistakes():
 			if args.error_on_mistake:
 				raise Exception("Uppercase concept failed")
 			else:
-				if 'mistake_on_task' not in M: M['mistake_on_task']=M['state']['current_task']
+				if 'mistake_on_task' not in M:
+					print("Uppercase concept failed")
+					M['mistake_on_task']=M['state']['current_task']
 	if digit_concept is not None:
 		if any(x not in string.digits for x in M['trace'].getState(digit_concept).value_tables.keys()):
 			if args.error_on_mistake:
 				raise Exception("Digits concept failed")
 			else:
-				if 'mistake_on_task' not in M: M['mistake_on_task']=M['state']['current_task']
+				if 'mistake_on_task' not in M:
+					print("Digits concept failed")
+					M['mistake_on_task']=M['state']['current_task']
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------
 
