@@ -151,7 +151,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 				counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.trace, proposal.target_examples,
 						net_examples=tuple(proposal.net_examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals)
 				for counterexample_proposal in counterexample_proposals:
-					print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "adding", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
+					print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "adding joint", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 					queueProposal(counterexample_proposal)
 		
 			
@@ -161,7 +161,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			for counterexample_proposal in getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples,
 				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal):
 				queueProposal(counterexample_proposal)
-				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0), "adding", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
+				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0), "adding exception", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
 		else:
 			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace), flush=True)
 
