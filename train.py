@@ -181,7 +181,7 @@ def onPartialSolution(partialSolution, queueProposal):
 			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, None, None, None, None)
 
 #	print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
-	print("onPartialSolution got:", proposalStr(partialSolution, flush=True))
+	print("onPartialSolution got:", proposalStr(partialSolution), flush=True)
 	print("onPartialSolution proposes:", new_proposal.concept.str(new_proposal.trace), "for", len(new_proposal.target_examples), "examples", flush=True)
 	queueProposal(new_proposal)
 	
