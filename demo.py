@@ -66,7 +66,7 @@ if mode.lower() in ["g", "generation"]:
 					examples.append(s)
 
 		proposals = getProposals(M['net'], M['trace'], examples)
-		for proposal in proposals[:5]:
+		for proposal in proposals:
 			print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))
 			for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
 
