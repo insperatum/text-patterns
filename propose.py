@@ -146,7 +146,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 			proposal.concept.str(proposal.trace) for proposal in proposals), flush=True)
 
 		for p in proposals:
-			if examples == target_examples:
+			if tuple(sorted(examples)) == tuple(sorted(target_examples)):
 				yield p._replace(target_examples=tuple(target_examples))
 			else:
 				yield p.strip()._replace(target_examples=tuple(target_examples))
