@@ -304,13 +304,17 @@ def addTask(task_idx):
 		if w.is_alive() :w.terminate()
 
 	print("Evaluated", nEvaluated, "proposals", "(%d solutions)" % nSolutions)
-	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
-	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
-	M['trace'] = accepted.final_trace
-	M['task_observations'][task_idx] = accepted.observations
-	M['task_concepts'][task_idx] = accepted.concept
-	#refreshVocabulary()
-	M['state']['task_iterations'].append(M['state']['iteration'])
+	if len(solutions)==0:
+		print("No solutions??")
+		addTask(task_idx)
+	else:
+		accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
+		print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
+		M['trace'] = accepted.final_trace
+		M['task_observations'][task_idx] = accepted.observations
+		M['task_concepts'][task_idx] = accepted.concept
+		#refreshVocabulary()
+		M['state']['task_iterations'].append(M['state']['iteration'])
 
 def checkForMistakes():
 	upper_concept = next((c for c in M['trace'].baseConcepts if type(c) is PYConcept and all(x in M['trace'].getState(c).value_tables.keys() for x in 'ABCDEFG')), None)
