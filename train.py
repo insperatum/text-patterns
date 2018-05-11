@@ -152,9 +152,9 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 		if kinkscore is None or kinkscore < counterexample_threshold:
 			#Retry by including counterexamples in support set
 			unique_counterexamples = list(set(counterexamples))
-			sampled_counterexamples = np.random.choice(unique_counterexamples, size=min(len(unique_counterexamples), 4), replace=False)
+			sampled_counterexamples = np.random.choice(unique_counterexamples, size=min(len(unique_counterexamples), 3), replace=False)
 			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.init_trace, proposal.target_examples,
-					net_examples=tuple(proposal.net_examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal.altWith)
+					net_examples=(tuple(proposal.net_examples) + tuple(sampled_counterexamples))[-5:], depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal.altWith)
 
 			for counterexample_proposal in counterexample_proposals:
 				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0),
