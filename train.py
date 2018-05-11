@@ -24,7 +24,7 @@ from propose import Proposal, evalProposal, getProposals, networkCache
 parser = argparse.ArgumentParser()
 parser.add_argument('--fork', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv.p")
-parser.add_argument('--init_net', type=str, default="/om/user/lbh/text-patterns/init.pt")
+parser.add_argument('--net', type=str, default="/om/user/lbh/text-patterns/init.pt")
 parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
@@ -360,17 +360,11 @@ if __name__ == "__main__":
 		M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
 	
 		if not args.no_network:
-			if args.init_net is None: 
+			if args.net is None: 
 				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
 											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
 				print("Created new network")
-			else:
-				_M = loader.load(args.init_net)
-				M['net'] = net = _M['net'] 
-				M['state']['network_losses'] = _M['state']['network_losses']
-				M['state']['iteration'] = _M['state']['iteration']
-				assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
-				print("Loaded existing network")
+			#else:
 		else:
 			M['net']=None
 		
@@ -387,6 +381,14 @@ if __name__ == "__main__":
 			if s in args.initial_concepts: M['trace'], init_concept = M['trace'].initregex(c)
 
 		print("Created new model")
+
+	if args.net is not None:
+		_M = loader.load(args.net)
+		M['net'] = net = _M['net'] 
+		M['state']['network_losses'] = _M['state']['network_losses']
+		M['state']['iteration'] = _M['state']['iteration']
+		assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
+		print("Loaded existing network")
 	
 	M['data_file'] = args.data_file
 	M['save_to'] = save_to
@@ -406,7 +408,7 @@ if __name__ == "__main__":
 	if args.train_first > 0: train(iterations=args.train_first)
 
 	for i in range(M['state']['current_task'], len(data)):
-		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.init_net is not None):
+		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.net is not None):
 			train(toConvergence=True)
 			gc.collect()
 			if not args.debug: save(saveNet=True)
