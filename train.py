@@ -147,7 +147,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 # ----------- Solve a task ------------------
 def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
 	if p_valid>0.5 and proposal.depth<args.counterexample_depth:
-		counterexample_threshold = args.counterexample_threshold if proposal.depth==0 or args.counterexample2_threshold is None else args.counterexample2_threshold
+		counterexample_threshold = args.counterexample_threshold if proposal.depth==0 or args.counterexample_threshold2 is None else args.counterexample_threshold2
 		
 		if kinkscore is None or kinkscore < counterexample_threshold:
 			#Retry by including counterexamples in support set
