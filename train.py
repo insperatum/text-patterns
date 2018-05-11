@@ -24,32 +24,33 @@ from propose import Proposal, evalProposal, getProposals, networkCache
 parser = argparse.ArgumentParser()
 parser.add_argument('--fork', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv.p")
-parser.add_argument('--init_net', type=str, default="/om/user/lbh/text-patterns/init.pt")
+parser.add_argument('--net', type=str, default="/om/user/lbh/text-patterns/init.pt")
 parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
 parser.add_argument('--min_iterations', type=int, default=500) #minimum number of training iterations before next concept
-
+parser.add_argument('--timeout', type=int, default=10) #minutes per task
 parser.add_argument('--n_proposals', type=int, default=100)
 parser.add_argument('--n_counterproposals', type=int, default=5)
-parser.add_argument('--counterexample_depth', type=int, default=1)
-parser.add_argument('--counterexample_threshold', type=float, default=0.6)
+parser.add_argument('--counterexample_depth', type=int, default=2)
+parser.add_argument('--counterexample_threshold', type=float, default=0.8)
+parser.add_argument('--counterexample_threshold2', type=float, default=0.4)
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
 parser.add_argument('--embedding_size', type=int, default=128)
 
 parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
-parser.add_argument('--n_examples', type=int, default=500)
+parser.add_argument('--n_examples', type=int, default=100)
 parser.add_argument('--initial_concepts', type=str, default='.') 
 
-model_default_params = {'alpha':1, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1}
+model_default_params = {'alpha':999999, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1, 'pyconcept_threshold':0.002}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references+alpha
 parser.add_argument('--geom_p', type=float, default=None) #probability of adding another concept (geometric)
 parser.add_argument('--pyconcept_alpha', type=float, default=None)
 parser.add_argument('--pyconcept_d', type=float, default=None)
-
+parser.add_argument('--pyconcept_threshold', type=float, default=None)
 parser.add_argument('--helmholtz_dist', type=str, default="uniform") #During sleep, sample concepts from true weighted dist(default) or uniform
 
 parser.add_argument('--train_first', type=int, default=0)
@@ -63,7 +64,10 @@ parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_netwo
 args = parser.parse_args()
 if __name__=="__main__":
 	for k,v in vars(args).items():
-		print(k, "=", v)
+		if v is None and k in model_default_params:
+			print(k, "=", model_default_params[k], "(default)")
+		else:
+			print(k, "=", v)
 	print()
 #if args.fork is None:
 #	for k,v in model_default_params.items():
@@ -143,24 +147,32 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 # ----------- Solve a task ------------------
 def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
 	if p_valid>0.5 and proposal.depth<args.counterexample_depth:
-		if kinkscore is None or kinkscore < args.counterexample_threshold:
+		counterexample_threshold = args.counterexample_threshold if proposal.depth==0 or args.counterexample_threshold2 is None else args.counterexample_threshold2
+		
+		if kinkscore is None or kinkscore < counterexample_threshold:
 			#Retry by including counterexamples in support set
 			unique_counterexamples = list(set(counterexamples))
 			sampled_counterexamples = np.random.choice(unique_counterexamples, size=min(len(unique_counterexamples), 4), replace=False)
 			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.init_trace, proposal.target_examples,
 					net_examples=tuple(proposal.net_examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal.altWith)
+
 			for counterexample_proposal in counterexample_proposals:
-				print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore or 0), "adding joint", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
+				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0),
+					"adding joint", counterexample_proposal.concept.str(counterexample_proposal.trace),
+					"for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), 
+					flush=True)
 				queueProposal(counterexample_proposal)
-		
-			
+				
 			#Deal with counter examples separately (with Alt)	
 			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 4), replace=False)
 			unique_counterexamples = list(set(counterexamples))
 			for counterexample_proposal in getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples,
 				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal):
 				queueProposal(counterexample_proposal)
-				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0), "adding exception", counterexample_proposal.concept.str(counterexample_proposal.trace), "for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), flush=True)
+				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0),
+					"adding exception", counterexample_proposal.concept.str(counterexample_proposal.trace),
+					"for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), 
+					flush=True)
 		else:
 			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace), flush=True)
 
@@ -169,9 +181,10 @@ def onPartialSolution(partialSolution, queueProposal):
 	trace, concept = partialSolution.trace.addregex(pre.Alt(
 		[RegexWrapper(partialSolution.altWith.concept), RegexWrapper(partialSolution.concept)], 
 		ps = [1-p, p]))
-	#print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
 	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
-			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, None, None, None, None)
+			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, partialSolution.altWith.altWith, None, None, None)
+
+#	print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
 	queueProposal(new_proposal)
 	
 
@@ -196,6 +209,7 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 			if solution.valid:
 				solutions.append(solution)
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
+				assert(tuple(solution.target_examples) == tuple(task))
 			else:
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
 		else:
@@ -220,9 +234,15 @@ def addTask(task_idx):
 	manager = mp.Manager()
 	q_proposals = manager.Queue()
 
-
+	def getProposalID(proposal): #To avoid duplicate proposals
+		return (proposal.concept.str(proposal.trace, depth=-1),
+				getProposalID(proposal.altWith) if proposal.altWith is not None else None)
+	proposalIDs_so_far = []
 	def queueProposal(proposal): #add to evaluation queue
-		q_proposals.put(proposal)
+		proposalID = getProposalID(proposal)
+		if proposalID not in proposalIDs_so_far:
+			proposalIDs_so_far.append(proposalID)
+			q_proposals.put(proposal)
 
 	n_workers = max(1, cpus-1)
 	q_counterexamples = manager.Queue()
@@ -230,9 +250,12 @@ def addTask(task_idx):
 	q_partialSolutions = manager.Queue()
 	l_active = manager.list([True for _ in range(n_workers)])
 	l_running = manager.list([True])
+	workers = []
 	def launchWorkers():
 		for worker_idx in range(n_workers):
-			mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx])).start()
+			worker = mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx]))
+			workers.append(worker)
+			worker.start()
 
 	isFirst = True
 	for proposal in getProposals(M['net'] if not args.no_network else None, M['trace'], data[task_idx], nProposals=args.n_proposals, subsampleSize=(args.min_examples,args.max_examples)):
@@ -241,7 +264,12 @@ def addTask(task_idx):
 			launchWorkers()
 			isFirst = False
 
+	startTime = time.time()
 	while any(l_active) or not q_counterexamples.empty() or not q_partialSolutions.empty():
+		if time.time() - startTime > args.timeout * 60:
+			print("Timeout!")
+			break
+
 		try:
 			counterexample_args = q_counterexamples.get(timeout=0.1)
 			onCounterexamples(queueProposal, *counterexample_args)
@@ -257,7 +285,7 @@ def addTask(task_idx):
 			except queue.Empty:
 				break
 		if len(partialSolutions)>0:
-			print("Reading", [len(x) for x in partialSolutions.values()], "partial solutions!")
+			print("Reading partial solutions...")
 		for ps in partialSolutions.values():
 			partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 			onPartialSolution(partialAccepted, queueProposal)
@@ -272,6 +300,9 @@ def addTask(task_idx):
 		nSolutions += x['nSolutions']
 		if x['best'] is not None: solutions.append(x['best'])
 	
+	for w in workers:
+		if w.is_alive() :w.terminate()
+
 	print("Evaluated", nEvaluated, "proposals", "(%d solutions)" % nSolutions)
 	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
@@ -285,9 +316,21 @@ def checkForMistakes():
 	upper_concept = next((c for c in M['trace'].baseConcepts if type(c) is PYConcept and all(x in M['trace'].getState(c).value_tables.keys() for x in 'ABCDEFG')), None)
 	digit_concept = next((c for c in M['trace'].baseConcepts if type(c) is PYConcept and all(x in M['trace'].getState(c).value_tables.keys() for x in '1234567890')), None)
 	if upper_concept is not None:
-		assert not any(x not in string.ascii_uppercase for x in M['trace'].getState(upper_concept).value_tables.keys()), "Uppercase concept failed"
+		if any(x not in string.ascii_uppercase for x in M['trace'].getState(upper_concept).value_tables.keys()):
+			if args.error_on_mistake:
+				raise Exception("Uppercase concept failed")
+			else:
+				if 'mistake_on_task' not in M:
+					print("Uppercase concept failed")
+					M['mistake_on_task']=M['state']['current_task']
 	if digit_concept is not None:
-		assert not any(x not in string.digits for x in M['trace'].getState(digit_concept).value_tables.keys()), "Digits concept failed"
+		if any(x not in string.digits for x in M['trace'].getState(digit_concept).value_tables.keys()):
+			if args.error_on_mistake:
+				raise Exception("Digits concept failed")
+			else:
+				if 'mistake_on_task' not in M:
+					print("Digits concept failed")
+					M['mistake_on_task']=M['state']['current_task']
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -332,18 +375,15 @@ if __name__ == "__main__":
 	else:
 		M = {}
 		M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
-		
-		if args.init_net is None: 
-			M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
-										 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
-			print("Created new network")
+	
+		if not args.no_network:
+			if args.net is None: 
+				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
+											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
+				print("Created new network")
+			#else:
 		else:
-			_M = loader.load(args.init_net)
-			M['net'] = net = _M['net'] 
-			M['state']['network_losses'] = _M['state']['network_losses']
-			M['state']['iteration'] = _M['state']['iteration']
-			assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
-			print("Loaded existing network")
+			M['net']=None
 		
 		M['args'] = args
 		M['task_observations'] = [[] for _ in range(len(data))]
@@ -352,17 +392,26 @@ if __name__ == "__main__":
 			alpha=args.alpha if args.alpha is not None else model_default_params['alpha'],
 			geom_p=args.geom_p if args.geom_p is not None else model_default_params['geom_p'],
 			pyconcept_alpha=args.pyconcept_alpha if args.pyconcept_alpha is not None else model_default_params['pyconcept_alpha'],
-			pyconcept_d=args.pyconcept_d if args.pyconcept_d is not None else model_default_params['pyconcept_d']))
+			pyconcept_d=args.pyconcept_d if args.pyconcept_d is not None else model_default_params['pyconcept_d'],
+			pyconcept_threshold=args.pyconcept_threshold if args.pyconcept_threshold is not None else model_default_params['pyconcept_threshold']))
 
 		for (s, c) in [(".", pre.dot), ("d", pre.d), ("s", pre.s), ("w", pre.w), ("l", pre.l), ("u", pre.u)]:
 			if s in args.initial_concepts: M['trace'], init_concept = M['trace'].initregex(c)
 
 		print("Created new model")
+
+	if args.net is not None:
+		_M = loader.load(args.net)
+		M['net'] = net = _M['net'] 
+		M['state']['network_losses'] = _M['state']['network_losses']
+		M['state']['iteration'] = _M['state']['iteration']
+		assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
+		print("Loaded existing network")
 	
 	M['data_file'] = args.data_file
 	M['save_to'] = save_to
 
-	if use_cuda: M['net'].cuda()
+	if use_cuda and M['net'] is not None: M['net'].cuda()
 
 	print("\nTraining...")
 	#refreshVocabulary()
@@ -377,14 +426,14 @@ if __name__ == "__main__":
 	if args.train_first > 0: train(iterations=args.train_first)
 
 	for i in range(M['state']['current_task'], len(data)):
-		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.init_net is not None):
+		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.net is not None):
 			train(toConvergence=True)
 			gc.collect()
 			if not args.debug: save(saveNet=True)
 
 		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace'], depth=1) for c in M['trace'].baseConcepts))
 		addTask(M['state']['current_task'])
-		if args.error_on_mistake: checkForMistakes()	
+		checkForMistakes()	
 		M['state']['current_task'] += 1
 		gc.collect()
 		if not args.debug: save()

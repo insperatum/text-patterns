@@ -16,7 +16,6 @@ Proposal.strip = proposal_strip
 
 def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1):
 	assert(proposal.final_trace is None and proposal.observations is None and proposal.valid is None)
-
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
 		return proposal._replace(valid=False)
 
@@ -49,7 +48,7 @@ def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None,
 
 networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' found outputs, so far 
 
-def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=30):
+def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=10):
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
 	examples = tuple(sorted(examples))
 	if examples in networkCache:
@@ -104,7 +103,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		cur_proposals = []
 		net_proposals = []
 		def addProposal(trace, concept, add_to):
-			p = evalProposal(Proposal(depth, tuple(net_examples), tuple(net_examples), current_trace, trace, concept, altWith, None, None, None), likelihoodWeighting=likelihoodWeighting * len(net_examples)/len(target_examples))
+			p = evalProposal(Proposal(depth, tuple(net_examples), tuple(net_examples), current_trace, trace, concept, altWith, None, None, None), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(net_examples))
 			if p.valid: add_to.append(p)
 
 		addProposal(*current_trace.addregex(pre.String(net_examples[0]) if len(set(net_examples))==1 else pre.Alt([pre.String(x) for x in set(net_examples)])), cur_proposals) #Exactly the examples
@@ -141,7 +140,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		proposals = cur_proposals[:n_cur] + net_proposals[:n_net]
 		proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 
-		if not isCached: print("Proposals:  ", ", ".join(net_examples), "--->", ", ".join(
+		if not isCached: print("Proposals (ll*%2.2f): " % likelihoodWeighting , ", ".join(net_examples), "--->", ", ".join(
 			("N:" if proposal in net_proposals else "") +
 			proposal.concept.str(proposal.trace) for proposal in proposals), flush=True)
 

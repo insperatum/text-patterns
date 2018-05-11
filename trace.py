@@ -271,6 +271,8 @@ class PYConcept(Concept):
 		for i in range(n):
 			if i == 0 and state.table_nCustomers[table]==0:
 				p_new_table = (alpha + d*nTables)/(alpha+state.nCustomers)
+				if p_new_table < trace.model.pyconcept_threshold:
+					return None, None
 				trace.score += math.log(p_new_table)
 				nTables += 1
 			else:
@@ -318,22 +320,25 @@ class PYConcept(Concept):
 			table = Observation(self, matched_value, None, (base_observation,))
 
 			nTables = len(currentTables)
+			failThreshold = False
 			for i in range(n):
 				if i == 0 and state.table_nCustomers[table]==0:
 					p_new_table = (alpha + d*nTables)/(alpha+state.nCustomers)
+					if p_new_table < trace.model.pyconcept_threshold: failThreshold=True
 					new_trace.score += math.log(p_new_table)
 					nTables += 1
 				else:
 					p_existing_table = (state.nCustomers+i - d*nTables)/(alpha+state.nCustomers+i) 
 					new_trace.score += math.log(p_existing_table * (state.table_nCustomers[table]+i) / (state.nCustomers+i))
 
-			newState = state._replace(
-				nCustomers = state.nCustomers + n,
-				value_tables = state.value_tables.set(matched_value, state.value_tables[matched_value] + [table]),
-				table_nCustomers = state.table_nCustomers.set(table, state.table_nCustomers[table] + n),
-			)
-			new_trace._setState(self, newState)
-			out.append((new_trace, table, numCharacters))
+			if not failThreshold:
+				newState = state._replace(
+					nCustomers = state.nCustomers + n,
+					value_tables = state.value_tables.set(matched_value, state.value_tables[matched_value] + [table]),
+					table_nCustomers = state.table_nCustomers.set(table, state.table_nCustomers[table] + n),
+				)
+				new_trace._setState(self, newState)
+				out.append((new_trace, table, numCharacters))
 
 		return out
 
