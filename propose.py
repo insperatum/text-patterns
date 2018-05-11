@@ -77,7 +77,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 	examples = net_examples if net_examples is not None else target_examples
 
 	if subsampleSize is not None:
-		counter = Counter(target_examples)
+		counter = Counter(examples)
 		min_examples, max_examples = subsampleSize
 		nSubsamples = 10
 		
@@ -85,12 +85,12 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 	
 		for i in range(nSubsamples):
 			num_examples = random.randint(min_examples, max_examples)
-			examples = list(np.random.choice(
+			sampled_examples = list(np.random.choice(
 				list(counter.keys()),
 				size=min(num_examples, len(counter)),
 				p=np.array(list(counter.values()))/sum(counter.values()),
 				replace=True))
-			for proposal in getProposals(net, current_trace, target_examples, examples, depth, modes, int(nProposals/nSubsamples), likelihoodWeighting, subsampleSize=None):
+			for proposal in getProposals(net, current_trace, target_examples, sampled_examples, depth, modes, int(nProposals/nSubsamples), likelihoodWeighting, subsampleSize=None):
 				proposal_string = proposal.concept.str(proposal.trace, depth=-1)
 				if proposal_string not in proposal_strings_sofar:
 					proposal_strings_sofar.append(proposal_string)
@@ -144,4 +144,8 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 			("N:" if proposal in net_proposals else "") +
 			proposal.concept.str(proposal.trace) for proposal in proposals), flush=True)
 
-		for p in proposals: yield p.strip()._replace(target_examples=tuple(target_examples))
+		for p in proposals:
+			if examples == target_examples:
+				yield p._replace(target_examples=tuple(target_examples))
+			else:
+				yield p.strip()._replace(target_examples=tuple(target_examples))
