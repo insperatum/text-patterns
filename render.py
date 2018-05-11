@@ -92,10 +92,11 @@ def saveConcepts(M, filename):
 		isMini[concept] = nTaskReferences<=1 and nConceptReferences==0 and not isRegex
 
 		if isMini[concept]:
-			dot.node(str(concept.id), "<"
-				#+ "<font point-size='%d'>"%int(size*1) + html_escape(obs_str) + "</font>"
-				+ "<font point-size='%d'>"%int(size*1) + obs_sample_str + "</font>"
-				+ ">", color=color, style=style, width='0.2', height='0.2')
+			pass
+			#dot.node(str(concept.id), "<"
+			#+ "<font point-size='%d'>"%int(size*1) + html_escape(obs_str) + "</font>"
+			#+ "<font point-size='%d'>"%int(size*1) + obs_sample_str + "</font>"
+			#+ ">", color=color, style=style, width='0.2', height='0.2')
 		else:				
 			dot.node(str(concept.id), "<" 
 				+ name_prefix
@@ -109,8 +110,11 @@ def saveConcepts(M, filename):
 	for concept in concepts:
 		conceptsReferenced = concept.uniqueConceptsReferenced(trace)
 		for concept2 in conceptsReferenced:
-			color = "lightgrey" if isMini[concept] else "black"
-			dot.edge(str(concept2.id), str(concept.id), color=color)
+			if isMini[concept]:
+				pass
+			else:
+				color = "black"#"lightgrey" if isMini[concept] else "black"
+				dot.edge(str(concept2.id), str(concept.id), color=color)
 
 	dot.format = 'pdf'
 	dot.render(filename)  
