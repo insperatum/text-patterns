@@ -239,6 +239,7 @@ def addTask(task_idx):
 				getProposalID(proposal.altWith) if proposal.altWith is not None else None)
 	proposalIDs_so_far = []
 	def queueProposal(proposal): #add to evaluation queue
+		proposal = proposal.strip()
 		proposalID = getProposalID(proposal)
 		if proposalID not in proposalIDs_so_far:
 			proposalIDs_so_far.append(proposalID)
