@@ -48,7 +48,7 @@ def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None,
 
 networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' found outputs, so far 
 
-def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=30):
+def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=10):
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
 	examples = tuple(sorted(examples))
 	if examples in networkCache:
