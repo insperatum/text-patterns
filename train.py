@@ -30,26 +30,27 @@ parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
 parser.add_argument('--min_iterations', type=int, default=500) #minimum number of training iterations before next concept
-
+parser.add_argument('--timeout', type=int, default=10) #minutes per task
 parser.add_argument('--n_proposals', type=int, default=100)
 parser.add_argument('--n_counterproposals', type=int, default=5)
-parser.add_argument('--counterexample_depth', type=int, default=1)
-parser.add_argument('--counterexample_threshold', type=float, default=0.6)
+parser.add_argument('--counterexample_depth', type=int, default=2)
+parser.add_argument('--counterexample_threshold', type=float, default=0.8)
+parser.add_argument('--counterexample_threshold2', type=float, default=0.4)
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
 parser.add_argument('--embedding_size', type=int, default=128)
 
 parser.add_argument('--n_tasks', type=int, default=40) #Per max_length
 parser.add_argument('--skip_tasks', type=int, default=0)
-parser.add_argument('--n_examples', type=int, default=500)
+parser.add_argument('--n_examples', type=int, default=100)
 parser.add_argument('--initial_concepts', type=str, default='.') 
 
-model_default_params = {'alpha':1, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.5}
+model_default_params = {'alpha':999999, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1, 'pyconcept_threshold':0.002}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references+alpha
 parser.add_argument('--geom_p', type=float, default=None) #probability of adding another concept (geometric)
 parser.add_argument('--pyconcept_alpha', type=float, default=None)
 parser.add_argument('--pyconcept_d', type=float, default=None)
-
+parser.add_argument('--pyconcept_threshold', type=float, default=None)
 parser.add_argument('--helmholtz_dist', type=str, default="uniform") #During sleep, sample concepts from true weighted dist(default) or uniform
 
 parser.add_argument('--train_first', type=int, default=0)
@@ -63,7 +64,10 @@ parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_netwo
 args = parser.parse_args()
 if __name__=="__main__":
 	for k,v in vars(args).items():
-		print(k, "=", v)
+		if v is None and k in model_default_params:
+			print(k, "=", model_default_params[k], "(default)")
+		else:
+			print(k, "=", v)
 	print()
 #if args.fork is None:
 #	for k,v in model_default_params.items():
@@ -143,7 +147,9 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 # ----------- Solve a task ------------------
 def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
 	if p_valid>0.5 and proposal.depth<args.counterexample_depth:
-		if kinkscore is None or kinkscore < args.counterexample_threshold:
+		counterexample_threshold = args.counterexample_threshold if proposal.depth==0 or args.counterexample2_threshold is None else args.counterexample2_threshold
+		
+		if kinkscore is None or kinkscore < counterexample_threshold:
 			#Retry by including counterexamples in support set
 			unique_counterexamples = list(set(counterexamples))
 			sampled_counterexamples = np.random.choice(unique_counterexamples, size=min(len(unique_counterexamples), 4), replace=False)
@@ -244,9 +250,12 @@ def addTask(task_idx):
 	q_partialSolutions = manager.Queue()
 	l_active = manager.list([True for _ in range(n_workers)])
 	l_running = manager.list([True])
+	workers = []
 	def launchWorkers():
 		for worker_idx in range(n_workers):
-			mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx])).start()
+			worker = mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx]))
+			workers.append(worker)
+			worker.start()
 
 	isFirst = True
 	for proposal in getProposals(M['net'] if not args.no_network else None, M['trace'], data[task_idx], nProposals=args.n_proposals, subsampleSize=(args.min_examples,args.max_examples)):
@@ -255,7 +264,12 @@ def addTask(task_idx):
 			launchWorkers()
 			isFirst = False
 
+	startTime = time.time()
 	while any(l_active) or not q_counterexamples.empty() or not q_partialSolutions.empty():
+		if time.time() - startTime > args.timeout * 60:
+			print("Timeout!")
+			break
+
 		try:
 			counterexample_args = q_counterexamples.get(timeout=0.1)
 			onCounterexamples(queueProposal, *counterexample_args)
@@ -286,6 +300,9 @@ def addTask(task_idx):
 		nSolutions += x['nSolutions']
 		if x['best'] is not None: solutions.append(x['best'])
 	
+	for w in workers:
+		if w.is_alive() :w.terminate()
+
 	print("Evaluated", nEvaluated, "proposals", "(%d solutions)" % nSolutions)
 	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
@@ -375,7 +392,8 @@ if __name__ == "__main__":
 			alpha=args.alpha if args.alpha is not None else model_default_params['alpha'],
 			geom_p=args.geom_p if args.geom_p is not None else model_default_params['geom_p'],
 			pyconcept_alpha=args.pyconcept_alpha if args.pyconcept_alpha is not None else model_default_params['pyconcept_alpha'],
-			pyconcept_d=args.pyconcept_d if args.pyconcept_d is not None else model_default_params['pyconcept_d']))
+			pyconcept_d=args.pyconcept_d if args.pyconcept_d is not None else model_default_params['pyconcept_d'],
+			pyconcept_threshold=args.pyconcept_threshold if args.pyconcept_threshold is not None else model_default_params['pyconcept_threshold']))
 
 		for (s, c) in [(".", pre.dot), ("d", pre.d), ("s", pre.s), ("w", pre.w), ("l", pre.l), ("u", pre.u)]:
 			if s in args.initial_concepts: M['trace'], init_concept = M['trace'].initregex(c)

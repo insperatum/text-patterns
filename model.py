@@ -9,12 +9,13 @@ CONCEPT = "CONCEPT"
 maxDepth=2
 
 class RegexModel:
-	def __init__(self, alpha, geom_p, pyconcept_alpha, pyconcept_d, pConcept=0.2):
+	def __init__(self, alpha, geom_p, pyconcept_alpha, pyconcept_d, pyconcept_threshold, pConcept=0.2):
 		self.pConcept = pConcept
 		self.alpha = alpha
 		self.geom_p = geom_p
 		self.pyconcept_alpha = pyconcept_alpha
 		self.pyconcept_d = pyconcept_d
+		self.pyconcept_threshold = pyconcept_threshold
 		self.character_classes=[]
 		self.refresh()
 
