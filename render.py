@@ -101,7 +101,7 @@ def saveConcepts(M, filename, onlyIdxs=None):
 		color = "" if isRegex else "lightgrey"
 		style = "" if isRegex else "filled"
 
-		if onlyIdxs is not None: 
+		if onlyIdxs is None: 
 			isHidden[concept] = nTaskReferences<=1 and nConceptReferences==0 and not isRegex and not isParentRegex
 
 		if isHidden[concept]:
