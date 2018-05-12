@@ -24,7 +24,8 @@ from propose import Proposal, evalProposal, getProposals, networkCache
 parser = argparse.ArgumentParser()
 parser.add_argument('--fork', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv.p")
-parser.add_argument('--net', type=str, default="/om/user/lbh/text-patterns/init.pt")
+parser.add_argument('--net', type=str, default=None)
+parser.add_argument('--init_net', type=str, default="/om/user/lbh/text-patterns/init.pt")
 parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
@@ -370,7 +371,15 @@ if __name__ == "__main__":
 				M = loader.load(args.fork, use_cuda)
 				M['args'] = args
 				print("Forked model", args.fork)
-	
+
+	def loadNet(path):
+		_M = loader.load(path)
+		M['net'] = net = _M['net'] 
+		M['state']['network_losses'] = _M['state']['network_losses']
+		M['state']['iteration'] = _M['state']['iteration']
+		assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
+		print("Loaded network:", path)
+
 	if M is not None:
 		for param in model_default_params:
 			val = getattr(args, param)
@@ -382,7 +391,9 @@ if __name__ == "__main__":
 		M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
 	
 		if not args.no_network:
-			if args.net is None: 
+			if args.init_net is not None:
+				loadNet(args.init_net)	
+			elif args.net is None: 
 				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
 											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
 				print("Created new network")
@@ -406,12 +417,7 @@ if __name__ == "__main__":
 		print("Created new model")
 
 	if args.net is not None:
-		_M = loader.load(args.net)
-		M['net'] = net = _M['net'] 
-		M['state']['network_losses'] = _M['state']['network_losses']
-		M['state']['iteration'] = _M['state']['iteration']
-		assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
-		print("Loaded existing network")
+		loadNet(args.net)
 	
 	M['data_file'] = args.data_file
 	M['save_to'] = save_to

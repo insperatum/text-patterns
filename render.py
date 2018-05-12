@@ -6,7 +6,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from graphviz import Digraph
 
-from trace import RegexConcept
+from trace import RegexConcept, PYConcept
 import html
 import numpy as np
 
@@ -27,7 +27,7 @@ def saveConcepts(M, filename):
 	concepts = trace.allConcepts
 
 	dot = Digraph()
-	isMini = {}
+	isHidden = {}
 	for concept in concepts:
 		#samples = [concept.sample(trace) for _ in range(5)]
 		#unique_samples = set(samples)
@@ -71,6 +71,7 @@ def saveConcepts(M, filename):
 		obs_sample_str = "<br/>".join(str_parts)
 
 		isRegex = type(concept) is RegexConcept
+		isParentRegex = (type(concept) is PYConcept) and (type(trace.getState(concept).baseConcept) is RegexConcept)
 		size = 8
 	
 		if concept.id==0:
@@ -89,9 +90,9 @@ def saveConcepts(M, filename):
 		color = "" if isRegex else "lightgrey"
 		style = "" if isRegex else "filled"
 
-		isMini[concept] = nTaskReferences<=1 and nConceptReferences==0 and not isRegex
+		isHidden[concept] = nTaskReferences<=1 and nConceptReferences==0 and not isRegex and not isParentRegex
 
-		if isMini[concept]:
+		if isHidden[concept]:
 			pass
 			#dot.node(str(concept.id), "<"
 			#+ "<font point-size='%d'>"%int(size*1) + html_escape(obs_str) + "</font>"
@@ -110,10 +111,10 @@ def saveConcepts(M, filename):
 	for concept in concepts:
 		conceptsReferenced = concept.uniqueConceptsReferenced(trace)
 		for concept2 in conceptsReferenced:
-			if isMini[concept]:
+			if isHidden[concept]:
 				pass
 			else:
-				color = "black"#"lightgrey" if isMini[concept] else "black"
+				color = "black"#"lightgrey" if isHidden[concept] else "black"
 				dot.edge(str(concept2.id), str(concept.id), color=color)
 
 	dot.format = 'pdf'
