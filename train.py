@@ -60,7 +60,7 @@ parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
 parser.add_argument('--debug-network', dest='debug_network', action='store_const', const=True)
 parser.add_argument('--error-on-mistake', dest='error_on_mistake', action='store_const', const=True)
-parser.add_argument('--no-network-on-alt', dest='no_network_on_alt', actions='store_const', const=True)
+parser.add_argument('--no-network-on-alt', dest='no_network_on_alt', action='store_const', const=True)
 parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False,no_network_on_alt=False)
 
 args = parser.parse_args()
