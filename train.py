@@ -156,7 +156,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			#Retry by including counterexamples in support set
 			unique_counterexamples = list(set(counterexamples))
 			sampled_counterexamples = np.random.choice(unique_counterexamples, size=min(len(unique_counterexamples), 3), replace=False)
-			counterexample_proposals = getProposals(M['net'] if not (args.no_network or args.no_depth2_network) else None, proposal.init_trace, proposal.target_examples,
+			counterexample_proposals = getProposals(M['net'] if not (args.no_network or (proposal.depth+1==2 and args.no_depth2_network)) else None, proposal.init_trace, proposal.target_examples,
 					net_examples=(tuple(proposal.net_examples) + tuple(sampled_counterexamples))[-5:], depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal.altWith)
 
 			for counterexample_proposal in counterexample_proposals:
@@ -169,7 +169,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			#Deal with counter examples separately (with Alt)	
 			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 4), replace=False)
 			unique_counterexamples = list(set(counterexamples))
-			for counterexample_proposal in getProposals(M['net'] if not (args.no_network or args.no_network_on_alt or args.no_depth2_network) else None, proposal.trace, counterexamples,
+			for counterexample_proposal in getProposals(M['net'] if not (args.no_network or args.no_network_on_alt or (proposal.depth+1==2 and args.no_depth2_network)) else None, proposal.trace, counterexamples,
 				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal):
 				queueProposal(counterexample_proposal)
 				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0),
