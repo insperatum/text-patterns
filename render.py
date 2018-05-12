@@ -41,13 +41,13 @@ def saveConcepts(M, filename, onlyIdxs=None):
 				toAdd.append(c2)
 
 	for concept in concepts:
-		samples_counter = Counter([concept.sample(trace) for _ in range(500)])
+		samples_counter = Counter([concept.sample(trace) for _ in range(100)])
 		tot=sum(samples_counter.values())
 		best = sorted(samples_counter, key=lambda x:math.log(samples_counter.get(x)/tot)/len(x), reverse=True)[:4]
 		#unique_samples = set(samples)
 		#many_samples = [concept.sample(trace) for _ in range(500)]
 			
-		if len(tot)>len(best):
+		if len(samples_counter)>len(best):
 			sample_str = ", ".join(list(s if s is not "" else "ε" for s in best) + ["..."])
 		else:
 			sample_str = ", ".join(list(s if s is not "" else "ε" for s in best))
