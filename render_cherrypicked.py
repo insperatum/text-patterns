@@ -7,7 +7,7 @@ import argparse
 #	M = loader.load(model)
 #loader.saveRender(M)
 parser = argparse.ArgumentParser()
-parser.add_argument('--i', type=str, default="2,21,24,34,35,45,47,83,87,90")
+parser.add_argument('--i', type=str, default="2,21,24,32,34,45,47,83,87,90")
 args = parser.parse_args()
 
 M = loader.load("results/model.pt")
