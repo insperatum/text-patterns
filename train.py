@@ -24,7 +24,8 @@ from propose import Proposal, evalProposal, getProposals, networkCache
 parser = argparse.ArgumentParser()
 parser.add_argument('--fork', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv.p")
-parser.add_argument('--net', type=str, default="/om/user/lbh/text-patterns/init.pt")
+parser.add_argument('--net', type=str, default=None)
+parser.add_argument('--init_net', type=str, default="/om/user/lbh/text-patterns/init.pt")
 parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
@@ -45,13 +46,13 @@ parser.add_argument('--skip_tasks', type=int, default=0)
 parser.add_argument('--n_examples', type=int, default=100)
 parser.add_argument('--initial_concepts', type=str, default='.') 
 
-model_default_params = {'alpha':999999, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1, 'pyconcept_threshold':0.002}
+model_default_params = {'alpha':1, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1, 'pyconcept_threshold':0.002}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references+alpha
 parser.add_argument('--geom_p', type=float, default=None) #probability of adding another concept (geometric)
 parser.add_argument('--pyconcept_alpha', type=float, default=None)
 parser.add_argument('--pyconcept_d', type=float, default=None)
 parser.add_argument('--pyconcept_threshold', type=float, default=None)
-parser.add_argument('--helmholtz_dist', type=str, default="uniform") #During sleep, sample concepts from true weighted dist(default) or uniform
+parser.add_argument('--helmholtz_dist', type=str, default="default") #During sleep, sample concepts from true weighted dist(default) or uniform
 
 parser.add_argument('--train_first', type=int, default=0)
 parser.add_argument('--debug', dest='debug', action='store_true')
@@ -152,9 +153,9 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 		if kinkscore is None or kinkscore < counterexample_threshold:
 			#Retry by including counterexamples in support set
 			unique_counterexamples = list(set(counterexamples))
-			sampled_counterexamples = np.random.choice(unique_counterexamples, size=min(len(unique_counterexamples), 4), replace=False)
+			sampled_counterexamples = np.random.choice(unique_counterexamples, size=min(len(unique_counterexamples), 3), replace=False)
 			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.init_trace, proposal.target_examples,
-					net_examples=tuple(proposal.net_examples) + tuple(sampled_counterexamples), depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal.altWith)
+					net_examples=(tuple(proposal.net_examples) + tuple(sampled_counterexamples))[-5:], depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal.altWith)
 
 			for counterexample_proposal in counterexample_proposals:
 				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0),
@@ -239,6 +240,7 @@ def addTask(task_idx):
 				getProposalID(proposal.altWith) if proposal.altWith is not None else None)
 	proposalIDs_so_far = []
 	def queueProposal(proposal): #add to evaluation queue
+		proposal = proposal.strip()
 		proposalID = getProposalID(proposal)
 		if proposalID not in proposalIDs_so_far:
 			proposalIDs_so_far.append(proposalID)
@@ -304,13 +306,17 @@ def addTask(task_idx):
 		if w.is_alive() :w.terminate()
 
 	print("Evaluated", nEvaluated, "proposals", "(%d solutions)" % nSolutions)
-	accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
-	print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
-	M['trace'] = accepted.final_trace
-	M['task_observations'][task_idx] = accepted.observations
-	M['task_concepts'][task_idx] = accepted.concept
-	#refreshVocabulary()
-	M['state']['task_iterations'].append(M['state']['iteration'])
+	if len(solutions)==0:
+		print("No solutions??")
+		addTask(task_idx)
+	else:
+		accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
+		print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
+		M['trace'] = accepted.final_trace
+		M['task_observations'][task_idx] = accepted.observations
+		M['task_concepts'][task_idx] = accepted.concept
+		#refreshVocabulary()
+		M['state']['task_iterations'].append(M['state']['iteration'])
 
 def checkForMistakes():
 	upper_concept = next((c for c in M['trace'].baseConcepts if type(c) is PYConcept and all(x in M['trace'].getState(c).value_tables.keys() for x in 'ABCDEFG')), None)
@@ -365,7 +371,15 @@ if __name__ == "__main__":
 				M = loader.load(args.fork, use_cuda)
 				M['args'] = args
 				print("Forked model", args.fork)
-	
+
+	def loadNet(path):
+		_M = loader.load(path)
+		M['net'] = net = _M['net'] 
+		M['state']['network_losses'] = _M['state']['network_losses']
+		M['state']['iteration'] = _M['state']['iteration']
+		assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
+		print("Loaded network:", path)
+
 	if M is not None:
 		for param in model_default_params:
 			val = getattr(args, param)
@@ -377,7 +391,9 @@ if __name__ == "__main__":
 		M['state'] = {'iteration':0, 'current_task':0, 'network_losses':[], 'task_iterations':[]}
 	
 		if not args.no_network:
-			if args.net is None: 
+			if args.init_net is not None:
+				loadNet(args.init_net)	
+			elif args.net is None: 
 				M['net'] = net = RobustFill(input_vocabularies=[string.printable], target_vocabulary=default_vocabulary,
 											 hidden_size=args.hidden_size, embedding_size=args.embedding_size, cell_type=args.cell_type)
 				print("Created new network")
@@ -401,12 +417,7 @@ if __name__ == "__main__":
 		print("Created new model")
 
 	if args.net is not None:
-		_M = loader.load(args.net)
-		M['net'] = net = _M['net'] 
-		M['state']['network_losses'] = _M['state']['network_losses']
-		M['state']['iteration'] = _M['state']['iteration']
-		assert(net.hidden_size==args.hidden_size and net.embedding_size==args.embedding_size and net.cell_type==args.cell_type)
-		print("Loaded existing network")
+		loadNet(args.net)
 	
 	M['data_file'] = args.data_file
 	M['save_to'] = save_to

@@ -39,12 +39,12 @@ if mode.lower() in ["n", "network"]:
 				else:
 					examples.append(s)
 
-		regex_count = getNetworkRegexes(M['net'], M['trace'], examples)
-		for r in sorted(regex_count, key=regex_count.get, reverse=True)[:20]:
-			count = regex_count.get(r)
+		j=0
+		for r,count in getNetworkRegexes(M['net'], M['trace'], examples):
 			s = r.str(lambda concept: concept.str(M['trace'], depth=-1))
 			print("%3d: %s" %(count, s))
-	
+			j+=1
+			if j==20: break	
 
 if mode.lower() in ["g", "generation"]:
 	for i in range(99999):
@@ -66,9 +66,12 @@ if mode.lower() in ["g", "generation"]:
 					examples.append(s)
 
 		proposals = getProposals(M['net'], M['trace'], examples)
-		for proposal in proposals[:5]:
+		j=0
+		for proposal in proposals:
 			print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))
 			for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
+			j+=1
+			if j>5: break
 
 elif mode.lower() in ["c", "classification"]:
 	raise NotImplementedError() #which classification mode? Total correlation?

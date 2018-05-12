@@ -80,11 +80,13 @@ for i in range(args.n):
 	
 	classes = [random.choice(test_data) for _ in range(args.way)]
 	exampless = [list(np.random.choice(X, size=args.shot)) for X in classes]
-
+	if set(classes[0]) == set(exampless[0]):
+		continue
+	examples_test = [random.choice([x for x in classes[0] if x not in exampless[0]])]
+	
 	print("Support Sets:")
 	for examples in exampless: print(examples)
 	
-	examples_test = [random.choice(classes[0])]
 	print("Test:")
 	print(examples_test[0])
 	print()

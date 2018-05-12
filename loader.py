@@ -17,7 +17,7 @@ def load(file, cuda=False):
 
 	# Legacy
 	if 'task_concepts' not in M: M['task_concepts'] = [None for _ in range(len(M['task_observations']))]
-
+	if not hasattr(M['trace'].model, 'pyconcept_threshold'): M['trace'].model.pyconcept_threshold=0
 	return M
 
 def save(M, append_str=""):
