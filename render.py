@@ -120,7 +120,7 @@ def saveConcepts(M, filename, onlyIdxs=None):
 				+ name_prefix
 				+ content_prefix
 				#+ "<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>"
-				+ "<br/><font point-size='%d'><i>"%size + html_escape(sample_str) + "</i></font>"
+				+ "<br/><font point-size='%d'>"%size + html_escape(sample_str) + "</font>"
 				#+ "<br/><font point-size='%d'>"%size + obs_sample_str + "</font>"
 				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
