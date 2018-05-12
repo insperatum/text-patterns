@@ -1,5 +1,5 @@
 from collections import Counter
-#import math
+import math
 
 import matplotlib
 matplotlib.use("Agg")
@@ -41,14 +41,16 @@ def saveConcepts(M, filename, onlyIdxs=None):
 				toAdd.append(c2)
 
 	for concept in concepts:
-		#samples = [concept.sample(trace) for _ in range(5)]
+		samples_counter = Counter([concept.sample(trace) for _ in range(500)])
+		tot=sum(samples_counter.values())
+		best = sorted(samples_counter, key=lambda x:math.log(samples_counter.get(x)/tot)/len(x), reverse=True)[:4]
 		#unique_samples = set(samples)
 		#many_samples = [concept.sample(trace) for _ in range(500)]
 			
-		#if any(x not in unique_samples for x in many_samples):
-		#	sample_str = ", ".join(list(s if s is not "" else "ε" for s in unique_samples) + ["..."])
-		#else:
-		#	sample_str = ", ".join(list(s if s is not "" else "ε" for s in unique_samples))
+		if len(tot)>len(best):
+			sample_str = ", ".join(list(s if s is not "" else "ε" for s in best) + ["..."])
+		else:
+			sample_str = ", ".join(list(s if s is not "" else "ε" for s in best))
 		
 		observations = concept.get_observations(trace)
 		counter = Counter(observations)	
@@ -118,8 +120,8 @@ def saveConcepts(M, filename, onlyIdxs=None):
 				+ name_prefix
 				+ content_prefix
 				#+ "<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>"
-				#+ "<br/><font point-size='%d'><i>"%size + html_escape(sample_str) + "</i></font>"
-				+ "<br/><font point-size='%d'>"%size + obs_sample_str + "</font>"
+				+ "<br/><font point-size='%d'><i>"%size + html_escape(sample_str) + "</i></font>"
+				#+ "<br/><font point-size='%d'>"%size + obs_sample_str + "</font>"
 				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
 		
