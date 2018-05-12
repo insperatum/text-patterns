@@ -69,7 +69,7 @@ def saveConcepts(M, filename, onlyIdxs=None):
 		#	sampled_observations = sorted(counter, key=counter.get, reverse=True)
 		sampled_observations = sorted(counter, key=lambda x: math.log(counter[x]/total)/len(x), reverse=True)[:3]
 		samples = []
-		for i in range(1000):
+		for i in range(100):
 			sample = concept.sample(trace)
 			if sample not in counter and sample not in samples:
 				samples.append(sample)
