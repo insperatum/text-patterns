@@ -1,5 +1,5 @@
 from collections import Counter
-import math
+#import math
 
 import matplotlib
 matplotlib.use("Agg")
@@ -68,7 +68,7 @@ def saveConcepts(M, filename, onlyIdxs=None):
 		total = sum(counter.values())
 		nobs=4
 		if len(counter)>=nobs:
-			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=nobs)
+			sampled_observations = sorted(np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=nobs), key=counter.get, reverse=True)
 		else:
 			sampled_observations = sorted(counter, key=counter.get, reverse=True)
 		#sampled_observations = sorted(counter, key=lambda x: math.log(counter[x]/total)/len(x), reverse=True)[:nobs]
