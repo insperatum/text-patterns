@@ -66,11 +66,12 @@ def saveConcepts(M, filename, onlyIdxs=None):
 		size = 8
 		
 		total = sum(counter.values())
-		#if len(counter)>=3:
-		#	sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=3)
-		#else:
-		#	sampled_observations = sorted(counter, key=counter.get, reverse=True)
-		sampled_observations = sorted(counter, key=lambda x: math.log(counter[x]/total)/len(x), reverse=True)[:3]
+		nobs=4
+		if len(counter)>=nobs:
+			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=nobs)
+		else:
+			sampled_observations = sorted(counter, key=counter.get, reverse=True)
+		#sampled_observations = sorted(counter, key=lambda x: math.log(counter[x]/total)/len(x), reverse=True)[:nobs]
 		samples = []
 		for i in range(100):
 			sample = concept.sample(trace)
