@@ -62,12 +62,12 @@ def saveConcepts(M, filename, onlyIdxs=None):
 		#	obs_str = "(no observations)"
 		
 		
-		#total = sum(counter.values())
+		total = sum(counter.values())
 		#if len(counter)>=3:
 		#	sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=3)
 		#else:
 		#	sampled_observations = sorted(counter, key=counter.get, reverse=True)
-		sampled_observations = sorted(counter, key=lambda x: math.log(counter[x])/len(x), reverse=True)[:3]
+		sampled_observations = sorted(counter, key=lambda x: math.log(counter[x]/total)/len(x), reverse=True)[:3]
 		samples = []
 		for i in range(1000):
 			sample = concept.sample(trace)
