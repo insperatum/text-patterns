@@ -41,7 +41,7 @@ def saveConcepts(M, filename, onlyIdxs=None):
 				toAdd.append(c2)
 
 	for concept in concepts:
-		samples_counter = Counter([concept.sample(trace) for _ in range(20)])
+		samples_counter = Counter([concept.sample(trace) for _ in range(25)])
 		tot=sum(samples_counter.values())
 		best = sorted(samples_counter, key=lambda x:math.log(samples_counter.get(x)/tot)/len(x), reverse=True)[:4]
 		#unique_samples = set(samples)
