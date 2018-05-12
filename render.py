@@ -61,6 +61,9 @@ def saveConcepts(M, filename, onlyIdxs=None):
 		#else:
 		#	obs_str = "(no observations)"
 		
+		isRegex = type(concept) is RegexConcept
+		isParentRegex = (type(concept) is PYConcept) and (type(trace.getState(concept).baseConcept) is RegexConcept)
+		size = 8
 		
 		total = sum(counter.values())
 		#if len(counter)>=3:
@@ -76,16 +79,13 @@ def saveConcepts(M, filename, onlyIdxs=None):
 			if len(sampled_observations) + len(samples)==6:
 				break
 		str_parts = [html_escape(", ".join(list(s if s is not "" else "ε" for s in sampled_observations))) + (", ..." if len(counter)>len(sampled_observations) else "")]
-		if len(samples)>0:
+		if len(samples)>0 and isRegex:
 			#nRemaining = 5 - len(sampled_observations)
 			#nSamples = min(nRemaining, 2)
 			nSamples=2
 			str_parts.append("<i>(" + html_escape(", ".join(samples[:nSamples])) + (", ..." if len(samples)>nSamples else "") + ")</i>")	
 		obs_sample_str = "<br/>".join(str_parts)
 
-		isRegex = type(concept) is RegexConcept
-		isParentRegex = (type(concept) is PYConcept) and (type(trace.getState(concept).baseConcept) is RegexConcept)
-		size = 8
 	
 		if concept.id==0:
 			name_prefix = "<font point-size='%d'><u><b>Alphabet</b></u></font>" % int(size*1.2)
