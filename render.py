@@ -21,13 +21,24 @@ def html_escape(s):
 	#s = "".join(x if x in alphanumeric else "&#" + str(ord(x)) + ";" for x in s)
 	return s
 
-def saveConcepts(M, filename):
+def saveConcepts(M, filename, onlyIdxs=None):
 	print("Rendering to:%s"%filename)
 	trace = M['trace']
 	concepts = trace.allConcepts
 
 	dot = Digraph()
 	isHidden = {}
+	if onlyIdxs is not None:
+		for c in concepts:
+			isHidden[c] = True
+		toAdd = [trace.baseConcepts[i] for i in onlyIdxs]
+		while len(toAdd)>0:
+			c = toAdd[0]
+			toAdd = toAdd[1:]
+			isHidden[c] = False
+			for c2 in c.conceptsReferenced(trace):
+				toAdd.append(c2)
+
 	for concept in concepts:
 		#samples = [concept.sample(trace) for _ in range(5)]
 		#unique_samples = set(samples)
@@ -90,7 +101,8 @@ def saveConcepts(M, filename):
 		color = "" if isRegex else "lightgrey"
 		style = "" if isRegex else "filled"
 
-		isHidden[concept] = nTaskReferences<=1 and nConceptReferences==0 and not isRegex and not isParentRegex
+		if onlyIdxs is not None: 
+			isHidden[concept] = nTaskReferences<=1 and nConceptReferences==0 and not isRegex and not isParentRegex
 
 		if isHidden[concept]:
 			pass
@@ -111,7 +123,7 @@ def saveConcepts(M, filename):
 	for concept in concepts:
 		conceptsReferenced = concept.uniqueConceptsReferenced(trace)
 		for concept2 in conceptsReferenced:
-			if isHidden[concept]:
+			if isHidden[concept] or isHidden[concept2]:
 				pass
 			else:
 				color = "black"#"lightgrey" if isHidden[concept] else "black"
