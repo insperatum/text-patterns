@@ -55,8 +55,8 @@ if mode.lower() in ["g", "generation"]:
 		["TX --> CA"],
 		["iii: true"],
 		["1.8E-12"],
-		["$3.00/min"]
-		["Thur at 14:00"],
+		["$3.00/min"],
+		["Thur at 14:00"]
 	]
 	for i in range(99999):
 		print("-"*20, "\n")
