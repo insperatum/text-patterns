@@ -135,7 +135,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 		n_cur = math.ceil(nProposals/2)
 		n_net = math.floor(nProposals/2)
-	#	m_net = n_net * 5
+		m_net = n_net * 5
 
 		if net is not None:	
 			for (r, count, group_idx) in getNetworkRegexes(net, current_trace, examples):
@@ -148,7 +148,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 						if "regex-crp-crp" in modes:
 							t,c = t.addPY(c)
 							addProposal(t, c, net_proposals)
-				if group_idx>=n_net:
+				if group_idx>=m_net:
 					break
 
 		cur_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
