@@ -105,7 +105,7 @@ if mode.lower() in ["g", "generation"]:
 		probs = [math.exp(x.final_trace.score - totalJoint) for x in proposals]
 		posteriorConceptSamples = np.random.choice(range(len(proposals)), size=3, p=probs)
 		print("Posterior predictive samples:")
-		print("; ".join(proposals[i].concept.str(proposals[i].trace) for i in posteriorConceptSamples))
+		print("; ".join(proposals[i].concept.sample(proposals[i].trace) for i in posteriorConceptSamples))
 
 elif mode.lower() in ["c", "classification"]:
 	raise NotImplementedError() #which classification mode? Total correlation?
