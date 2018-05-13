@@ -103,7 +103,7 @@ if mode.lower() in ["g", "generation"]:
 
 		totalJoint = util.logsumexp([x.final_trace.score for x in proposals])
 		probs = [math.exp(x.final_trace.score - totalJoint) for x in proposals]
-		posteriorConceptSamples = np.random.choice(range(len(proposals), size=3, ps=probs))
+		posteriorConceptSamples = np.random.choice(range(len(proposals)), size=3, ps=probs)
 		print("Posterior predictive samples:")
 		print("; ".join(proposal[i].concept.str(proposal[i].trace) for i in posteriorConceptSamples))
 
