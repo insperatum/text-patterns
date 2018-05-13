@@ -51,9 +51,7 @@ networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' fo
 
 
 def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
-	start_time=time.time()
 	descendants, ancestors = current_trace.getSameTypeRelations()
-	print("getSameTypeRelations took", time.time()-start_time, "seconds")
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
 	def getRelatedRegexStrings(o):
 		if len(o)==0:
@@ -80,13 +78,14 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 					networkCache[examples]['all'].add(o)
 					try:
 						start_time=time.time()
-						for o_related in getRelatedRegexStrings(o):
+						l=list(getRelatedRegexStrings(o))
+						print("Making list took", time.time()-start_time, "seconds")
+						for o_related in l:
 							networkCache[examples]['all'].add(o_related)
 							r = pre.create(o_related, lookup=lookup)
 							count = outputs_count.get(o_related)
 							networkCache[examples]['valid'].append((r, count))
 							yield (r, count, group_idx)
-						print("Adding all related regexes took", time.time()-start_time, "seconds")
 						group_idx += 1
 					except pre.ParseException:
 						pass
