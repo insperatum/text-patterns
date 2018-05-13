@@ -2,6 +2,7 @@ import loader
 from propose import getProposals, getNetworkRegexes
 import util
 
+import np
 import torch
 
 import os
@@ -77,10 +78,12 @@ if mode.lower() in ["g", "generation"]:
 					examples.append(s)
 
 		if args.slow:
-			proposals = getProposals(M['net'], M['trace'], examples, nProposals=50, maxNetworkEvals=100, doPrint=False)
+			proposals = list(getProposals(M['net'], M['trace'], examples, nProposals=50, maxNetworkEvals=100, doPrint=False))
 		else:
-			proposals = getProposals(M['net'], M['trace'], examples, doPrint=False)
+			proposals = list(getProposals(M['net'], M['trace'], examples, doPrint=False))
 		j=0
+
+
 		for proposal in proposals:
 			#for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
 			#print("  " + proposal.concept.sample(proposal.trace))
@@ -97,6 +100,12 @@ if mode.lower() in ["g", "generation"]:
 				print("; ".join(samples))
 				j+=1
 				if j==4: break
+
+		totalJoint = util.logsumexp([x.final_trace.score for x in proposals])
+		probs = [math.exp(x.final_trace.score - totalJoint) for x in proposals]
+		posteriorConceptSamples = np.random.choice(range(len(proposals), size=3, ps=probs))
+		print("Posterior predictive samples:")
+		print("; ".join(proposal[i].concept.str(proposal[i].trace) for i in posteriorConceptSamples))
 
 elif mode.lower() in ["c", "classification"]:
 	raise NotImplementedError() #which classification mode? Total correlation?
