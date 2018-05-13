@@ -52,7 +52,7 @@ if mode.lower() in ["g", "generation"]:
 	defaultExamples = [
 		["Thur at 14:00"],
 		["MA -> TX"],
-		["iv: No"],
+		["ii: No"],
 		["1.8E-12"]
 	]
 	for i in range(99999):
@@ -74,9 +74,9 @@ if mode.lower() in ["g", "generation"]:
 					examples.append(s)
 
 		if args.slow:
-			proposals = getProposals(M['net'], M['trace'], examples, nProposals=50, maxNetworkEvals=100)
+			proposals = getProposals(M['net'], M['trace'], examples, nProposals=50, maxNetworkEvals=100, doPrint=False)
 		else:
-			proposals = getProposals(M['net'], M['trace'], examples)
+			proposals = getProposals(M['net'], M['trace'], examples, doPrint=False)
 		j=0
 		for proposal in proposals:
 			#for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
