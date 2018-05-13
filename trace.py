@@ -635,15 +635,24 @@ class Trace:
 		trace.allConcepts.append(concept)
 		return trace, concept
 
-	def getPYRelations(self):
-		py_descendants = {c:[] for c in self.baseConcepts}
-		py_ancestors = {c:[] for c in self.baseConcepts}
+	def getSameTypeRelations(self):
+		descendants = {c:[] for c in self.baseConcepts}
+		ancestors = {c:[] for c in self.baseConcepts}
+		def addAncestor(c, ancestor):
+			ancestors[c].append(ancestor)
+			ancestors[c].extend(ancestors[ancestor])
+			for c2 in ancestors[c]: descendants[c2].append(c)
+	
 		for c in self.baseConcepts:
 			if type(c) is PYConcept:
-				py_ancestors[c].append(self.getState(c).baseConcept)
-				py_ancestors[c].extend(py_ancestors[self.getState(c).baseConcept])
-				for c2 in py_ancestors[c]: py_descendants[c2].append(c)
-		return py_descendants, py_ancestors
+				state = self.getState(c)
+				addAncestor(c, state.baseConcept)
+			if type(c) is RegexConcept:
+				state = self.getState(c)
+				if type(state.regex) is pre.Alt:
+					for x in state.regex.values:
+						addAncestor(c, x)
+		return descendants, ancestors
 
 # ------------ Unit tests ------------
 
