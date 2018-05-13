@@ -52,7 +52,7 @@ if mode.lower() in ["g", "generation"]:
 	defaultExamples = [
 		["Thur at 14:00"],
 		["MA -> TX"],
-		["ii: No"],
+		["iii: No"],
 		["1.8E-12"]
 	]
 	for i in range(99999):
