@@ -51,7 +51,7 @@ if mode.lower() in ["n", "network"]:
 if mode.lower() in ["g", "generation"]:
 	defaultExamples = [
 		["Thur at 14:00"],
-		["MA -> TX"],
+		["CA -> TX"],
 		["iii: No"],
 		["1.8E-12"]
 	]
