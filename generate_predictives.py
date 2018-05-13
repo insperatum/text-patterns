@@ -10,8 +10,8 @@ import math
 
 models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and 'no_net' not in x)
 models.sort(key=os.path.getmtime)
-#for model in models: 
-for model in ["results/model.pt"]:
+for model in models: 
+#for model in ["results/model.pt"]:
 	print("\nModel:", model)
 	M = loader.load(model)
 	if torch.cuda.is_available(): M['net'].cuda()
