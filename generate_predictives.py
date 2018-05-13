@@ -10,7 +10,7 @@ import math
 
 models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and 'no_net' not in x)
 models.sort(key=os.path.getmtime)
-for model in models:
+for model in ["results/model.pt"]:#models:
 	print("\nModel:", model)
 	M = loader.load(model)
 	if torch.cuda.is_available(): M['net'].cuda()
@@ -33,15 +33,18 @@ for model in models:
 		samples = []
 		k=0
 		if len(proposals)>0:
-			for _ in range(500):
-				i = np.random.choice(range(len(proposals)), p=probs)
-				#print(proposals[i].concept.str(proposals[i].trace))
-				for j in range(1000):
-					s = proposals[i].concept.sample(proposals[i].trace)
-					#if s not in examples and s not in samples:
-					samples.append(s)
-					k+=1
-					break
-				if k==3: break
+			print(examples)
+			for p in sorted(proposals, key=lambda p: p.final_trace.score, reverse=True):
+				print(p.concept.str(p.trace), p.concept.sample(p.trace))
+			#for _ in range(500):
+			#	i = np.random.choice(range(len(proposals)), p=probs)
+			#	#print(proposals[i].concept.str(proposals[i].trace))
+			#	for j in range(1000):
+			#		s = proposals[i].concept.sample(proposals[i].trace)
+			#		#if s not in examples and s not in samples:
+			#		samples.append(s)
+			#		k+=1
+			#		break
+			#	if k==3: break
 
 		print(examples, "; ".join(samples))
