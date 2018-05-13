@@ -651,7 +651,8 @@ class Trace:
 				state = self.getState(c)
 				if type(state.regex) is pre.Alt:
 					for x in state.regex.values:
-						addAncestor(c, x)
+						if type(x) is RegexWrapper:
+							addAncestor(c, x.concept)
 		return descendants, ancestors
 
 # ------------ Unit tests ------------
