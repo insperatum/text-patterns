@@ -9,7 +9,7 @@ import os
 import math
 
 defaultExamples = [
-	("F",),
+	("Y",),
 	("-7 degrees",),
 	("TX --> CA",),
 	("iii: true",),
@@ -20,7 +20,7 @@ defaultExamples = [
 
 models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and 'no_net' not in x and x != "model.pt")
 models.sort(key=os.path.getmtime)
-
+models = models[:2]
 nSamples=3
 
 results = {} #results[model][defaultExamples]
@@ -61,6 +61,8 @@ for model in models:
 		print(examples, "; ".join(samples))
 		results[model][examples] = samples
 
+for model in models:
+	print(results[model])
 print("\n")
 print("\begin{tabular}{" + " ".join("l"*(len(models)+1)) + "}")
 print("Input" + "".join("Stage " + str(i+1) for i in range(len(models))) + "\\ \hline")
