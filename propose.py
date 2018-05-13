@@ -1,5 +1,4 @@
 import random
-import time
 
 from trace import RegexWrapper
 from collections import Counter, namedtuple
@@ -71,24 +70,21 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 		inputs = [[(example,) for example in examples]] * 500
 
 		group_idx=0
-		list_time_record=0
 		for i in range(maxNetworkEvals):
 			outputs_count=Counter(net.sample(inputs))
 			for o in sorted(outputs_count, key=outputs_count.get):
 				if o not in networkCache[examples]['all']:
 					networkCache[examples]['all'].add(o)
 					try:
-						start_time=time.time()
-						l=list(getRelatedRegexStrings(o))[:100]
-						if time.time()-start_time > list_time_record:
-							list_time_record=time.time()-start_time
-							print("Making list (size", len(l), ") took", list_time_record, "seconds", pre.create(o, lookup=lookup))
-						for o_related in l:
+						k=0
+						for o_related in list(getRelatedRegexStrings(o)):
 							networkCache[examples]['all'].add(o_related)
 							r = pre.create(o_related, lookup=lookup)
 							count = outputs_count.get(o_related)
 							networkCache[examples]['valid'].append((r, count))
 							yield (r, count, group_idx)
+							k+=1
+							if k==10: break
 						group_idx += 1
 					except pre.ParseException:
 						pass

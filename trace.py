@@ -106,8 +106,8 @@ class Concept:
 		return str(self)
 
 	def __str__(self):
-		return type(self).__name__ + str(self.id)
-
+		#return type(self).__name__ + str(self.id)
+		return "#" + str(self.id)
 	def get_observations(self, trace):
 		raise NotImplementedError()
 
