@@ -31,8 +31,8 @@ for model in models:
 		probs = [math.exp(x.final_trace.score - totalJoint) for x in proposals]
 		samples = []
 		for _ in range(3):
+			i = np.random.choice(range(len(proposals)), p=probs)
 			for j in range(1000):
-				i = np.random.choice(range(len(proposals)), p=probs)
 				s = proposals[i].concept.sample(proposals[i].trace)
 				if s not in examples and s not in samples:
 					samples.append(s)
