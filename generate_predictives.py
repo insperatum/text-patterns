@@ -22,6 +22,8 @@ models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and
 models.sort(key=os.path.getmtime)
 nSamples=3
 
+models = models[:2]
+
 results = {} #results[model][defaultExamples]
 for model in models: 
 	results[model]={}
@@ -66,10 +68,10 @@ for model in models:
 	
 print("\n")
 print("\\begin{tabular}{" + " ".join("l"*(len(models)+1)) + "}")
-print("Input" + "".join("Stage " + str(i+1) for i in range(len(models))) + "\\ \hline")
+print("Input" + "".join(" & Stage " + str(i+1) for i in range(len(models))) + "\\\\ \hline")
 for i in range(len(defaultExamples)):
 	examples = defaultExamples[i]
 	for j in range(nSamples):
-		print(examples[j] if j<len(examples) else "", "".join(" & " + (results[model][examples][j] if j<len(results[model][examples]) else "") for model in models) + "\\")
+		print(examples[j] if j<len(examples) else "", "".join(" & " + (results[model][examples][j] if j<len(results[model][examples]) else "") for model in models) + "\\\\")
 	print("\hline")
 print("\end{tabular}")
