@@ -64,8 +64,8 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 
 	examples = tuple(sorted(examples))
 	if examples in networkCache:
-		for (r, count) in networkCache[examples]['valid']:
-			yield (r, count)
+		for X in networkCache[examples]['valid']:
+			yield X 
 	else:
 		networkCache[examples]={'valid':[], 'all':set()}
 		inputs = [[(example,) for example in examples]] * 500
