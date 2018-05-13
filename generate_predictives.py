@@ -63,7 +63,7 @@ for model in models:
 			#		break
 			#	if k==3: break
 		print(examples, "; ".join(samples))
-		results[model][examples] = [x.replace("\\", "\\\\").replace("{", "\\{").replace("}","\\}").replace("#", "\\#").replace("$", "\\$").replace("%", "\\%").replace("_", "\\_").replace("^", "\\^{}") for x in samples]
+		results[model][examples] = [x.replace("\\", "\\\\").replace("{", "\\{").replace("}","\\}").replace("#", "\\#").replace("$", "\\$").replace("%", "\\%").replace("&", "\\&").replace("_", "\\_").replace("^", "\\^{}") for x in samples]
 
 #print()
 #for model in models:
