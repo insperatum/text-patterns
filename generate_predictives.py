@@ -38,14 +38,19 @@ for model in models:
 		totalJoint = util.logsumexp([x.final_trace.score for x in proposals])
 		probs = [math.exp(x.final_trace.score - totalJoint) for x in proposals]
 		samples = []
-		k=0
 		if len(proposals)>0:
 			#print(examples)
 			#for p in sorted(proposals, key=lambda p: p.final_trace.score, reverse=True)[:5]:
 			#	print(p.concept.str(p.trace), p.concept.sample(p.trace))
-			for _ in range(nSamples):
+			k=0
+			for _ in range(500):
 				p = proposals[np.random.choice(range(len(proposals)), p=probs)]
-				samples.append(p.concept.sample(p.trace))
+				s = p.concept.sample(p.trace)
+				if s not in examples and s not in samples:
+					samples.append(s)
+					k+=1
+				if k==nSamples:
+					break
 				#print(p.concept.str(p.trace), p.concept.sample(p.trace))
 			#for _ in range(500):
 			#	i = np.random.choice(range(len(proposals)), p=probs)
