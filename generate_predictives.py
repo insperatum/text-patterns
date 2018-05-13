@@ -64,8 +64,11 @@ for model in models:
 			#	if k==3: break
 		print(examples, "; ".join(samples))
 		#results[model][examples] = [x.replace("\\", "\\\\").replace("{", "\\{").replace("}","\\}").replace("#", "\\#").replace("$", "\\$").replace("%", "\\%").replace("&", "\\&").replace("_", "\\_").replace("^", "\\^{}") for x in samples]
-		results[model][examples] = ["\\verb|" + x + "|" for x in samples]
+		#results[model][examples] = ["\\verb|" + x + "|" for x in samples]
+		results[model][examples] = samples
 
+def latexify(s):
+	return "\\verb|" + s + "|"
 #print()
 #for model in models:
 #	print(results[model])
@@ -76,6 +79,6 @@ print("Input" + "".join(" & Stage " + str(i+1) for i in range(len(models))) + "\
 for i in range(len(defaultExamples)):
 	examples = defaultExamples[i]
 	for j in range(nSamples):
-		print(examples[j] if j<len(examples) else "", "".join(" & " + (results[model][examples][j] if j<len(results[model][examples]) else "") for model in models) + "\\\\")
+		print(latexify(examples[j]) if j<len(examples) else "", "".join(" & " + (latexify(results[model][examples][j]) if j<len(results[model][examples]) else "") for model in models) + "\\\\")
 	print("\hline")
 print("\end{tabular}")
