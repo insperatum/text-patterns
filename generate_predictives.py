@@ -29,5 +29,12 @@ for model in models:
 
 		totalJoint = util.logsumexp([x.final_trace.score for x in proposals])
 		probs = [math.exp(x.final_trace.score - totalJoint) for x in proposals]
-		posteriorConceptSamples = np.random.choice(range(len(proposals)), size=3, p=probs)
-		print(examples, "; ".join(proposals[i].concept.sample(proposals[i].trace) for i in posteriorConceptSamples))
+		posteriorConcepts = np.random.choice(range(len(proposals)), size=3, p=probs)
+		samples = []
+		for i in posteriorConcepts:
+			for j in range(1000):
+				s = proposals[i].concept.sample(proposals[i].trace)
+				if s not in examples and s not in samples:
+					samples.append(s)
+					break
+		print(examples, "; ".join(samples))
