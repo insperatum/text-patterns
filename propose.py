@@ -51,14 +51,14 @@ networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' fo
 
 
 def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
-	descendants, ancestors = current_trace.getSameTypeRelations()
+	similarConcepts = current_trace.getSameTypeRelations()
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
 	def getRelatedRegexStrings(o):
 		if len(o)==0:
 			yield ()
 		else:
 			for s2 in getRelatedRegexStrings(o[1:]):
-				for s1 in [o[0]] + ancestors.get(o[0], []) + descendants.get(o[0], []):
+				for s1 in [o[0]] + similarConcepts.get(o[0], []):
 					yield (s1,) + s2
 
 	if maxNetworkEvals is None: maxNetworkEvals=10
