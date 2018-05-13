@@ -10,7 +10,8 @@ import math
 
 models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and 'no_net' not in x)
 models.sort(key=os.path.getmtime)
-for model in ["results/model.pt"]:#models:
+for model in models: 
+#for model in ["results/model.pt"]:
 	print("\nModel:", model)
 	M = loader.load(model)
 	if torch.cuda.is_available(): M['net'].cuda()
@@ -33,7 +34,7 @@ for model in ["results/model.pt"]:#models:
 		samples = []
 		k=0
 		if len(proposals)>0:
-			print(examples)
+			#print(examples)
 			#for p in sorted(proposals, key=lambda p: p.final_trace.score, reverse=True)[:5]:
 			#	print(p.concept.str(p.trace), p.concept.sample(p.trace))
 			for _ in range(3):
