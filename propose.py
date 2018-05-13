@@ -48,9 +48,19 @@ def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None,
 
 networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' found outputs, so far 
 
+
 def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
-	if maxNetworkEvals is None: maxNetworkEvals=10
+	py_descendants, py_ancestors = current_trace.getPYRelations()
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
+	def getRelatedRegexStrings(o):
+		if len(o)==0:
+			yield ()
+		else:
+			for s2 in getRelatedRegexStrings(o[1:]):
+				for s1 in [o[0]] + py_ancestors.get(o[0], []) + py_descendants.get(o[0], []):
+					yield (s1,) + s2
+
+	if maxNetworkEvals is None: maxNetworkEvals=10
 	examples = tuple(sorted(examples))
 	if examples in networkCache:
 		for (r, count) in networkCache[examples]['valid']:
@@ -65,10 +75,12 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 				if o not in networkCache[examples]['all']:
 					networkCache[examples]['all'].add(o)
 					try:
-						r = pre.create(o, lookup=lookup)
-						count = outputs_count.get(o)
-						networkCache[examples]['valid'].append((r, count))
-						yield (r, count)
+						for o_related in getRelatedRegexStrings(o):
+							r = pre.create(o_related, lookup=lookup)
+							count = outputs_count.get(o_related)
+							networkCache[examples]['valid'].append((r, count))
+							yield (r, count)
+						
 					except pre.ParseException:
 						pass
 
