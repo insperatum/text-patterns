@@ -36,6 +36,8 @@ for model in ["results/model.pt"]:#models:
 			print(examples)
 			for p in sorted(proposals, key=lambda p: p.final_trace.score, reverse=True)[:5]:
 				print(p.concept.str(p.trace), p.concept.sample(p.trace))
+			p = proposals[np.random.choice(range(len(proposals)), p=probs)]
+			print(p.concept.str(p.trace), p.concept.sample(p.trace))
 			#for _ in range(500):
 			#	i = np.random.choice(range(len(proposals)), p=probs)
 			#	#print(proposals[i].concept.str(proposals[i].trace))
