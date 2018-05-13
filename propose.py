@@ -135,7 +135,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 		n_cur = math.ceil(nProposals/2)
 		n_net = math.floor(nProposals/2)
-		m_net = n_net * 3
+		m_net = n_net * 5 
 
 		if net is not None:	
 			for (r, count, group_idx) in getNetworkRegexes(net, current_trace, examples):
