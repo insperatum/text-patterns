@@ -51,6 +51,8 @@ networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' fo
 
 def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 	similarConcepts = current_trace.getSimilarConcepts()
+	if maxNetworkEvals is None: maxNetworkEvals=10
+
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
 	def getRelatedRegexStrings(o):
 		if len(o)==0:
@@ -60,7 +62,6 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 				for s1 in [o[0]] + similarConcepts.get(o[0], []):
 					yield (s1,) + s2
 
-	if maxNetworkEvals is None: maxNetworkEvals=10
 	examples = tuple(sorted(examples))
 	if examples in networkCache:
 		for (r, count) in networkCache[examples]['valid']:
