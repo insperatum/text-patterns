@@ -10,6 +10,8 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default=max(('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt"), key=os.path.getmtime)) #Most recent model
+parser.add_argument('--slow', dest='slow', action='store_const', const=True)
+parser.set_defaults(slow=False)
 args = parser.parse_args()
 
 print("Loading", args.model)
@@ -47,10 +49,16 @@ if mode.lower() in ["n", "network"]:
 			if j==20: break	
 
 if mode.lower() in ["g", "generation"]:
+	defaultExamples = [
+		["Thur at 14:00"],
+		["MA -> TX"],
+		["iv: No"],
+		["1.8E-12"]
+	]
 	for i in range(99999):
 		print("-"*20, "\n")
-		if i==0:
-			examples = ["bar", "car", "dar"]
+		if i<len(defaultExamples):
+			examples = defaultExamples[i] 
 			print("Using examples:")
 			for e in examples: print(e)
 			print()
@@ -65,7 +73,10 @@ if mode.lower() in ["g", "generation"]:
 				else:
 					examples.append(s)
 
-		proposals = getProposals(M['net'], M['trace'], examples)
+		if args.slow:
+			proposals = getProposals(M['net'], M['trace'], examples, nProposals=50, maxNetworkEvals=100)
+		else:
+			proposals = getProposals(M['net'], M['trace'], examples)
 		j=0
 		for proposal in proposals:
 			print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))

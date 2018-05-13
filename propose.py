@@ -48,7 +48,8 @@ def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None,
 
 networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' found outputs, so far 
 
-def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=10):
+def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
+	if maxNetworkEvals is None: maxNetworkEvals=10
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
 	examples = tuple(sorted(examples))
 	if examples in networkCache:
@@ -72,7 +73,7 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=10):
 						pass
 
 def getProposals(net, current_trace, target_examples, net_examples=None, depth=0, modes=("regex", "crp", "regex-crp"),
-		nProposals=10, likelihoodWeighting=1, subsampleSize=None, altWith=None): #Includes proposals from network, and proposals on existing concepts
+		nProposals=10, likelihoodWeighting=1, subsampleSize=None, altWith=None, maxNetworkEvals=None): #Includes proposals from network, and proposals on existing concepts
 	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp"] for x in modes))
 
 	examples = net_examples if net_examples is not None else target_examples
