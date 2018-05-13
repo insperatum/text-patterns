@@ -82,7 +82,7 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 							networkCache[examples]['all'].add(o_related)
 							r = pre.create(o_related, lookup=lookup)
 							count = outputs_count.get(o_related)
-							networkCache[examples]['valid'].append((r, count))
+							networkCache[examples]['valid'].append((r, count, group_idx))
 							yield (r, count, group_idx)
 							k+=1
 							if k==10: break
