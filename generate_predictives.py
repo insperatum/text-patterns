@@ -71,6 +71,6 @@ print("Input" + "".join("Stage " + str(i+1) for i in range(len(models))) + "\\ \
 for i in range(len(defaultExamples)):
 	examples = defaultExamples[i]
 	for j in range(nSamples):
-		print(examples[j] if j<len(examples) else "", "".join(" & " + results[model][examples][j] if j<len(results[model][examples]) else "" for model in models) + "\\")
+		print(examples[j] if j<len(examples) else "", "".join(" & " + (results[model][examples][j] if j<len(results[model][examples]) else "") for model in models) + "\\")
 	print("\hline")
 print("\end{tabular}")
