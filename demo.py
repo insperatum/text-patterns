@@ -88,7 +88,7 @@ if mode.lower() in ["g", "generation"]:
 				s = proposal.concept.sample(proposal.trace)
 				if s not in examples and s not in samples:
 					samples.append(s)
-					if len(s)==3:
+					if len(samples)==3:
 						break
 			print("; ".join(samples))
 			j+=1
