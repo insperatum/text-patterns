@@ -27,6 +27,7 @@ for model in models:
 	for examples in defaultExamples:
 		proposals = list(getProposals(M['net'], M['trace'], examples, nProposals=50, maxNetworkEvals=100, doPrint=False))
 
+		proposals = [x for x in proposals if not(all(x.concept.sample(x.trace)==examples[0] for _ in range(100)))]
 		totalJoint = util.logsumexp([x.final_trace.score for x in proposals])
 		probs = [math.exp(x.final_trace.score - totalJoint) for x in proposals]
 		samples = []
