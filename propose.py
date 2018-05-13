@@ -51,7 +51,7 @@ networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' fo
 
 
 def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
-	similarConcepts = current_trace.getSameTypeRelations()
+	similarConcepts = current_trace.getSimilarConcepts()
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
 	def getRelatedRegexStrings(o):
 		if len(o)==0:
