@@ -9,13 +9,13 @@ import os
 import math
 
 defaultExamples = [
-	("F"),
-	("-7 degrees"),
-	("TX --> CA"),
-	("iii: true"),
-	("1.8E-12"),
-	("$3.00/min"),
-	("Thur at 14:00")
+	("F",),
+	("-7 degrees",),
+	("TX --> CA",),
+	("iii: true",),
+	("1.8E-12",),
+	("$3.00/min",),
+	("Thur at 14:00",)
 ]
 
 models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and 'no_net' not in x and x != "model.pt")
