@@ -640,8 +640,8 @@ class Trace:
 		py_ancestors = {c:[] for c in self.baseConcepts}
 		for c in self.baseConcepts:
 			if type(c) is PYConcept:
-				py_ancestors[c].append(c.baseConcept)
-				py_ancestors[c].extend(py_ancestors[c.baseConcept])
+				py_ancestors[c].append(self.getState(c).baseConcept)
+				py_ancestors[c].extend(py_ancestors[self.getState(c).baseConcept])
 				for c2 in py_ancestors[c]: py_descendants[c2].append(c)
 		return py_descendants, py_ancestors
 
