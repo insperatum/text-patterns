@@ -83,7 +83,7 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 						if time.time()-start_time > list_time_record:
 							list_time_record=time.time()-start_time
 							print("Making list (size", len(l), ") took", list_time_record, "seconds", pre.create(o, lookup=lookup))
-						for o_related in l:
+						for o_related in l[:100]:
 							networkCache[examples]['all'].add(o_related)
 							r = pre.create(o_related, lookup=lookup)
 							count = outputs_count.get(o_related)
