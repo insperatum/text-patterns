@@ -60,7 +60,9 @@ parser.add_argument('--no-network', dest='no_network', action='store_true')
 parser.add_argument('--no-cuda', dest='no_cuda', action='store_true')
 parser.add_argument('--debug-network', dest='debug_network', action='store_const', const=True)
 parser.add_argument('--error-on-mistake', dest='error_on_mistake', action='store_const', const=True)
-parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False)
+parser.add_argument('--no-network-on-alt', dest='no_network_on_alt', action='store_const', const=True)
+parser.add_argument('--no-depth2-network', dest='no_depth2_network', action='store_const', const=True)
+parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False,no_network_on_alt=False,no_depth2_network=False)
 
 args = parser.parse_args()
 if __name__=="__main__":
@@ -154,7 +156,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			#Retry by including counterexamples in support set
 			unique_counterexamples = list(set(counterexamples))
 			sampled_counterexamples = np.random.choice(unique_counterexamples, size=min(len(unique_counterexamples), 3), replace=False)
-			counterexample_proposals = getProposals(M['net'] if not args.no_network else None, proposal.init_trace, proposal.target_examples,
+			counterexample_proposals = getProposals(M['net'] if not (args.no_network or (proposal.depth+1==2 and args.no_depth2_network)) else None, proposal.init_trace, proposal.target_examples,
 					net_examples=(tuple(proposal.net_examples) + tuple(sampled_counterexamples))[-5:], depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal.altWith)
 
 			for counterexample_proposal in counterexample_proposals:
@@ -167,7 +169,7 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			#Deal with counter examples separately (with Alt)	
 			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 4), replace=False)
 			unique_counterexamples = list(set(counterexamples))
-			for counterexample_proposal in getProposals(M['net'] if not args.no_network else None, proposal.trace, counterexamples,
+			for counterexample_proposal in getProposals(M['net'] if not (args.no_network or args.no_network_on_alt or (proposal.depth+1==2 and args.no_depth2_network)) else None, proposal.trace, counterexamples,
 				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal):
 				queueProposal(counterexample_proposal)
 				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0),
@@ -209,7 +211,7 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 			nEvaluated += 1
 			if solution.valid:
 				solutions.append(solution)
-				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
 				assert(tuple(solution.target_examples) == tuple(task))
 			else:
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)

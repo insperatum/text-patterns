@@ -2,6 +2,7 @@ import loader
 from propose import getProposals, getNetworkRegexes
 import util
 
+import numpy as np
 import torch
 
 import os
@@ -10,6 +11,8 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default=max(('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt"), key=os.path.getmtime)) #Most recent model
+parser.add_argument('--slow', dest='slow', action='store_const', const=True)
+parser.set_defaults(slow=False)
 args = parser.parse_args()
 
 print("Loading", args.model)
@@ -47,10 +50,19 @@ if mode.lower() in ["n", "network"]:
 			if j==20: break	
 
 if mode.lower() in ["g", "generation"]:
+	defaultExamples = [
+		["F"],
+		["-7 degrees"],
+		["TX --> CA"],
+		["iii: true"],
+		["1.8E-12"],
+		["$3.00/min"],
+		["Thur at 14:00"]
+	]
 	for i in range(99999):
 		print("-"*20, "\n")
-		if i==0:
-			examples = ["bar", "car", "dar"]
+		if i<len(defaultExamples):
+			examples = defaultExamples[i] 
 			print("Using examples:")
 			for e in examples: print(e)
 			print()
@@ -65,13 +77,35 @@ if mode.lower() in ["g", "generation"]:
 				else:
 					examples.append(s)
 
-		proposals = getProposals(M['net'], M['trace'], examples)
+		if args.slow:
+			proposals = list(getProposals(M['net'], M['trace'], examples, nProposals=50, maxNetworkEvals=100, doPrint=False))
+		else:
+			proposals = list(getProposals(M['net'], M['trace'], examples, doPrint=False))
 		j=0
+
+
 		for proposal in proposals:
-			print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))
-			for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
-			j+=1
-			if j>5: break
+			#for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
+			#print("  " + proposal.concept.sample(proposal.trace))
+
+			samples=[]
+			for _ in range(1000):
+				s = proposal.concept.sample(proposal.trace)
+				if s not in examples and s not in samples:
+					samples.append(s)
+					if len(samples)==3:
+						break
+			if len(samples)>0:
+				print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))
+				print("; ".join(samples))
+				j+=1
+				if j==4: break
+
+		totalJoint = util.logsumexp([x.final_trace.score for x in proposals])
+		probs = [math.exp(x.final_trace.score - totalJoint) for x in proposals]
+		posteriorConceptSamples = np.random.choice(range(len(proposals)), size=3, p=probs)
+		print("\nPosterior predictive samples:")
+		print("; ".join(proposals[i].concept.sample(proposals[i].trace) for i in posteriorConceptSamples))
 
 elif mode.lower() in ["c", "classification"]:
 	raise NotImplementedError() #which classification mode? Total correlation?

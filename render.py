@@ -1,4 +1,5 @@
 from collections import Counter
+import math
 
 import matplotlib
 matplotlib.use("Agg")
@@ -21,22 +22,35 @@ def html_escape(s):
 	#s = "".join(x if x in alphanumeric else "&#" + str(ord(x)) + ";" for x in s)
 	return s
 
-def saveConcepts(M, filename):
+def saveConcepts(M, filename, onlyIdxs=None):
 	print("Rendering to:%s"%filename)
 	trace = M['trace']
 	concepts = trace.allConcepts
 
 	dot = Digraph()
 	isHidden = {}
+	if onlyIdxs is not None:
+		for c in concepts:
+			isHidden[c] = True
+		toAdd = [trace.baseConcepts[i] for i in onlyIdxs]
+		while len(toAdd)>0:
+			c = toAdd[0]
+			toAdd = toAdd[1:]
+			isHidden[c] = False
+			for c2 in c.conceptsReferenced(trace):
+				toAdd.append(c2)
+
 	for concept in concepts:
-		#samples = [concept.sample(trace) for _ in range(5)]
+		samples_counter = Counter([concept.sample(trace) for _ in range(25)])
+		tot=sum(samples_counter.values())
+		best = sorted(samples_counter, key=lambda x:math.log(samples_counter.get(x)/tot)/len(x), reverse=True)[:4]
 		#unique_samples = set(samples)
 		#many_samples = [concept.sample(trace) for _ in range(500)]
 			
-		#if any(x not in unique_samples for x in many_samples):
-		#	sample_str = ", ".join(list(s if s is not "" else "ε" for s in unique_samples) + ["..."])
-		#else:
-		#	sample_str = ", ".join(list(s if s is not "" else "ε" for s in unique_samples))
+		if len(samples_counter)>len(best):
+			sample_str = ", ".join(list(s if s is not "" else "ε" for s in best) + ["..."])
+		else:
+			sample_str = ", ".join(list(s if s is not "" else "ε" for s in best))
 		
 		observations = concept.get_observations(trace)
 		counter = Counter(observations)	
@@ -49,30 +63,32 @@ def saveConcepts(M, filename):
 		#else:
 		#	obs_str = "(no observations)"
 		
+		isRegex = type(concept) is RegexConcept
+		isParentRegex = (type(concept) is PYConcept) and (type(trace.getState(concept).baseConcept) is RegexConcept)
+		size = 8
 		
 		total = sum(counter.values())
-		if len(counter)>=3:
-			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=3)
+		nobs=4
+		if len(counter)>=nobs:
+			sampled_observations = sorted(np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=nobs), key=counter.get, reverse=True)
 		else:
 			sampled_observations = sorted(counter, key=counter.get, reverse=True)
+		#sampled_observations = sorted(counter, key=lambda x: math.log(counter[x]/total)/len(x), reverse=True)[:nobs]
 		samples = []
-		for i in range(1000):
+		for i in range(100):
 			sample = concept.sample(trace)
 			if sample not in counter and sample not in samples:
 				samples.append(sample)
 			if len(sampled_observations) + len(samples)==6:
 				break
 		str_parts = [html_escape(", ".join(list(s if s is not "" else "ε" for s in sampled_observations))) + (", ..." if len(counter)>len(sampled_observations) else "")]
-		if len(samples)>0:
+		if len(samples)>0 and isRegex:
 			#nRemaining = 5 - len(sampled_observations)
 			#nSamples = min(nRemaining, 2)
 			nSamples=2
 			str_parts.append("<i>(" + html_escape(", ".join(samples[:nSamples])) + (", ..." if len(samples)>nSamples else "") + ")</i>")	
 		obs_sample_str = "<br/>".join(str_parts)
 
-		isRegex = type(concept) is RegexConcept
-		isParentRegex = (type(concept) is PYConcept) and (type(trace.getState(concept).baseConcept) is RegexConcept)
-		size = 8
 	
 		if concept.id==0:
 			name_prefix = "<font point-size='%d'><u><b>Alphabet</b></u></font>" % int(size*1.2)
@@ -90,7 +106,8 @@ def saveConcepts(M, filename):
 		color = "" if isRegex else "lightgrey"
 		style = "" if isRegex else "filled"
 
-		isHidden[concept] = nTaskReferences<=1 and nConceptReferences==0 and not isRegex and not isParentRegex
+		if onlyIdxs is None: 
+			isHidden[concept] = nTaskReferences<=1 and nConceptReferences==0 and not isRegex and not isParentRegex
 
 		if isHidden[concept]:
 			pass
@@ -103,7 +120,7 @@ def saveConcepts(M, filename):
 				+ name_prefix
 				+ content_prefix
 				#+ "<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>"
-				#+ "<br/><font point-size='%d'><i>"%size + html_escape(sample_str) + "</i></font>"
+				#+ "<br/><font point-size='%d'>"%size + html_escape(sample_str) + "</font>"
 				+ "<br/><font point-size='%d'>"%size + obs_sample_str + "</font>"
 				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
@@ -111,7 +128,7 @@ def saveConcepts(M, filename):
 	for concept in concepts:
 		conceptsReferenced = concept.uniqueConceptsReferenced(trace)
 		for concept2 in conceptsReferenced:
-			if isHidden[concept]:
+			if isHidden[concept] or isHidden[concept2]:
 				pass
 			else:
 				color = "black"#"lightgrey" if isHidden[concept] else "black"

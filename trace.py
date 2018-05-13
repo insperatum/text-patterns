@@ -106,8 +106,8 @@ class Concept:
 		return str(self)
 
 	def __str__(self):
-		return type(self).__name__ + str(self.id)
-
+		#return type(self).__name__ + str(self.id)
+		return "#" + str(self.id)
 	def get_observations(self, trace):
 		raise NotImplementedError()
 
@@ -634,6 +634,33 @@ class Trace:
 		trace.baseConcepts.append(concept)
 		trace.allConcepts.append(concept)
 		return trace, concept
+
+	def getSimilarConcepts(self):
+		descendants = {c:[] for c in self.baseConcepts}
+		ancestors = {c:[] for c in self.baseConcepts}
+		parents = {c:[] for c in self.baseConcepts}
+		children = {c:[] for c in self.baseConcepts}
+
+		def addParent(c, parent):
+			ancestors[c].append(parent)
+			ancestors[c].extend(ancestors[parent])
+			for c2 in ancestors[c]: descendants[c2].append(c)
+			parents[c].append(parent)
+			children[parent].append(c)
+
+		for c in self.baseConcepts:
+			if type(c) is PYConcept:
+				state = self.getState(c)
+				addParent(c, state.baseConcept)
+			if type(c) is RegexConcept:
+				state = self.getState(c)
+				if type(state.regex) is pre.Alt:
+					for x in state.regex.values:
+						if type(x) is RegexWrapper:
+							addParent(c, x.concept)
+
+		#return {c: descendants[c] + ancestors[c] for c in self.baseConcepts}
+		return {c: parents[c] + children[c] for c in self.baseConcepts}
 
 # ------------ Unit tests ------------
 
