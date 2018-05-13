@@ -36,10 +36,10 @@ for model in models:
 			#print(proposals[i].concept.str(proposals[i].trace))
 			for j in range(1000):
 				s = proposals[i].concept.sample(proposals[i].trace)
-				if s not in examples and s not in samples:
-					samples.append(s)
-					k+=1
-					break
+				#if s not in examples and s not in samples:
+				samples.append(s)
+				k+=1
+				break
 			if k==3: break
 
 		print(examples, "; ".join(samples))
