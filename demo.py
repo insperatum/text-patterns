@@ -2,7 +2,7 @@ import loader
 from propose import getProposals, getNetworkRegexes
 import util
 
-import np
+import numpy as np
 import torch
 
 import os
