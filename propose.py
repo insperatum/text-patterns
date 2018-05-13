@@ -71,6 +71,7 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 		inputs = [[(example,) for example in examples]] * 500
 
 		group_idx=0
+		list_time_record=0
 		for i in range(maxNetworkEvals):
 			outputs_count=Counter(net.sample(inputs))
 			for o in sorted(outputs_count, key=outputs_count.get):
@@ -79,7 +80,9 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 					try:
 						start_time=time.time()
 						l=list(getRelatedRegexStrings(o))
-						print("Making list took", time.time()-start_time, "seconds")
+						if time.time()-start_time > list_time_record:
+							list_time_record=time.time()-start_time
+							print("Making list took", list_time_record, "seconds")
 						for o_related in l:
 							networkCache[examples]['all'].add(o_related)
 							r = pre.create(o_related, lookup=lookup)
