@@ -8,24 +8,30 @@ import torch
 import os
 import math
 
-models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and 'no_net' not in x)
+defaultExamples = [
+	("F"),
+	("-7 degrees"),
+	("TX --> CA"),
+	("iii: true"),
+	("1.8E-12"),
+	("$3.00/min"),
+	("Thur at 14:00")
+]
+
+models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and 'no_net' not in x and x != "model.pt")
 models.sort(key=os.path.getmtime)
+
+nSamples=3
+
+results = {} #results[model][defaultExamples]
 for model in models: 
+	results[model]={}
 #for model in ["results/model.pt"]:
-	print("\nModel:", model)
+	#print("\nModel:", model)
 	M = loader.load(model)
 	if torch.cuda.is_available(): M['net'].cuda()
 	networkCache.clear()
-	
-	defaultExamples = [
-		["F"],
-		["-7 degrees"],
-		["TX --> CA"],
-		["iii: true"],
-		["1.8E-12"],
-		["$3.00/min"],
-		["Thur at 14:00"]
-	]
+
 	for examples in defaultExamples:
 		proposals = list(getProposals(M['net'], M['trace'], examples, nProposals=50, maxNetworkEvals=100, doPrint=False))
 
@@ -38,7 +44,7 @@ for model in models:
 			#print(examples)
 			#for p in sorted(proposals, key=lambda p: p.final_trace.score, reverse=True)[:5]:
 			#	print(p.concept.str(p.trace), p.concept.sample(p.trace))
-			for _ in range(3):
+			for _ in range(nSamples):
 				p = proposals[np.random.choice(range(len(proposals)), p=probs)]
 				samples.append(p.concept.sample(p.trace))
 				#print(p.concept.str(p.trace), p.concept.sample(p.trace))
@@ -52,5 +58,14 @@ for model in models:
 			#		k+=1
 			#		break
 			#	if k==3: break
+		#print(examples, "; ".join(samples))
+		results[model][examples] = samples
 
-		print(examples, "; ".join(samples))
+print("\begin{tabular}{" + " ".join("l"*(len(models)+1)) + "}")
+print("Input" + "".join("Stage " + str(i+1) for i in range(len(models))) + "\\ \hline")
+for i in range(len(defaultExamples)):
+	examples = defaultExamples[i]
+	for j in range(nSamples):
+		print(examples[j] if j<len(examples) else "", "".join(" & " + results[model][samples][j] for model in models) + "\\")
+	print("\hline")
+print("\end{tabular}")
