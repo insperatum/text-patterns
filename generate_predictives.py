@@ -61,10 +61,12 @@ for model in models:
 		print(examples, "; ".join(samples))
 		results[model][examples] = samples
 
+print()
 for model in models:
 	print(results[model])
+	
 print("\n")
-print("\begin{tabular}{" + " ".join("l"*(len(models)+1)) + "}")
+print("\\begin{tabular}{" + " ".join("l"*(len(models)+1)) + "}")
 print("Input" + "".join("Stage " + str(i+1) for i in range(len(models))) + "\\ \hline")
 for i in range(len(defaultExamples)):
 	examples = defaultExamples[i]
