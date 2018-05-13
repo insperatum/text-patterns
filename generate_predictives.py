@@ -27,7 +27,7 @@ results = {} #results[model][defaultExamples]
 for model in models: 
 	results[model]={}
 #for model in ["results/model.pt"]:
-	#print("\nModel:", model)
+	print("\nModel:", model)
 	M = loader.load(model)
 	if torch.cuda.is_available(): M['net'].cuda()
 	networkCache.clear()
@@ -58,9 +58,10 @@ for model in models:
 			#		k+=1
 			#		break
 			#	if k==3: break
-		#print(examples, "; ".join(samples))
+		print(examples, "; ".join(samples))
 		results[model][examples] = samples
 
+print("\n")
 print("\begin{tabular}{" + " ".join("l"*(len(models)+1)) + "}")
 print("Input" + "".join("Stage " + str(i+1) for i in range(len(models))) + "\\ \hline")
 for i in range(len(defaultExamples)):
