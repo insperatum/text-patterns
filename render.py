@@ -81,13 +81,16 @@ def saveConcepts(M, filename, onlyIdxs=None):
 				samples.append(sample)
 			if len(sampled_observations) + len(samples)==6:
 				break
-		str_parts = [html_escape(", ".join(list(s if s is not "" else "ε" for s in sampled_observations))) + (", ..." if len(counter)>len(sampled_observations) else "")]
+		if len(counter)>0:
+			str_parts = [html_escape(", ".join(list(s if s is not "" else "ε" for s in sampled_observations))) + (", ..." if len(counter)>len(sampled_observations) else "")]
+		else:
+			str_parts = []
 		if len(samples)>0 and isRegex:
 			#nRemaining = 5 - len(sampled_observations)
 			#nSamples = min(nRemaining, 2)
 			nSamples=2
 			str_parts.append("<i>(" + html_escape(", ".join(samples[:nSamples])) + (", ..." if len(samples)>nSamples else "") + ")</i>")	
-		obs_sample_str = "<br/>".join(str_parts) if len(str_parts)>0 else "(none)"
+		obs_sample_str = "<br/>".join(str_parts)
 
 	
 		if concept.id==0:
