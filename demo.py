@@ -93,7 +93,7 @@ if mode.lower() in ["g", "generation"]:
 				print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))
 				print("; ".join(samples))
 				j+=1
-				if j>5: break
+				if j==4: break
 
 elif mode.lower() in ["c", "classification"]:
 	raise NotImplementedError() #which classification mode? Total correlation?
