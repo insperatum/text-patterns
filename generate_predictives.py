@@ -1,5 +1,5 @@
 import loader
-from propose import getProposals
+from propose import getProposals, networkCache
 import util
 
 import numpy as np
@@ -15,7 +15,8 @@ for model in ["results/model.pt"]:
 	print("\nModel:", model)
 	M = loader.load(model)
 	if torch.cuda.is_available(): M['net'].cuda()
-
+	networkCache.clear()
+	
 	defaultExamples = [
 		["F"],
 		["-7 degrees"],
