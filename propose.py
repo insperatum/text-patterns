@@ -69,6 +69,7 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 		networkCache[examples]={'valid':[], 'all':set()}
 		inputs = [[(example,) for example in examples]] * 500
 
+		group_idx=0
 		for i in range(maxNetworkEvals):
 			outputs_count=Counter(net.sample(inputs))
 			for o in sorted(outputs_count, key=outputs_count.get):
@@ -80,8 +81,8 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 							r = pre.create(o_related, lookup=lookup)
 							count = outputs_count.get(o_related)
 							networkCache[examples]['valid'].append((r, count))
-							yield (r, count)
-						
+							yield (r, count, group_idx)
+						group_idx += 1
 					except pre.ParseException:
 						pass
 
@@ -134,7 +135,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		m_net = n_net * 5
 
 		if net is not None:	
-			for (r, count) in getNetworkRegexes(net, current_trace, examples):
+			for (r, count, group_idx) in getNetworkRegexes(net, current_trace, examples):
 				if any(x in modes for x in ("regex", "regex-crp", "regex-crp-crp")):
 					t,c = current_trace.addregex(r)
 					if "regex" in modes: addProposal(t, c, net_proposals)
@@ -144,7 +145,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 						if "regex-crp-crp" in modes:
 							t,c = t.addPY(c)
 							addProposal(t, c, net_proposals)
-				if len(net_proposals)>=m_net:
+				if group_idx>=m_net:
 					break
 
 		cur_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
