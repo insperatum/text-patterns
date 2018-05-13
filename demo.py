@@ -79,7 +79,6 @@ if mode.lower() in ["g", "generation"]:
 			proposals = getProposals(M['net'], M['trace'], examples)
 		j=0
 		for proposal in proposals:
-			print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))
 			#for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
 			#print("  " + proposal.concept.sample(proposal.trace))
 
@@ -90,9 +89,11 @@ if mode.lower() in ["g", "generation"]:
 					samples.append(s)
 					if len(samples)==3:
 						break
-			print("; ".join(samples))
-			j+=1
-			if j>5: break
+			if len(samples)>0:
+				print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))
+				print("; ".join(samples))
+				j+=1
+				if j>5: break
 
 elif mode.lower() in ["c", "classification"]:
 	raise NotImplementedError() #which classification mode? Total correlation?
