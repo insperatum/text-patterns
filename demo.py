@@ -80,7 +80,17 @@ if mode.lower() in ["g", "generation"]:
 		j=0
 		for proposal in proposals:
 			print("\n%5.2f: %s" % (proposal.final_trace.score, proposal.concept.str(proposal.trace)))
-			for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
+			#for _ in range(3): print("  " + proposal.concept.sample(proposal.trace))
+			#print("  " + proposal.concept.sample(proposal.trace))
+
+			samples=[]
+			for _ in range(1000):
+				s = proposal.concept.sample(proposal.trace)
+				if s not in examples and s not in samples:
+					samples.append(s)
+					if len(s)==3:
+						break
+			print("; ".join(samples))
 			j+=1
 			if j>5: break
 
