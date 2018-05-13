@@ -20,7 +20,6 @@ defaultExamples = [
 
 models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and 'no_net' not in x and x != "model.pt")
 models.sort(key=os.path.getmtime)
-models = models[:2]
 nSamples=3
 
 results = {} #results[model][defaultExamples]
