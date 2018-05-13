@@ -50,10 +50,13 @@ if mode.lower() in ["n", "network"]:
 
 if mode.lower() in ["g", "generation"]:
 	defaultExamples = [
+		["F"],
+		["-7 degrees"],
+		["TX --> CA"],
+		["iii: true"],
+		["1.8E-12"],
+		["$3.00/min"]
 		["Thur at 14:00"],
-		["CA -> TX"],
-		["iii: No"],
-		["1.8E-12"]
 	]
 	for i in range(99999):
 		print("-"*20, "\n")
