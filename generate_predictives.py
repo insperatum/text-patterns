@@ -12,7 +12,7 @@ defaultExamples = [
 	("Y",),
 	("-7 degrees",),
 	("TX --> CA",),
-	("iii: true",),
+	("iv: true",),
 	("1.8E-12",),
 	("$3.00/min",),
 	("Thur at 14:00",)
