@@ -8,7 +8,9 @@ import torch
 import os
 import math
 
-for model in ('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and 'no_net' not in x):
+models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and 'no_net' not in x)
+models.sort(key=os.path.getmtime)
+for model in models:
 	print("\nModel:", model)
 	M = loader.load(model)
 	if torch.cuda.is_available(): M['net'].cuda()
@@ -28,3 +30,4 @@ for model in ('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and
 		totalJoint = util.logsumexp([x.final_trace.score for x in proposals])
 		probs = [math.exp(x.final_trace.score - totalJoint) for x in proposals]
 		posteriorConceptSamples = np.random.choice(range(len(proposals)), size=3, p=probs)
+		print(examples, "; ".join(proposals[i].concept.sample(proposals[i].trace) for i in posteriorConceptSamples))
