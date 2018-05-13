@@ -22,8 +22,6 @@ models = list('results/%s'%x for x in os.listdir('results') if x[-3:]==".pt" and
 models.sort(key=os.path.getmtime)
 nSamples=3
 
-models = models[-1:]
-
 results = {} #results[model][defaultExamples]
 for model in models: 
 	results[model]={}
