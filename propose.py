@@ -49,18 +49,10 @@ def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None,
 networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' found outputs, so far 
 
 
-def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
-	similarConcepts = current_trace.getSimilarConcepts()
+def getValidNetworkOutputs(net, current_trace, examples, maxNetworkEvals=None):
 	if maxNetworkEvals is None: maxNetworkEvals=10
 
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
-	def getRelatedRegexStrings(o):
-		if len(o)==0:
-			yield ()
-		else:
-			for s2 in getRelatedRegexStrings(o[1:]):
-				for s1 in [o[0]] + similarConcepts.get(o[0], []):
-					yield (s1,) + s2
 
 	examples = tuple(sorted(examples))
 	isCached = examples in networkCache
@@ -84,23 +76,17 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 			else:
 				networkCache[examples]['all'].add(o)
 		try:
-			k=0
 			if not isCached: networkCache[examples]['all'].add(o)
-			r = pre.create(o, lookup=lookup)
-			# r is a valid regex
-			if not isCached: networkCache[examples]['valid'].append((r, count))
-			for o_related in getRelatedRegexStrings(o):
-				r = pre.create(o_related, lookup=lookup)
-				yield (r, count, group_idx)
-				k+=1
-				if k==50: break
+			pre.create(o, lookup=lookup) #throw error if o is not a valid regex
+			if not isCached: networkCache[examples]['valid'].append((o, count))
+			yield(o, count, group_idx)
 			group_idx += 1
 		except pre.ParseException:
 			pass
 
-def getProposals(net, current_trace, target_examples, net_examples=None, depth=0, modes=("regex", "crp", "regex-crp"),
-		nProposals=10, likelihoodWeighting=1, subsampleSize=None, altWith=None, maxNetworkEvals=None, doPrint=True): #Includes proposals from network, and proposals on existing concepts
-	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp"] for x in modes))
+def getProposals(net, current_trace, target_examples, net_examples=None, depth=0, modes=("crp", "regex-crp", "crp-regex"),
+		nProposals=10, likelihoodWeighting=1, subsampleSize=None, altWith=None, maxNetworkEvals=None, doPrint=True, fuzzConcepts=True): #Includes proposals from network, and proposals on existing concepts
+	assert(all(x in ["crp", "regex-crp", "regex-crp-crp", "crp-regex"] for x in modes))
 
 	examples = net_examples if net_examples is not None else target_examples
 
@@ -147,10 +133,37 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		m_net = n_net * 5 
 
 		if net is not None:	
-			for (r, count, group_idx) in getNetworkRegexes(net, current_trace, examples):
-				if any(x in modes for x in ("regex", "regex-crp", "regex-crp-crp")):
-					t,c = current_trace.addregex(r)
-					if "regex" in modes: addProposal(t, c, net_proposals)
+			similarConcepts = current_trace.getSimilarConcepts()
+			def getRelatedRegexConcepts(o):
+				lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
+				r = pre.create(o, lookup=lookup)
+				t,c = current_trace.addregex(r)
+				yield (t,c)
+				for i in range(len(o)):
+					if o[i] in current_trace.baseConcepts:
+						if fuzzConcepts:
+							#Try replacing one concept in regex with parent or child
+							for o_alt in similarConcepts.get(o[i], []):
+								r = pre.create(o[:i] + (o_alt,) + o[i+1:], lookup=lookup)
+								t,c = current_trace.addregex(r)
+								yield (t,c)
+						
+						if "crp-regex" in modes:
+							#Try replacing one concept with a new PYConcept
+							t,c = current_trace.addPY(o[i])
+							r = pre.create(o[:i] + (c,) + o[i+1:], lookup={**lookup, c:RegexWrapper(c)})
+							t,c = t.addregex(r)
+							yield (t,c)
+			#	if len(o)==0:
+			#		yield ()
+			#	else:
+			#		for s2 in getRelatedRegexStrings(o[1:]):
+			#			for s1 in [o[0]] + similarConcepts.get(o[0], []):
+			#				yield (s1,) + s2
+
+			for (o, count, group_idx) in getValidNetworkOutputs(net, current_trace, examples):
+				for t,c in getRelatedRegexConcepts(o):
+					addProposal(t, c, net_proposals)
 					if any(x in modes for x in ("regex-crp", "regex-crp-crp")):
 						t,c = t.addPY(c)
 						if "regex-crp" in modes: addProposal(t, c, net_proposals)
