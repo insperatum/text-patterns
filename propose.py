@@ -116,9 +116,14 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 		cur_proposals = []
 		net_proposals = []
+		def getProposalID(proposal): #To avoid duplicate proposals
+			return proposal.concept.str(proposal.trace, depth=-1)
+		proposalIDs_so_far = []
 		def addProposal(trace, concept, add_to):
 			p = evalProposal(Proposal(depth, tuple(examples), tuple(examples), current_trace, trace, concept, altWith, None, None, None), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(examples))
-			if p.valid: add_to.append(p)
+			if p.valid and getProposalID(p) not in proposalIDs_so_far:
+				proposalIDs_so_far.append(getProposalID(p))
+				add_to.append(p)
 
 		addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), cur_proposals) #Exactly the examples
 
@@ -132,7 +137,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		n_net = math.floor(nProposals/2)
 		m_net = n_net * 5 
 
-		if net is not None:	
+		if net is not None:
 			similarConcepts = current_trace.getSimilarConcepts()
 			def getRelatedRegexConcepts(o):
 				lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
