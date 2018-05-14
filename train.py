@@ -27,11 +27,11 @@ parser.add_argument('--data_file', type=str, default="./data/csv.p")
 parser.add_argument('--net', type=str, default=None)
 parser.add_argument('--init_net', type=str, default="/om/user/lbh/text-patterns/init.pt")
 parser.add_argument('--batch_size', type=int, default=300)
-parser.add_argument('--min_examples', type=int, default=2)
+parser.add_argument('--min_examples', type=int, default=1)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
 parser.add_argument('--min_iterations', type=int, default=500) #minimum number of training iterations before next concept
-parser.add_argument('--timeout', type=int, default=10) #minutes per task
+parser.add_argument('--timeout', type=int, default=5) #minutes per task
 parser.add_argument('--n_proposals', type=int, default=100)
 parser.add_argument('--n_counterproposals', type=int, default=5)
 parser.add_argument('--counterexample_depth', type=int, default=2)

@@ -63,32 +63,40 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 					yield (s1,) + s2
 
 	examples = tuple(sorted(examples))
-	if examples in networkCache:
-		for X in networkCache[examples]['valid']:
-			yield X 
-	else:
-		networkCache[examples]={'valid':[], 'all':set()}
-		inputs = [[(example,) for example in examples]] * 500
+	isCached = examples in networkCache
 
-		group_idx=0
-		for i in range(maxNetworkEvals):
+	if isCached:
+		o_generator = networkCache[examples]['valid']
+	else:
+		def get_more_outputs():
+			networkCache[examples]={'valid':[], 'all':set()}
+			inputs = [[(example,) for example in examples]] * 500
 			outputs_count=Counter(net.sample(inputs))
 			for o in sorted(outputs_count, key=outputs_count.get):
-				if o not in networkCache[examples]['all']:
-					networkCache[examples]['all'].add(o)
-					try:
-						k=0
-						for o_related in list(getRelatedRegexStrings(o)):
-							networkCache[examples]['all'].add(o_related)
-							r = pre.create(o_related, lookup=lookup)
-							count = outputs_count.get(o_related)
-							networkCache[examples]['valid'].append((r, count, group_idx))
-							yield (r, count, group_idx)
-							k+=1
-							if k==10: break
-						group_idx += 1
-					except pre.ParseException:
-						pass
+				yield (o, outputs_count.get[o])
+		o_generator = (o for i in range(maxNetworkEvals) for o in get_more_outputs)
+
+	group_idx=0
+	for o, count in o_generator:
+		if not isCached:
+			if o in networkCache[examples]['all']:
+				continue
+			else:
+				networkCache[examples]['all'].add(o)
+		try:
+			k=0
+			if not isCached: networkCache[examples]['all'].add(o)
+			r = pre.create(o, lookup=lookup)
+			# r is a valid regex
+			if not isCached: networkCache[examples]['valid'].append((r, count, group_idx))
+			for o_related in getRelatedRegexStrings(o):
+				r = pre.create(o_related, lookup=lookup)
+				yield (r, count, group_idx)
+				k+=1
+				if k==50: break
+			group_idx += 1
+		except pre.ParseException:
+			pass
 
 def getProposals(net, current_trace, target_examples, net_examples=None, depth=0, modes=("regex", "crp", "regex-crp"),
 		nProposals=10, likelihoodWeighting=1, subsampleSize=None, altWith=None, maxNetworkEvals=None, doPrint=True): #Includes proposals from network, and proposals on existing concepts
