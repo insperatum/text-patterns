@@ -30,7 +30,7 @@ parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=1)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
-parser.add_argument('--iterations', type=int, default=2000) #number of network training iterations before each curriculum stage
+parser.add_argument('--iterations', type=int, default=2500) #number of network training iterations before each curriculum stage
 parser.add_argument('--timeout', type=int, default=5) #minutes per task
 parser.add_argument('--n_proposals', type=int, default=100)
 parser.add_argument('--n_counterproposals', type=int, default=5)
@@ -46,7 +46,7 @@ parser.add_argument('--skip_tasks', type=int, default=0)
 parser.add_argument('--n_examples', type=int, default=100)
 parser.add_argument('--initial_concepts', type=str, default='.') 
 
-model_default_params = {'alpha':1, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1, 'pyconcept_threshold':0.002}
+model_default_params = {'alpha':1, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1, 'pyconcept_threshold':0.0001}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references+alpha
 parser.add_argument('--geom_p', type=float, default=None) #probability of adding another concept (geometric)
 parser.add_argument('--pyconcept_alpha', type=float, default=None)
@@ -62,7 +62,9 @@ parser.add_argument('--debug-network', dest='debug_network', action='store_const
 parser.add_argument('--error-on-mistake', dest='error_on_mistake', action='store_const', const=True)
 parser.add_argument('--no-network-on-alt', dest='no_network_on_alt', action='store_const', const=True)
 parser.add_argument('--no-depth2-network', dest='no_depth2_network', action='store_const', const=True)
-parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False,no_network_on_alt=False,no_depth2_network=False)
+parser.add_argument('--no-alt-on-counterexample', dest='no_alt_on_counterexample', action='store_const', const=True)
+parser.add_argument('--no-save', dest='no_save', action='store_const', const=True)
+parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False,no_network_on_alt=False,no_depth2_network=False,no_alt_on_counterexample=False,no_save=False)
 
 args = parser.parse_args()
 if __name__=="__main__":
@@ -143,7 +145,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 			if len(M['state']['network_losses']) >= from_iteration + iterations:
 				break
 
-		if not args.debug and len(M['state']['network_losses']) % saveEvery == 0:
+		if not args.no_save and len(M['state']['network_losses']) % saveEvery == 0:
 			loader.save(M)
 
 
@@ -165,17 +167,18 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 					"for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), 
 					flush=True)
 				queueProposal(counterexample_proposal)
-				
-			#Deal with counter examples separately (with Alt)	
-			sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 4), replace=False)
-			unique_counterexamples = list(set(counterexamples))
-			for counterexample_proposal in getProposals(M['net'] if not (args.no_network or args.no_network_on_alt or (proposal.depth+1==2 and args.no_depth2_network)) else None, proposal.trace, counterexamples,
-				net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal):
-				queueProposal(counterexample_proposal)
-				print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0),
-					"adding exception", counterexample_proposal.concept.str(counterexample_proposal.trace),
-					"for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), 
-					flush=True)
+			
+			if not args.no_alt_on_counterexample:
+				#Deal with counter examples separately (with Alt)	
+				sampled_counterexamples = np.random.choice(counterexamples, size=min(len(counterexamples), 4), replace=False)
+				unique_counterexamples = list(set(counterexamples))
+				for counterexample_proposal in getProposals(M['net'] if not (args.no_network or args.no_network_on_alt or (proposal.depth+1==2 and args.no_depth2_network)) else None, proposal.trace, counterexamples,
+					net_examples=sampled_counterexamples, depth=proposal.depth+1, nProposals=args.n_counterproposals, altWith=proposal):
+					queueProposal(counterexample_proposal)
+					print("(depth %d kink %2.2f)" % (counterexample_proposal.depth, kinkscore or 0),
+						"adding exception", counterexample_proposal.concept.str(counterexample_proposal.trace),
+						"for counterexamples:", sampled_counterexamples, "on", proposal.concept.str(proposal.trace), 
+						flush=True)
 		else:
 			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace), flush=True)
 
@@ -215,7 +218,10 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 				#solutions.append(solution)
 				q_solutions.put(solution)
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
-				assert(tuple(solution.target_examples) == tuple(task))
+				if tuple(solution.target_examples) != tuple(task):
+					print("INCORRECT TARGET EXAMPLES??", solution.concept.str(solution.trace), solution.target_examples)
+					raise Exception()
+
 			else:
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), flush=True)
 		else:
@@ -259,8 +265,10 @@ def addTask(task_idx):
 
 	def addRelated(solution):
 		related = relatedProposalsDict[getProposalID(solution)]
-		for p in related: queueProposal(p)
-		return len(related)>0
+		if len(related)>0:
+			print("Add related proposals", solution.concept.str(solution.trace), "---->", ", ".join(p.concept.str(p.trace) for p in related))
+		for p in related:
+			queueProposal(p)
 
 	n_workers = max(1, cpus-1)
 	q_counterexamples = manager.Queue()
@@ -460,11 +468,11 @@ if __name__ == "__main__":
 		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.net is not None):
 			train(iterations=args.iterations)
 			gc.collect()
-			if not args.debug: save(saveNet=True)
+			if not args.no_save: save(saveNet=True)
 
 		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace'], depth=1) for c in M['trace'].baseConcepts))
 		addTask(M['state']['current_task'])
 		checkForMistakes()	
 		M['state']['current_task'] += 1
 		gc.collect()
-		if not args.debug: save()
+		if not args.no_save: save()

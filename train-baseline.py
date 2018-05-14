@@ -13,9 +13,9 @@ import loader
 # Arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('--fork', type=str, default=None)
-parser.add_argument('--data_file', type=str, default="./data/csv.p")
+parser.add_argument('--data_file', type=str, default="./data/csv_900.p")
 parser.add_argument('--batch_size', type=int, default=300)
-parser.add_argument('--min_examples', type=int, default=2)
+parser.add_argument('--min_examples', type=int, default=1)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
 parser.add_argument('--min_iterations', type=int, default=1000) #minimum number of training iterations before next concept
@@ -48,7 +48,7 @@ def getInstance(n_examples):
 	"""
 	while True:
 		trainclass = random.choice(data)
-		inputs = (list(np.random.choice(trainclass, size=n_examples)),)
+		inputs = (list(np.random.choice(trainclass[:int(len(trainclass)/2)], size=n_examples)),) #Only train on first half, leave out second half
 		target = random.choice(trainclass)
 		if len(target)<args.max_length and all(len(x)<args.max_length for x in inputs[0]):
 			break
@@ -84,7 +84,7 @@ def train(iterations=10000, saveEvery=500):
 			break
 
 		if iteration % saveEvery == 0:
-			with open("baseline.pt", 'wb') as f:
+			with open("baseline_%d_%d_%d-%d.pt" % (args.hidden_size, args.embedding_size, args.min_examples, args.max_examples), 'wb') as f:
 				torch.save(net, f)
 
 if __name__ == "__main__":

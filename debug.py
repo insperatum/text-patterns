@@ -1,5 +1,5 @@
 import loader
-from propose import Proposal, evalProposal, getProposals, networkCache, getNetworkRegexes
+from propose import Proposal, evalProposal, getProposals, networkCache
 import util
 
 import torch

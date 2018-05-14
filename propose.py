@@ -17,7 +17,7 @@ def proposal_strip(self):
 	return self._replace(final_trace=None, observations=None, valid=None)
 Proposal.strip = proposal_strip
 
-def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1):
+def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1, eval_examples=None):
 	assert(proposal.final_trace is None and proposal.observations is None and proposal.valid is None)
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
 		return proposal._replace(valid=False)
@@ -123,12 +123,12 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 			return proposal.concept.str(proposal.trace, depth=-1)
 		proposalIDs_so_far = []
 		def addProposal(trace, concept, add_to, related=()):
-			def f(t,c):
-				return Proposal(depth, tuple(examples), tuple(examples), current_trace, trace, concept, (), altWith, None, None, None)
-			p = evalProposal(f(trace,concept), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(examples))
+			def f(t,c,final):
+				return Proposal(depth, tuple(sorted(examples)), tuple(target_examples) if final else tuple(examples), current_trace, t, c, (), altWith, None, None, None)
+			p = evalProposal(f(trace,concept,final=False), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(examples))
 			if p.valid and getProposalID(p) not in proposalIDs_so_far:
-				relatedProposals = tuple(f(t,c) for (t,c) in related)
-				p = p._replace(related=relatedProposals)
+				relatedProposals = tuple(f(t,c,final=True) for (t,c) in related)
+				p = p._replace(related=relatedProposals,target_examples=tuple(target_examples))
 				proposalIDs_so_far.append(getProposalID(p))
 				add_to.append(p)
 			return p if p.valid else None
@@ -207,6 +207,6 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 		for p in proposals:
 			if tuple(sorted(examples)) == tuple(sorted(target_examples)):
-				yield p._replace(target_examples=tuple(target_examples))
+				yield p
 			else:
-				yield p.strip()._replace(target_examples=tuple(target_examples))
+				yield p.strip()
