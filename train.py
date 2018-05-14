@@ -63,7 +63,8 @@ parser.add_argument('--error-on-mistake', dest='error_on_mistake', action='store
 parser.add_argument('--no-network-on-alt', dest='no_network_on_alt', action='store_const', const=True)
 parser.add_argument('--no-depth2-network', dest='no_depth2_network', action='store_const', const=True)
 parser.add_argument('--no-alt-on-counterexample', dest='no_alt_on_counterexample', action='store_const', const=True)
-parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False,no_network_on_alt=False,no_depth2_network=False,no_alt_on_counterexample=False)
+parser.add_argument('--no-save', dest='no_save', action='store_const', const=True)
+parser.set_defaults(debug=False, no_cuda=False, regex_primitives=False, no_network=False,debug_network=False,error_on_mistake=False,no_network_on_alt=False,no_depth2_network=False,no_alt_on_counterexample=False,no_save=False)
 
 args = parser.parse_args()
 if __name__=="__main__":
@@ -144,7 +145,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 			if len(M['state']['network_losses']) >= from_iteration + iterations:
 				break
 
-		if not args.debug and len(M['state']['network_losses']) % saveEvery == 0:
+		if not args.no_save and len(M['state']['network_losses']) % saveEvery == 0:
 			loader.save(M)
 
 
@@ -462,11 +463,11 @@ if __name__ == "__main__":
 		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.net is not None):
 			train(iterations=args.iterations)
 			gc.collect()
-			if not args.debug: save(saveNet=True)
+			if not args.no_save: save(saveNet=True)
 
 		print("\n" + str(len(M['trace'].baseConcepts)) + " concepts:", ", ".join(c.str(M['trace'], depth=1) for c in M['trace'].baseConcepts))
 		addTask(M['state']['current_task'])
 		checkForMistakes()	
 		M['state']['current_task'] += 1
 		gc.collect()
-		if not args.debug: save()
+		if not args.no_save: save()
