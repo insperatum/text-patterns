@@ -218,7 +218,10 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 				#solutions.append(solution)
 				q_solutions.put(solution)
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
-				assert(tuple(solution.target_examples) == tuple(task))
+				if tuple(solution.target_examples) != tuple(task):
+					print("INCORRECT TARGET EXAMPLES??", solution.concept.str(solution.trace), solution.target_examples)
+					raise Exception()
+
 			else:
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), flush=True)
 		else:
