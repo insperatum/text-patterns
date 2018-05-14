@@ -169,3 +169,7 @@ Iteration 820 | Network loss: 14.52
 (['SLE', 'MKD'],) ---> SYV
 Iteration 830 | Network loss: 14.66
 (['9/28/09'],) ---> 5/10/16
+Iteration 840 | Network loss: 14.41
+(['48406', '639947.7335', '179180', '61342'],) ---> 3652
+Iteration 850 | Network loss: 14.90
+(['Bills', 'Entertainment', 'Food', 'Fuel'],) ---> Keacive

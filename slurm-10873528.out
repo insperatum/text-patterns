@@ -1037,3 +1037,23 @@ Iteration 5160 | Network loss: 10.93
 (['-442.62'],) ---> -58.855
 Iteration 5170 | Network loss: 11.35
 (['45 CRAVEN ROAD', '2 SCHOOL LANE'],) ---> CO0MIT 6EL
+Iteration 5180 | Network loss: 10.55
+(['18', '12', '12', 'NA'],) ---> 2
+Iteration 5190 | Network loss: 10.71
+(['1791', '12204'],) ---> nd
+Iteration 5200 | Network loss: 11.06
+(['8.82', '129.67', '31.22'],) ---> 4.79
+Iteration 5210 | Network loss: 10.99
+(['-71.16273', '-80.8564', '-96.331354', '-72.29263'],) ---> -75.882218
+Iteration 5220 | Network loss: 10.88
+(['passed rules'],) ---> passed url
+Iteration 5230 | Network loss: 10.62
+(['-105.4362631', '-102.9102874', '-103.3411574', '-105.2670908'],) ---> -183.04645
+Iteration 5240 | Network loss: 10.80
+(['81652.01', '45283.33'],) ---> 51802.10
+Iteration 5250 | Network loss: 10.50
+(['SA', 'SA', 'SA'],) ---> JL
+Iteration 5260 | Network loss: 11.52
+(['470LDV05', '570LDT02', '30LDV03', '560LDV14'],) ---> 200LDT11
+Iteration 5270 | Network loss: 11.31
+(['Control', 'Control', 'Control'],) ---> Country
