@@ -128,7 +128,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 			p = evalProposal(f(trace,concept), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(examples))
 			if p.valid and getProposalID(p) not in proposalIDs_so_far:
 				relatedProposals = tuple(f(t,c) for (t,c) in related)
-				p = p._replace(related, relatedProposals)
+				p = p._replace(related=relatedProposals)
 				proposalIDs_so_far.append(getProposalID(p))
 				add_to.append(p)
 			return p if p.valid else None
