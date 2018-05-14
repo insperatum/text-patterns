@@ -115,3 +115,25 @@ Iteration 550 | Network loss: 19.74
 (['84.982'],) ---> 10/200B
 Iteration 560 | Network loss: 20.14
 (['0.0116882955', '-0.0005852904', '0.9815657602'],) ---> 1711286763
+Iteration 570 | Network loss: 19.73
+(['NA', 'NA', 'NA'],) ---> OX
+Iteration 580 | Network loss: 19.73
+(['2.4'],) ---> 1 48D
+Iteration 590 | Network loss: 19.87
+(['?'],) ---> 07
+Iteration 600 | Network loss: 19.80
+(['5.263', '-6.08'],) ---> 111139
+Iteration 610 | Network loss: 20.06
+(['NA', 'NA', 'NA', 'NA'],) ---> UM
+Iteration 620 | Network loss: 21.51
+(['44.045', '21.972', '19.277', '20.547'],) ---> 2526345..
+Iteration 630 | Network loss: 19.44
+(['M3 4SB', 'M22 5WB', 'M9 1SP', 'M13 0PL'],) ---> u4 WP
+Iteration 640 | Network loss: 19.43
+(['A1', 'a1', 'a3'],) ---> L4
+Iteration 650 | Network loss: 19.48
+(['N01056009010', 'N06013729031', 'N01041900030', 'N01025200010'],) ---> 1120//7142
+Iteration 660 | Network loss: 18.36
+(['338INT04', '200INT14', '40INT45', '20INT04'],) ---> 040T NSORQ
+Iteration 670 | Network loss: 19.19
+(['FALSE', 'FALSE', 'TRUE'],) ---> CVTWB
