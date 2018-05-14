@@ -73,7 +73,7 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 			inputs = [[(example,) for example in examples]] * 500
 			outputs_count=Counter(net.sample(inputs))
 			for o in sorted(outputs_count, key=outputs_count.get):
-				yield (o, outputs_count.get[o])
+				yield (o, outputs_count[o])
 		o_generator = (o for i in range(maxNetworkEvals) for o in get_more_outputs())
 
 	group_idx=0
