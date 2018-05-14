@@ -116,6 +116,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 		cur_proposals = []
 		net_proposals = []
+		net_proposal_extensions = {}
 		def getProposalID(proposal): #To avoid duplicate proposals
 			return proposal.concept.str(proposal.trace, depth=-1)
 		proposalIDs_so_far = []
@@ -124,6 +125,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 			if p.valid and getProposalID(p) not in proposalIDs_so_far:
 				proposalIDs_so_far.append(getProposalID(p))
 				add_to.append(p)
+			return p if p.valid else None
 
 		addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), cur_proposals) #Exactly the examples
 
@@ -139,11 +141,22 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 		if net is not None:
 			similarConcepts = current_trace.getSimilarConcepts()
-			def getRelatedRegexConcepts(o):
-				lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
+			lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
+			def getRegexConcept(o):
 				r = pre.create(o, lookup=lookup)
 				t,c = current_trace.addregex(r)
 				yield (t,c)
+			def getRelatedRegexConcepts(o): #Proposals that will be good only if getRegexConcept(o) is good
+				def extend(t,c): #add CRPs at the end
+					if any(x in modes for x in ("regex-crp", "regex-crp-crp")):
+						t,c = t.addPY(c)
+						if "regex-crp" in modes: yield(t,c)
+						if "regex-crp-crp" in modes:
+							t,c = t.addPY(c)
+							yield(t,c)
+
+				for (t,c) in extend(*getRegexConcept(o)): yield (t,c)
+
 				for i in range(len(o)):
 					if o[i] in current_trace.baseConcepts:
 						if fuzzConcepts:
@@ -152,6 +165,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 								r = pre.create(o[:i] + (o_alt,) + o[i+1:], lookup=lookup)
 								t,c = current_trace.addregex(r)
 								yield (t,c)
+								for (t,c) in extend(t,c): yield(t,c)
 						
 						if "crp-regex" in modes:
 							#Try replacing one concept with a new PYConcept
@@ -159,6 +173,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 							r = pre.create(o[:i] + (c,) + o[i+1:], lookup={**lookup, c:RegexWrapper(c)})
 							t,c = t.addregex(r)
 							yield (t,c)
+							for (t,c) in extend(t,c): yield(t,c)
 			#	if len(o)==0:
 			#		yield ()
 			#	else:
@@ -167,14 +182,11 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 			#				yield (s1,) + s2
 
 			for (o, count, group_idx) in getValidNetworkOutputs(net, current_trace, examples):
-				for t,c in getRelatedRegexConcepts(o):
-					addProposal(t, c, net_proposals)
-					if any(x in modes for x in ("regex-crp", "regex-crp-crp")):
-						t,c = t.addPY(c)
-						if "regex-crp" in modes: addProposal(t, c, net_proposals)
-						if "regex-crp-crp" in modes:
-							t,c = t.addPY(c)
-							addProposal(t, c, net_proposals)
+				t,c = getRegexConcept(o)
+				p = addProposal(t, c, net_proposals)
+				if p is not None:
+					if p not in net_proposals: net_proposal_extensions[p] = []
+					for t,c in getRelatedRegexConcepts(o): addProposal(t, c, net_proposal_extensions[p])
 				if group_idx>=m_net:
 					break
 
@@ -183,7 +195,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		
 		# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
 		# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
-		proposals = cur_proposals[:n_cur] + net_proposals[:n_net]
+		proposals = cur_proposals[:n_cur] + net_proposals[:n_net] + [net_proposal_extensions[p] for p in net_proposals[:n_net]]
 		proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 
 		if not isCached and doPrint: print("Proposals (ll*%2.2f): " % likelihoodWeighting , ", ".join(examples), "--->", ", ".join(
