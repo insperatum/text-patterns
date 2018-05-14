@@ -185,8 +185,8 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 				t,c = getRegexConcept(o)
 				p = addProposal(t, c, net_proposals)
 				if p is not None:
-					if p not in net_proposals: net_proposal_extensions[p] = []
-					for t,c in getRelatedRegexConcepts(o): addProposal(t, c, net_proposal_extensions[p])
+					if getProposalID(p) not in net_proposal_extensions: net_proposal_extensions[getProposalID(p)] = []
+					for t,c in getRelatedRegexConcepts(o): addProposal(t, c, net_proposal_extensions[getProposalID(p)])
 				if group_idx>=m_net:
 					break
 
@@ -195,7 +195,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		
 		# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
 		# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
-		proposals = cur_proposals[:n_cur] + net_proposals[:n_net] + [net_proposal_extensions[p] for p in net_proposals[:n_net]]
+		proposals = cur_proposals[:n_cur] + net_proposals[:n_net] + [net_proposal_extensions[getProposalID(p)] for p in net_proposals[:n_net]]
 		proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 
 		if not isCached and doPrint: print("Proposals (ll*%2.2f): " % likelihoodWeighting , ", ".join(examples), "--->", ", ".join(
