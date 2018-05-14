@@ -1,0 +1,130 @@
+Namespace(batch_size=300, cell_type='LSTM', data_file='./data/csv_900.p', embedding_size=4, file=None, hidden_size=16, max_examples=1, max_length=15, min_examples=1, min_iterations=1000, n_examples=100, n_tasks=25, skip_tasks=0)
+Loading csv_900.p, ignoring data params.
+Created network
+/om/user/lbh/text-patterns/pinn/robustfill.py:109: UserWarning: invalid index of a 0-dim tensor. This will be an error in PyTorch 0.5. Use tensor.item() to convert a 0-dim tensor to a Python number
+  return score.data[0]
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -34.92047595977783
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -34.937861862182615
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -40.67039287567139
+Scores: seen -34.92047595977783 unseen -34.937861862182615 test -40.67039287567139
+Iteration 10 | Network loss: 34.32
+(['43'],) ---> %FR:BC:3(v
+Iteration 20 | Network loss: 34.95
+(['nd'],) ---> mS)mvN`Ii{
+Iteration 30 | Network loss: 34.71
+(['11.24'],) ---> Tv3I'Wv	j(
+Iteration 40 | Network loss: 33.84
+(['+06:00:00'],) ---> g8<n_P}Vrf
+Iteration 50 | Network loss: 34.33
+(['120.500000'],) ---> s+Y(:.M="z
+Iteration 60 | Network loss: 33.00
+(['M11 2WJ'],) ---> C4]hLw^G{Y
+Iteration 70 | Network loss: 31.33
+(['1051302'],) ---> K<
+Iteration 80 | Network loss: 33.24
+(['Clinical'],) ---> ux;tYb9m	h
+Iteration 90 | Network loss: 32.77
+(['34541'],) ---> 6K~>k[U
+Iteration 100 | Network loss: 32.18
+(['01642 553101'],) ---> OT
+Iteration 110 | Network loss: 32.76
+(['5.046'],) ---> EH6
+Iteration 120 | Network loss: 29.66
+(['310062'],) ---> 12y)
+Iteration 130 | Network loss: 28.56
+(['93889'],) ---> 9UAi2--<
+Iteration 140 | Network loss: 28.12
+(['ENG'],) ---> cX<W
+Iteration 150 | Network loss: 29.89
+(['6999.4995'],) ---> j7+XW
+Iteration 160 | Network loss: 28.09
+(['3GMXT04.3184'],) ---> JIls8y65k|
+Iteration 170 | Network loss: 28.39
+(['hh'],) ---> k?4$zz&.v;
+Iteration 180 | Network loss: 27.54
+(['02:49:06'],) ---> Pq^E2mzp7
+Iteration 190 | Network loss: 27.19
+(['-'],) ---> l5N_
+Iteration 200 | Network loss: 26.55
+(['15.1'],) ---> Fz
+Iteration 210 | Network loss: 27.08
+(['3168.00'],) ---> 2|6E02c1V
+Iteration 220 | Network loss: 28.20
+(['M4 3TR'],) ---> \.71%N:
+Iteration 230 | Network loss: 27.49
+(['Motion Alarm'],) ---> YiN md=9
+Iteration 240 | Network loss: 24.69
+(['0.8981600326'],) ---> -3U7677^+X
+Iteration 250 | Network loss: 26.15
+(['45.5643616238'],) ---> 
+ S
+Iteration 260 | Network loss: 25.29
+(['vel'],) ---> 0;N.
+Iteration 270 | Network loss: 25.79
+(['9124667000'],) ---> D|WXrk-7P4
+Iteration 280 | Network loss: 25.63
+(['127173'],) ---> 8(4H5|u
+Iteration 290 | Network loss: 25.37
+(['9009'],) ---> 6
+Iteration 300 | Network loss: 25.99
+(['Wimbledon'],) ---> F<Y00L!
+IA
+Iteration 310 | Network loss: 25.82
+(['128000'],) ---> 44Vfz8
+Iteration 320 | Network loss: 25.59
+(['3'],) ---> eBu
+Iteration 330 | Network loss: 24.91
+(['YAKT'],) ---> AbW
+Iteration 340 | Network loss: 25.42
+(['08742'],) ---> 296Ri
+Iteration 350 | Network loss: 24.18
+(['ENG'],) --->  ?6
+\e)d
+Iteration 360 | Network loss: 24.25
+(['43.100713'],) ---> +72{06725
+Iteration 370 | Network loss: 24.87
+(['1990-05-30'],) ---> lG
+Iteration 380 | Network loss: 24.49
+(['1.0164256884'],) ---> T
+Iteration 390 | Network loss: 24.65
+(['5.9'],) ---> 5Tg8/7n085
+Iteration 400 | Network loss: 24.38
+(['Ardwick'],) ---> H^w5'!N
+Iteration 410 | Network loss: 24.68
+(['6SKXR0120450'],) ---> C1cN[b9.62
