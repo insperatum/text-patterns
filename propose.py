@@ -145,7 +145,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 			def getRegexConcept(o):
 				r = pre.create(o, lookup=lookup)
 				t,c = current_trace.addregex(r)
-				yield (t,c)
+				return (t,c)
 			def getRelatedRegexConcepts(o): #Proposals that will be good only if getRegexConcept(o) is good
 				def extend(t,c): #add CRPs at the end
 					if any(x in modes for x in ("regex-crp", "regex-crp-crp")):
