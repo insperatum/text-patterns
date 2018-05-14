@@ -1057,3 +1057,21 @@ Iteration 5260 | Network loss: 11.52
 (['470LDV05', '570LDT02', '30LDV03', '560LDV14'],) ---> 200LDT11
 Iteration 5270 | Network loss: 11.31
 (['Control', 'Control', 'Control'],) ---> Country
+Iteration 5280 | Network loss: 11.06
+(['FMF94', 'FNA15', 'FA875', 'FNC84'],) ---> MK358
+Iteration 5290 | Network loss: 11.51
+(['20LDT53', '30LDT58'],) ---> 30LTL-09
+Iteration 5300 | Network loss: 10.87
+(['K0L1A0', 'P0T1W0', 'L1K1K8', 'K1P1A5'],) ---> Z0A02000
+Iteration 5310 | Network loss: 10.95
+(['Freehold', 'Freehold', 'Freehold', 'Freehold'],) ---> Bracid FaQ
+Iteration 5320 | Network loss: 11.57
+(['2013-08-09', '2015-11-03', '2015-02-20'],) ---> 0102-0978
+Iteration 5330 | Network loss: 10.01
+(['2076893', '1969079'],) ---> 2135416
+Iteration 5340 | Network loss: 11.07
+(['Clinical', 'Environment', 'Environment', 'Clinical'],) ---> Clinical
+Iteration 5350 | Network loss: 11.59
+(['132266', '289597'],) ---> 23369
+Iteration 5360 | Network loss: 10.29
+(['379', '1'],) ---> 2302
