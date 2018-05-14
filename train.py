@@ -179,15 +179,18 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 		else:
 			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace), flush=True)
 
-def onPartialSolution(partialSolution, queueProposal):
+def onPartialSolution(partialSolution, queueProposal, getRelated):
 	p = len(partialSolution.target_examples) / len(partialSolution.altWith.target_examples)
 	trace, concept = partialSolution.trace.addregex(pre.Alt(
 		[RegexWrapper(partialSolution.altWith.concept), RegexWrapper(partialSolution.concept)], 
 		ps = [1-p, p]))
+
 	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
-			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, partialSolution.altWith.altWith, None, None, None)
+			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, (), partialSolution.altWith.altWith, None, None, None)
 #	print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
 	queueProposal(new_proposal)
+	for relatedProposal in getRelated(partialSolution.altWith): #TODO: it's a bit silly to have to do this, we know it's going to fail, but then it'll generate the right traces for possibly better partialsolutions
+		queueProposal(relatedProposal)
 	
 	
 
@@ -251,6 +254,9 @@ def addTask(task_idx):
 			proposalIDs_so_far.append(proposalID)
 			q_proposals.put(proposal)
 
+	def getRelated(proposal):
+		return relatedProposalsDict[getProposalID(proposal)]
+
 	def addRelated(solution):
 		related = relatedProposalsDict[getProposalID(solution)]
 		for p in related: queueProposal(p)
@@ -313,7 +319,7 @@ def addTask(task_idx):
 			print("Reading partial solutions...")
 			for ps in partialSolutionsByAltWith.values():
 				partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
-				onPartialSolution(partialAccepted, queueProposal)
+				onPartialSolution(partialAccepted, queueProposal, getRelated)
 	l_running[0] = False
 
 	for w in workers:
