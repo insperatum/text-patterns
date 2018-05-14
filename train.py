@@ -186,9 +186,9 @@ def onPartialSolution(partialSolution, queueProposal):
 		ps = [1-p, p]))
 	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
 			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, partialSolution.altWith.altWith, None, None, None)
-
 #	print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
 	queueProposal(new_proposal)
+	
 	
 
 def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
@@ -206,6 +206,9 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 		start_time=time.time()
 		solution = evalProposal(proposal, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
 		took = time.time()-start_time
+
+		if solution.valid:
+				for relatedProposal in solution.related: q_proposals.put(relatedProposal)
 
 		if proposal.altWith is None:
 			nEvaluated += 1

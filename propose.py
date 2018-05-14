@@ -9,7 +9,10 @@ import math
 import numpy as np
 import util
 
-Proposal = namedtuple("Proposal", ["depth", "net_examples", "target_examples", "init_trace", "trace", "concept", "altWith", "final_trace", "observations", "valid"]) #start with depth=0, increase depth when triggering a new proposal
+Proposal = namedtuple("Proposal", ["depth", "net_examples", "target_examples", "init_trace", "trace", "concept", "related", "altWith", "final_trace", "observations", "valid"])
+#start with depth=0, increase depth when triggering a new proposal
+#related: a list of for related proposals
+
 def proposal_strip(self):
 	return self._replace(final_trace=None, observations=None, valid=None)
 Proposal.strip = proposal_strip
@@ -116,13 +119,16 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 		cur_proposals = []
 		net_proposals = []
-		net_proposal_extensions = {}
 		def getProposalID(proposal): #To avoid duplicate proposals
 			return proposal.concept.str(proposal.trace, depth=-1)
 		proposalIDs_so_far = []
-		def addProposal(trace, concept, add_to):
-			p = evalProposal(Proposal(depth, tuple(examples), tuple(examples), current_trace, trace, concept, altWith, None, None, None), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(examples))
+		def addProposal(trace, concept, add_to, related=()):
+			def f(t,c):
+				return Proposal(depth, tuple(examples), tuple(examples), current_trace, trace, concept, (), altWith, None, None, None)
+			p = evalProposal(f(trace,concept), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(examples))
 			if p.valid and getProposalID(p) not in proposalIDs_so_far:
+				relatedProposals = tuple(f(t,c) for (t,c) in related)
+				p = p._replace(related, relatedProposals)
 				proposalIDs_so_far.append(getProposalID(p))
 				add_to.append(p)
 			return p if p.valid else None
@@ -183,10 +189,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 			for (o, count, group_idx) in getValidNetworkOutputs(net, current_trace, examples):
 				t,c = getRegexConcept(o)
-				p = addProposal(t, c, net_proposals)
-				if p is not None:
-					if getProposalID(p) not in net_proposal_extensions: net_proposal_extensions[getProposalID(p)] = []
-					for t,c in getRelatedRegexConcepts(o): addProposal(t, c, net_proposal_extensions[getProposalID(p)])
+				p = addProposal(t, c, net_proposals, related=getRelatedRegexConcepts(o))
 				if group_idx>=m_net:
 					break
 
@@ -195,7 +198,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		
 		# scores = {proposals[i]:evals[i].trace.score for i in range(len(proposals)) if evals[i].trace is not None}
 		# proposals = sorted(scores.keys(), key=lambda proposal:-scores[proposal])
-		proposals = cur_proposals[:n_cur] + net_proposals[:n_net] + [p_ext for p in net_proposals[:n_net] for p_ext in net_proposal_extensions[getProposalID(p)]]  
+		proposals = cur_proposals[:n_cur] + net_proposals[:n_net]
 		proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 
 		if not isCached and doPrint: print("Proposals (ll*%2.2f): " % likelihoodWeighting , ", ".join(examples), "--->", ", ".join(
