@@ -23,15 +23,15 @@ from propose import Proposal, evalProposal, getProposals, networkCache
 # Arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('--fork', type=str, default=None)
-parser.add_argument('--data_file', type=str, default="./data/csv.p")
+parser.add_argument('--data_file', type=str, default="./data/csv_900.p")
 parser.add_argument('--net', type=str, default=None)
 parser.add_argument('--init_net', type=str, default="/om/user/lbh/text-patterns/init.pt")
 parser.add_argument('--batch_size', type=int, default=300)
-parser.add_argument('--min_examples', type=int, default=2)
+parser.add_argument('--min_examples', type=int, default=1)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
-parser.add_argument('--min_iterations', type=int, default=500) #minimum number of training iterations before next concept
-parser.add_argument('--timeout', type=int, default=10) #minutes per task
+parser.add_argument('--iterations', type=int, default=2000) #number of network training iterations before each curriculum stage
+parser.add_argument('--timeout', type=int, default=5) #minutes per task
 parser.add_argument('--n_proposals', type=int, default=100)
 parser.add_argument('--n_counterproposals', type=int, default=5)
 parser.add_argument('--counterexample_depth', type=int, default=2)
@@ -129,7 +129,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 			networkStep()
 			
 			if M['state']['iteration']%10==0:
-				window_size = args.min_iterations
+				window_size = 1000
 				window = M['state']['network_losses'][max(from_iteration, len(M['state']['network_losses']) - window_size):]
 				regress = stats.linregress(range(len(window)), window)
 				
@@ -179,20 +179,22 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 		else:
 			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace), flush=True)
 
-def onPartialSolution(partialSolution, queueProposal):
+def onPartialSolution(partialSolution, queueProposal, getRelated):
 	p = len(partialSolution.target_examples) / len(partialSolution.altWith.target_examples)
 	trace, concept = partialSolution.trace.addregex(pre.Alt(
 		[RegexWrapper(partialSolution.altWith.concept), RegexWrapper(partialSolution.concept)], 
 		ps = [1-p, p]))
-	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
-			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, partialSolution.altWith.altWith, None, None, None)
 
+	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
+			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, (), partialSolution.altWith.altWith, None, None, None)
 #	print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
 	queueProposal(new_proposal)
+	for relatedProposal in getRelated(partialSolution.altWith): #TODO: it's a bit silly to have to do this, we know it's going to fail, but then it'll generate the right traces for possibly better partialsolutions
+		queueProposal(relatedProposal)
+	
 	
 
 def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
-	solutions = []
 	nEvaluated = 0
 
 	while l_running[0]:
@@ -210,11 +212,12 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 		if proposal.altWith is None:
 			nEvaluated += 1
 			if solution.valid:
-				solutions.append(solution)
+				#solutions.append(solution)
+				q_solutions.put(solution)
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
 				assert(tuple(solution.target_examples) == tuple(task))
 			else:
-				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), "(%d concepts)"%len(solution.trace.baseConcepts), flush=True)
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), flush=True)
 		else:
 			if solution.valid:
 				q_partialSolutions.put(solution)
@@ -222,11 +225,11 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 			else:
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed partial solution", proposal.concept.str(proposal.trace), flush=True)
 		
-	q_solutions.put(
-		{"nEvaluated": nEvaluated,
-		 "nSolutions": len(solutions),
-		 "best": max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score) if solutions else None
-		})
+	#q_solutions.put(
+	#	{"nEvaluated": nEvaluated,
+	#	 "nSolutions": len(solutions),
+	#	 "best": max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score) if solutions else None
+	#	})
 
 def addTask(task_idx):
 	print("\n" + "*"*40 + "\nAdding task %d (n=%d)" % (task_idx, len(data[task_idx])))
@@ -241,16 +244,28 @@ def addTask(task_idx):
 		return (proposal.concept.str(proposal.trace, depth=-1),
 				getProposalID(proposal.altWith) if proposal.altWith is not None else None)
 	proposalIDs_so_far = []
+	relatedProposalsDict = {}
 	def queueProposal(proposal): #add to evaluation queue
 		proposal = proposal.strip()
 		proposalID = getProposalID(proposal)
+		relatedProposalsDict[proposalID] = proposal.related
+		proposal = proposal._replace(related=())
 		if proposalID not in proposalIDs_so_far:
 			proposalIDs_so_far.append(proposalID)
 			q_proposals.put(proposal)
 
+	def getRelated(proposal):
+		return relatedProposalsDict[getProposalID(proposal)]
+
+	def addRelated(solution):
+		related = relatedProposalsDict[getProposalID(solution)]
+		for p in related: queueProposal(p)
+		return len(related)>0
+
 	n_workers = max(1, cpus-1)
 	q_counterexamples = manager.Queue()
 	q_solutions = manager.Queue()
+	solutions = []
 	q_partialSolutions = manager.Queue()
 	l_active = manager.list([True for _ in range(n_workers)])
 	l_running = manager.list([True])
@@ -268,46 +283,49 @@ def addTask(task_idx):
 			launchWorkers()
 			isFirst = False
 
+
 	startTime = time.time()
-	while any(l_active) or not q_counterexamples.empty() or not q_partialSolutions.empty():
+	partialSolutionsByAltWith = {}
+	while any(l_active) or not q_proposals.empty() or not q_counterexamples.empty() or not q_partialSolutions.empty() or len(partialSolutionsByAltWith)>0:
 		if time.time() - startTime > args.timeout * 60:
 			print("Timeout!")
 			break
 
+		#Solutions
+		try:
+			solution = q_solutions.get(timeout=0.1)
+			solutions.append(solution)
+			addRelated(solution)
+		except queue.Empty:
+			pass
+
+		#Counterexamples
 		try:
 			counterexample_args = q_counterexamples.get(timeout=0.1)
 			onCounterexamples(queueProposal, *counterexample_args)
 		except queue.Empty:
 			pass
 
-		partialSolutions = {}
+		#PartialSolutions
 		while True:
 			try:
 				partialSolution = q_partialSolutions.get(timeout=0.1)
-				if partialSolution.altWith not in partialSolutions: partialSolutions[partialSolution.altWith]=[]
-				partialSolutions[partialSolution.altWith].append(partialSolution)
+				if partialSolution.altWith not in partialSolutionsByAltWith: partialSolutionsByAltWith[partialSolution.altWith]=[]
+				partialSolutionsByAltWith[partialSolution.altWith].append(partialSolution)
 			except queue.Empty:
 				break
-		if len(partialSolutions)>0:
+		if len(partialSolutionsByAltWith)>0 and not any(l_active) and q_proposals.empty() and q_counterexamples.empty() and q_partialSolutions.empty():
 			print("Reading partial solutions...")
-		for ps in partialSolutions.values():
-			partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
-			onPartialSolution(partialAccepted, queueProposal)
+			for ps in partialSolutionsByAltWith.values():
+				partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
+				onPartialSolution(partialAccepted, queueProposal, getRelated)
+			partialSolutionsByAltWith.clear()
 	l_running[0] = False
 
-	solutions = []
-	nSolutions = 0
-	nEvaluated = 0
-	for worker_idx in range(n_workers):
-		x = q_solutions.get()
-		nEvaluated += x['nEvaluated']
-		nSolutions += x['nSolutions']
-		if x['best'] is not None: solutions.append(x['best'])
-	
 	for w in workers:
 		if w.is_alive() :w.terminate()
 
-	print("Evaluated", nEvaluated, "proposals", "(%d solutions)" % nSolutions)
+	print("Found %d solutions" % len(solutions))
 	if len(solutions)==0:
 		print("No solutions??")
 		addTask(task_idx)
@@ -440,7 +458,7 @@ if __name__ == "__main__":
 
 	for i in range(M['state']['current_task'], len(data)):
 		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.net is not None):
-			train(toConvergence=True)
+			train(iterations=args.iterations)
 			gc.collect()
 			if not args.debug: save(saveNet=True)
 

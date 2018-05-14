@@ -9,7 +9,10 @@ import math
 import numpy as np
 import util
 
-Proposal = namedtuple("Proposal", ["depth", "net_examples", "target_examples", "init_trace", "trace", "concept", "altWith", "final_trace", "observations", "valid"]) #start with depth=0, increase depth when triggering a new proposal
+Proposal = namedtuple("Proposal", ["depth", "net_examples", "target_examples", "init_trace", "trace", "concept", "related", "altWith", "final_trace", "observations", "valid"])
+#start with depth=0, increase depth when triggering a new proposal
+#related: a list of for related proposals
+
 def proposal_strip(self):
 	return self._replace(final_trace=None, observations=None, valid=None)
 Proposal.strip = proposal_strip
@@ -49,50 +52,44 @@ def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None,
 networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' found outputs, so far 
 
 
-def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
-	similarConcepts = current_trace.getSimilarConcepts()
+def getValidNetworkOutputs(net, current_trace, examples, maxNetworkEvals=None):
 	if maxNetworkEvals is None: maxNetworkEvals=10
 
 	lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
-	def getRelatedRegexStrings(o):
-		if len(o)==0:
-			yield ()
-		else:
-			for s2 in getRelatedRegexStrings(o[1:]):
-				for s1 in [o[0]] + similarConcepts.get(o[0], []):
-					yield (s1,) + s2
 
 	examples = tuple(sorted(examples))
-	if examples in networkCache:
-		for X in networkCache[examples]['valid']:
-			yield X 
-	else:
-		networkCache[examples]={'valid':[], 'all':set()}
-		inputs = [[(example,) for example in examples]] * 500
+	isCached = examples in networkCache
 
-		group_idx=0
-		for i in range(maxNetworkEvals):
+	if isCached:
+		o_generator = networkCache[examples]['valid']
+	else:
+		def get_more_outputs():
+			networkCache[examples]={'valid':[], 'all':set()}
+			inputs = [[(example,) for example in examples]] * 500
 			outputs_count=Counter(net.sample(inputs))
 			for o in sorted(outputs_count, key=outputs_count.get):
-				if o not in networkCache[examples]['all']:
-					networkCache[examples]['all'].add(o)
-					try:
-						k=0
-						for o_related in list(getRelatedRegexStrings(o)):
-							networkCache[examples]['all'].add(o_related)
-							r = pre.create(o_related, lookup=lookup)
-							count = outputs_count.get(o_related)
-							networkCache[examples]['valid'].append((r, count, group_idx))
-							yield (r, count, group_idx)
-							k+=1
-							if k==10: break
-						group_idx += 1
-					except pre.ParseException:
-						pass
+				yield (o, outputs_count[o])
+		o_generator = (o for i in range(maxNetworkEvals) for o in get_more_outputs())
 
-def getProposals(net, current_trace, target_examples, net_examples=None, depth=0, modes=("regex", "crp", "regex-crp"),
-		nProposals=10, likelihoodWeighting=1, subsampleSize=None, altWith=None, maxNetworkEvals=None, doPrint=True): #Includes proposals from network, and proposals on existing concepts
-	assert(all(x in ["regex", "crp", "regex-crp", "regex-crp-crp"] for x in modes))
+	group_idx=0
+	for o, count in o_generator:
+		if not isCached:
+			if o in networkCache[examples]['all']:
+				continue
+			else:
+				networkCache[examples]['all'].add(o)
+		try:
+			if not isCached: networkCache[examples]['all'].add(o)
+			pre.create(o, lookup=lookup) #throw error if o is not a valid regex
+			if not isCached: networkCache[examples]['valid'].append((o, count))
+			yield(o, count, group_idx)
+			group_idx += 1
+		except pre.ParseException:
+			pass
+
+def getProposals(net, current_trace, target_examples, net_examples=None, depth=0, modes=("crp", "regex-crp", "crp-regex"),
+		nProposals=10, likelihoodWeighting=1, subsampleSize=None, altWith=None, maxNetworkEvals=None, doPrint=True, fuzzConcepts=True): #Includes proposals from network, and proposals on existing concepts
+	assert(all(x in ["crp", "regex-crp", "regex-crp-crp", "crp-regex"] for x in modes))
 
 	examples = net_examples if net_examples is not None else target_examples
 
@@ -122,9 +119,19 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 		cur_proposals = []
 		net_proposals = []
-		def addProposal(trace, concept, add_to):
-			p = evalProposal(Proposal(depth, tuple(examples), tuple(examples), current_trace, trace, concept, altWith, None, None, None), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(examples))
-			if p.valid: add_to.append(p)
+		def getProposalID(proposal): #To avoid duplicate proposals
+			return proposal.concept.str(proposal.trace, depth=-1)
+		proposalIDs_so_far = []
+		def addProposal(trace, concept, add_to, related=()):
+			def f(t,c):
+				return Proposal(depth, tuple(examples), tuple(examples), current_trace, trace, concept, (), altWith, None, None, None)
+			p = evalProposal(f(trace,concept), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(examples))
+			if p.valid and getProposalID(p) not in proposalIDs_so_far:
+				relatedProposals = tuple(f(t,c) for (t,c) in related)
+				p = p._replace(related=relatedProposals)
+				proposalIDs_so_far.append(getProposalID(p))
+				add_to.append(p)
+			return p if p.valid else None
 
 		addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), cur_proposals) #Exactly the examples
 
@@ -138,17 +145,51 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		n_net = math.floor(nProposals/2)
 		m_net = n_net * 5 
 
-		if net is not None:	
-			for (r, count, group_idx) in getNetworkRegexes(net, current_trace, examples):
-				if any(x in modes for x in ("regex", "regex-crp", "regex-crp-crp")):
-					t,c = current_trace.addregex(r)
-					if "regex" in modes: addProposal(t, c, net_proposals)
+		if net is not None:
+			similarConcepts = current_trace.getSimilarConcepts()
+			lookup = {concept: RegexWrapper(concept) for concept in current_trace.baseConcepts}
+			def getRegexConcept(o):
+				r = pre.create(o, lookup=lookup)
+				t,c = current_trace.addregex(r)
+				return (t,c)
+			def getRelatedRegexConcepts(o): #Proposals that will be good only if getRegexConcept(o) is good
+				def extend(t,c): #add CRPs at the end
 					if any(x in modes for x in ("regex-crp", "regex-crp-crp")):
 						t,c = t.addPY(c)
-						if "regex-crp" in modes: addProposal(t, c, net_proposals)
+						if "regex-crp" in modes: yield(t,c)
 						if "regex-crp-crp" in modes:
 							t,c = t.addPY(c)
-							addProposal(t, c, net_proposals)
+							yield(t,c)
+
+				for (t,c) in extend(*getRegexConcept(o)): yield (t,c)
+
+				for i in range(len(o)):
+					if o[i] in current_trace.baseConcepts:
+						if fuzzConcepts:
+							#Try replacing one concept in regex with parent or child
+							for o_alt in similarConcepts.get(o[i], []):
+								r = pre.create(o[:i] + (o_alt,) + o[i+1:], lookup=lookup)
+								t,c = current_trace.addregex(r)
+								yield (t,c)
+								for (t,c) in extend(t,c): yield(t,c)
+						
+						if "crp-regex" in modes:
+							#Try replacing one concept with a new PYConcept
+							t,c = current_trace.addPY(o[i])
+							r = pre.create(o[:i] + (c,) + o[i+1:], lookup={**lookup, c:RegexWrapper(c)})
+							t,c = t.addregex(r)
+							yield (t,c)
+							for (t,c) in extend(t,c): yield(t,c)
+			#	if len(o)==0:
+			#		yield ()
+			#	else:
+			#		for s2 in getRelatedRegexStrings(o[1:]):
+			#			for s1 in [o[0]] + similarConcepts.get(o[0], []):
+			#				yield (s1,) + s2
+
+			for (o, count, group_idx) in getValidNetworkOutputs(net, current_trace, examples):
+				t,c = getRegexConcept(o)
+				p = addProposal(t, c, net_proposals, related=getRelatedRegexConcepts(o))
 				if group_idx>=m_net:
 					break
 
