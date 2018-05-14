@@ -14,7 +14,7 @@ import loader
 parser = argparse.ArgumentParser()
 parser.add_argument('--file', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv_900.p")
-parser.add_argument('--batch_size', type=int, default=300)
+parser.add_argument('--batch_size', type=int, default=500)
 parser.add_argument('--min_examples', type=int, default=1)
 parser.add_argument('--max_examples', type=int, default=1)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
@@ -87,7 +87,7 @@ def networkStep():
         print(inputs[0], "--->", "".join(net.sample(inputs)[0]))
     return network_score
 
-def train(iterations=5000, evalEvery=500):
+def train(iterations=20000, evalEvery=500):
 	while True:
 		if iteration <= iterations:
 			networkStep()

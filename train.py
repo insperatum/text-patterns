@@ -183,16 +183,24 @@ def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinksco
 			print("(depth %d kink %2.2f)" % (proposal.depth, kinkscore), "for", counterexamples[:5], "on", proposal.concept.str(proposal.trace), flush=True)
 
 def onPartialSolution(partialSolution, queueProposal, getRelated):
+	#Add (X|Y)
 	p = len(partialSolution.target_examples) / len(partialSolution.altWith.target_examples)
 	trace, concept = partialSolution.trace.addregex(pre.Alt(
 		[RegexWrapper(partialSolution.altWith.concept), RegexWrapper(partialSolution.concept)], 
 		ps = [1-p, p]))
-
 	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
 			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, (), partialSolution.altWith.altWith, None, None, None)
-#	print("onPartialSolution proposes:", partialSolution.altWith.concept.str(partialSolution.altWith.trace), "+", partialSolution.concept.str(partialSolution.trace), "=", concept.str(trace), flush=True)
 	queueProposal(new_proposal)
-	for relatedProposal in getRelated(partialSolution.altWith): #TODO: it's a bit silly to have to do this, we know it's going to fail, but then it'll generate the right traces for possibly better partialsolutions
+
+	#ADD PY(X|Y)
+	trace, concept = trace.addPY(concept)
+	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
+			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, (), partialSolution.altWith.altWith, None, None, None)
+	queueProposal(new_proposal)
+
+	#Add related proposals for X 
+	#TODO: it's a bit silly to have to do this, we know it's going to fail, but then it'll generate the right traces for possibly better partialsolutions
+	for relatedProposal in getRelated(partialSolution.altWith):
 		queueProposal(relatedProposal)
 	
 	
