@@ -262,7 +262,9 @@ def addTask(task_idx):
 
 	def addRelated(solution):
 		related = relatedProposalsDict[getProposalID(solution)]
-		for p in related: queueProposal(p)
+		for p in related:
+			print("Add related proposal", solution.concept.str(solution.trace), "---->", p.concept.str(p.trace))
+			queueProposal(p)
 		return len(related)>0
 
 	n_workers = max(1, cpus-1)
