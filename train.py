@@ -30,7 +30,7 @@ parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=1)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
-parser.add_argument('--min_iterations', type=int, default=500) #minimum number of training iterations before next concept
+parser.add_argument('--iterations', type=int, default=2000) #number of network training iterations before each curriculum stage
 parser.add_argument('--timeout', type=int, default=5) #minutes per task
 parser.add_argument('--n_proposals', type=int, default=100)
 parser.add_argument('--n_counterproposals', type=int, default=5)
@@ -129,7 +129,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 			networkStep()
 			
 			if M['state']['iteration']%10==0:
-				window_size = args.min_iterations
+				window_size = 1000
 				window = M['state']['network_losses'][max(from_iteration, len(M['state']['network_losses']) - window_size):]
 				regress = stats.linregress(range(len(window)), window)
 				
@@ -440,7 +440,7 @@ if __name__ == "__main__":
 
 	for i in range(M['state']['current_task'], len(data)):
 		if (i==0 or i in group_idxs) and not args.no_network and not (i==0 and args.net is not None):
-			train(toConvergence=True)
+			train(iterations=args.iterations)
 			gc.collect()
 			if not args.debug: save(saveNet=True)
 
