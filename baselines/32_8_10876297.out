@@ -4296,3 +4296,63 @@ Iteration 15250 | Network loss: 12.91
 (['36.050286'],) ---> 34.430291
 Iteration 15260 | Network loss: 13.17
 (['2.6'],) ---> 4.5
+Iteration 15270 | Network loss: 12.72
+(['34'],) ---> 5
+Iteration 15280 | Network loss: 12.89
+(['0.041996704'],) ---> 0.01410314
+Iteration 15290 | Network loss: 13.40
+(['57.819'],) ---> 24.4
+Iteration 15300 | Network loss: 12.14
+(['8:00 PM'],) ---> 11:00 MM
+Iteration 15310 | Network loss: 12.94
+(['126826.79'],) ---> 222205
+Iteration 15320 | Network loss: 12.56
+(['0.22'],) ---> 2.60
+Iteration 15330 | Network loss: 13.09
+(['020 8780 5649'],) ---> 12203 3350
+Iteration 15340 | Network loss: 12.50
+(['1223'],) ---> 2530
+Iteration 15350 | Network loss: 12.14
+(['BD22'],) ---> QZ6
+Iteration 15360 | Network loss: 12.76
+(['ROOM 139'],) ---> WAORV0A TO
+Iteration 15370 | Network loss: 12.98
+(['4.23'],) ---> 2.42
+Iteration 15380 | Network loss: 12.39
+(['160.2'],) ---> R.3
+Iteration 15390 | Network loss: 12.56
+(['IL'],) ---> CO
+Iteration 15400 | Network loss: 12.25
+(['Battersea'],) ---> Suepetar U
+Iteration 15410 | Network loss: 12.88
+(['735287.6555'],) ---> 910000 465
+Iteration 15420 | Network loss: 12.43
+(['78'],) ---> 76
+Iteration 15430 | Network loss: 13.37
+(['13.5'],) ---> C.3
+Iteration 15440 | Network loss: 12.97
+(['01.04.2017'],) ---> 23.18.2016
+Iteration 15450 | Network loss: 12.63
+(['002-581-965'],) ---> 001-138-80
+Iteration 15460 | Network loss: 12.57
+(['1467553'],) ---> 1050611
+Iteration 15470 | Network loss: 12.29
+(['R'],) ---> R
+Iteration 15480 | Network loss: 13.59
+(['4'],) ---> 2AA
+Iteration 15490 | Network loss: 12.65
+(['0.437'],) ---> 040.87
+Iteration 15500 | Network loss: 12.40
+(['online'],) ---> iiVa
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100

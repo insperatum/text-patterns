@@ -3759,3 +3759,65 @@ Iteration 13370 | Network loss: 8.70
 (['7940050730'],) ---> 2270092559
 Iteration 13380 | Network loss: 9.65
 (['17.03.2015'],) ---> 24.10.2008
+Iteration 13390 | Network loss: 8.60
+(['T1'],) ---> T1
+Iteration 13400 | Network loss: 9.34
+(['010023048371'],) ---> 0000771610
+Iteration 13410 | Network loss: 9.36
+(['-2.78244'],) ---> -2.227204
+Iteration 13420 | Network loss: 9.02
+(['6.173'],) ---> 3.83
+Iteration 13430 | Network loss: 9.17
+(['Smith, Aimee L'],) ---> Gackggunfo
+Iteration 13440 | Network loss: 9.38
+(['3CRXR0177GCA'],) ---> 3ADXR01502
+Iteration 13450 | Network loss: 9.57
+(['N. East'],) ---> Rickir
+Iteration 13460 | Network loss: 9.83
+(['-151.39949'],) ---> -152.1406
+Iteration 13470 | Network loss: 9.50
+(['1600'],) ---> 2100
+Iteration 13480 | Network loss: 9.85
+(['Scotland'],) ---> Scotland
+Iteration 13490 | Network loss: 9.41
+(['77.64'],) ---> 788.01
+Iteration 13500 | Network loss: 9.58
+(['150'],) ---> 360
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -9.283715438842773
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -9.647383899688721
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
