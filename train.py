@@ -46,7 +46,7 @@ parser.add_argument('--skip_tasks', type=int, default=0)
 parser.add_argument('--n_examples', type=int, default=100)
 parser.add_argument('--initial_concepts', type=str, default='.') 
 
-model_default_params = {'alpha':1, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1, 'pyconcept_threshold':0.002}
+model_default_params = {'alpha':1, 'geom_p':0.5, 'pyconcept_alpha':1, 'pyconcept_d':0.1, 'pyconcept_threshold':0.0001}
 parser.add_argument('--alpha', type=float, default=None) #p(reference concept) proportional to #references+alpha
 parser.add_argument('--geom_p', type=float, default=None) #probability of adding another concept (geometric)
 parser.add_argument('--pyconcept_alpha', type=float, default=None)
