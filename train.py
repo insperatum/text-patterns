@@ -30,7 +30,7 @@ parser.add_argument('--batch_size', type=int, default=300)
 parser.add_argument('--min_examples', type=int, default=1)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
-parser.add_argument('--iterations', type=int, default=2000) #number of network training iterations before each curriculum stage
+parser.add_argument('--iterations', type=int, default=2500) #number of network training iterations before each curriculum stage
 parser.add_argument('--timeout', type=int, default=5) #minutes per task
 parser.add_argument('--n_proposals', type=int, default=100)
 parser.add_argument('--n_counterproposals', type=int, default=5)
