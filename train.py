@@ -298,7 +298,9 @@ def addTask(task_idx):
 			break
 
 		#Solutions
+		print(".")
 		try:
+			print("+")
 			solution = q_solutions.get(timeout=0.1)
 			solutions.append(solution)
 			print(">>>>>>>")
