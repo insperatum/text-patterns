@@ -90,7 +90,7 @@ def saveConcepts(M, filename, onlyIdxs=None):
 			#nSamples = min(nRemaining, 2)
 			nSamples=2
 			str_parts.append("<i>(" + html_escape(", ".join(samples[:nSamples])) + (", ..." if len(samples)>nSamples else "") + ")</i>")	
-		obs_sample_str = "<br/>".join(str_parts)
+		obs_sample_str = "<br/>".join(str_parts) if len(str_parts)>0 else "(no observations)"
 
 	
 		if concept.id==0:
