@@ -175,3 +175,7 @@ Iteration 850 | Network loss: 14.90
 (['Bills', 'Entertainment', 'Food', 'Fuel'],) ---> Keacive
 Iteration 860 | Network loss: 13.85
 (['4838', '4167'],) ---> 2182
+Iteration 870 | Network loss: 13.02
+(['0.02192', '0.70642'],) ---> 0.465627
+Iteration 880 | Network loss: 14.40
+(['13171'],) ---> 31014

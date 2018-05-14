@@ -1075,3 +1075,31 @@ Iteration 5350 | Network loss: 11.59
 (['132266', '289597'],) ---> 23369
 Iteration 5360 | Network loss: 10.29
 (['379', '1'],) ---> 2302
+Iteration 5370 | Network loss: 11.30
+(['Akron', 'Peoria', 'Asheville'],) ---> Barfingan
+Iteration 5380 | Network loss: 10.97
+(['0.9942365299', '0.0790145627', '0.2120636044'],) ---> 0.08897858
+Iteration 5390 | Network loss: 11.25
+(['5318387.303', '5318486.995'],) ---> 6526842.57
+Iteration 5400 | Network loss: 11.54
+(['DCS-825L', 'DSD-150'],) ---> WCB-1000
+Iteration 5410 | Network loss: 9.41
+(['3354', '280', '3219', '6345'],) ---> 1362
+Iteration 5420 | Network loss: 10.81
+(['0.7770695617', '0.0179592848', '0.0337248397', '0.0083715977'],) ---> 0.00345629
+Iteration 5430 | Network loss: 11.58
+(['53.59064', '57.1555', '51.21815', '51.58623'],) ---> 39.92818
+Iteration 5440 | Network loss: 11.42
+(['Halina Finch'],) ---> Dec, Jame
+Iteration 5450 | Network loss: 11.40
+(['Speed only'],) ---> Speed only
+Iteration 5460 | Network loss: 10.83
+(['13000', '2750', '14000'],) ---> 58130
+Iteration 5470 | Network loss: 11.36
+(['ENG'],) ---> SCT
+Iteration 5480 | Network loss: 10.27
+(['LEV-II LEV'],) ---> W_3 3E
+Iteration 5490 | Network loss: 11.50
+(['0.9935254249', '-0.0007712148', '0.9935254249'],) ---> 0.97684585
+Iteration 5500 | Network loss: 12.22
+(['IOL'],) ---> IOL
