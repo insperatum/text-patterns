@@ -6,4 +6,4 @@
 /*.pt
 *.swp
 /baseline*.pt
-/slurm*.out
+/*.out
