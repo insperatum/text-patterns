@@ -128,3 +128,39 @@ Iteration 400 | Network loss: 24.38
 (['Ardwick'],) ---> H^w5'!N
 Iteration 410 | Network loss: 24.68
 (['6SKXR0120450'],) ---> C1cN[b9.62
+Iteration 420 | Network loss: 22.93
+(['WA1 1QE'],) ---> OPLH1r;5y
+Iteration 430 | Network loss: 23.05
+(['1/20/15'],) ---> 59'69T7
+Iteration 440 | Network loss: 23.89
+(['XGMXV03.8053'],) ---> Nar.Sv8-40
+Iteration 450 | Network loss: 22.55
+(['H'],) ---> 
+Iteration 460 | Network loss: 22.57
+(['HND'],) ---> Mg1s7
+Iteration 470 | Network loss: 23.14
+(['US'],) ---> Adumr
+Iteration 480 | Network loss: 23.27
+(['s8'],) ---> 
+Iteration 490 | Network loss: 23.33
+(['SE'],) ---> `
+
+Iteration 500 | Network loss: 21.91
+(['0'],) ---> <4.
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -23.26445119857788
+
+Calculating train_unseen error
+0 / 100
+10 / 100

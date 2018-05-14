@@ -273,3 +273,37 @@ Iteration 940 | Network loss: 19.16
 (['8596708120'],) ---> 1964715.14
 Iteration 950 | Network loss: 19.08
 (['A2'],) ---> F
+Iteration 960 | Network loss: 19.16
+(['Nondemented'],) ---> Aohmoosd
+Iteration 970 | Network loss: 17.93
+(['OAS2_0053_MR1'],) ---> SEL3T20NAY
+Iteration 980 | Network loss: 17.83
+(['Low'],) ---> Utr
+Iteration 990 | Network loss: 18.56
+(['78.74'],) ---> 3.120
+Iteration 1000 | Network loss: 18.53
+(['14.03'],) ---> 59.74
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -18.491599502563478
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100

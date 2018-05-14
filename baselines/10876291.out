@@ -43,3 +43,27 @@ Calculating test error
 90 / 100
 Score: -40.10407470703125
 Scores: seen -34.49865550994873 unseen -34.471050357818605 test -40.10407470703125
+Iteration 10 | Network loss: 34.89
+(['Adult'],) ---> HJNL0uU{2j
+Iteration 20 | Network loss: 34.19
+(['13/08/2014'],) ---> rx E6r_ZT.
+Iteration 30 | Network loss: 34.48
+(['U2'],) ---> `.Y8.TEfuY
+Iteration 40 | Network loss: 31.14
+(['BF'],) ---> `
+Iteration 50 | Network loss: 30.68
+(['8/11/07'],) ---> 25qY}0iY$*
+Iteration 60 | Network loss: 30.58
+(['3377'],) ---> f01.
+Iteration 70 | Network loss: 29.46
+(['694 Motor Pkwy'],) ---> \0zj7C/
+Iteration 80 | Network loss: 28.03
+(['Full Permit'],) ---> 'R'Xa74emN
+Iteration 90 | Network loss: 29.11
+(['1980-09-30'],) ---> 
+Iteration 100 | Network loss: 27.50
+(['NA'],) ---> kM
+Iteration 110 | Network loss: 28.22
+(['-151.63108'],) ---> p1ets_0
+Iteration 120 | Network loss: 27.05
+(['100914401000'],) ---> *09}Tem
