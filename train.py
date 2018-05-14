@@ -27,7 +27,8 @@ parser.add_argument('--data_file', type=str, default="./data/csv_900.p")
 parser.add_argument('--net', type=str, default=None)
 parser.add_argument('--init_net', type=str, default="/om/user/lbh/text-patterns/init.pt")
 parser.add_argument('--batch_size', type=int, default=300)
-parser.add_argument('--min_examples', type=int, default=1)
+parser.add_argument('--min_train_examples', type=int, default=1)
+parser.add_argument('--min_examples', type=int, default=2)
 parser.add_argument('--max_examples', type=int, default=4)
 parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
 parser.add_argument('--iterations', type=int, default=2500) #number of network training iterations before each curriculum stage
@@ -99,7 +100,7 @@ def getBatch(batch_size):
 	"""
 	Create a batch of problem instances, as tensors
 	"""
-	n_examples = random.randint(args.min_examples, args.max_examples)
+	n_examples = random.randint(args.min_train_examples, args.max_examples)
 	instances = [getInstance(n_examples) for i in range(batch_size)]
 	inputs = [x['inputs'] for x in instances]
 	target = [x['target'] for x in instances]
