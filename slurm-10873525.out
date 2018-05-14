@@ -37,3 +37,9 @@ Iteration 160 | Network loss: 25.72
 (['B19 2QD', 'B38'],) ---> 5e7371
 Iteration 170 | Network loss: 23.60
 (['+00:00:00', '+00:00:00', '+00:00:00'],) ---> B3, 28-40h
+Iteration 180 | Network loss: 23.30
+(['online', 'paper', 'online'],) ---> J288d
+Iteration 190 | Network loss: 22.75
+(['6801', '9085', '2375'],) ---> 4E7192
+Iteration 200 | Network loss: 23.71
+(['0.702527122', '0.748862077', '0.784110387'],) ---> Y.EM310172
