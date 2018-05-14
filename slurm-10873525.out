@@ -1,0 +1,35 @@
+Loading csv_900.p, ignoring data params.
+Created network
+Training...
+/om/user/lbh/text-patterns/pinn/robustfill.py:109: UserWarning: invalid index of a 0-dim tensor. This will be an error in PyTorch 0.5. Use tensor.item() to convert a 0-dim tensor to a Python number
+  return score.data[0]
+Iteration 10 | Network loss: 26.76
+(['$1,031', '$452', '$1,095', '$183'],) ---> 5c6.
+Iteration 20 | Network loss: 26.83
+(['Market'],) ---> 5e575F6
+Iteration 30 | Network loss: 24.97
+(['chev', 'honda', 'plymouth', 'opel'],) ---> 
+Iteration 40 | Network loss: 25.24
+(['412686.5', '399474.8623'],) ---> F
+Iteration 50 | Network loss: 26.48
+(['02/11/2016', '07/13/2015', '04/28/2016', '03/28/2016'],) ---> 0y.0T889K
+Iteration 60 | Network loss: 25.38
+(['N/A'],) ---> 00030
+Iteration 70 | Network loss: 25.26
+(['M3C0H6', 'P0B1J0', 'M9A3T6', 'K2G5W5'],) ---> 4/1i1d:98y
+Iteration 80 | Network loss: 25.42
+(['FORD', 'CHEVROLET', 'PORSCHE', 'ISUZU'],) ---> N1G9:2
+Iteration 90 | Network loss: 24.62
+(['B8', 'LEV', 'ULEV'],) ---> 558
+Iteration 100 | Network loss: 23.88
+(['All', 'Speed only', 'Hanlon; Speed', 'Hanlon; Speed'],) ---> 2
+Iteration 110 | Network loss: 23.83
+(['0.24', '0.67'],) ---> Ko73
+Iteration 120 | Network loss: 25.08
+(['297.4575506', '6.998755708', '270.7150707'],) ---> 0.0947)853
+Iteration 130 | Network loss: 23.32
+(['Portage', 'Lehighton'],) ---> 23it0mW
+Iteration 140 | Network loss: 23.57
+(['3015639', '1966207'],) ---> LIB 16a
+Iteration 150 | Network loss: 23.13
+(['14999.88'],) ---> /.Ea469.d

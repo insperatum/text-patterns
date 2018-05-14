@@ -1,0 +1,117 @@
+Loading csv_900.p, ignoring data params.
+Created network
+Training...
+/om/user/lbh/text-patterns/pinn/robustfill.py:109: UserWarning: invalid index of a 0-dim tensor. This will be an error in PyTorch 0.5. Use tensor.item() to convert a 0-dim tensor to a Python number
+  return score.data[0]
+Iteration 10 | Network loss: 31.53
+(['5316446.359'],) ---> j|1$'M9$^Q
+Iteration 20 | Network loss: 28.96
+(['2014-10-28', '2014-06-07'],) ---> AiE?oe8\1v
+Iteration 30 | Network loss: 26.89
+(['Black Skimmer', 'Urban setting', 'Black Skimmer', 'Black Skimmer'],) ---> n/`~a51.S2
+Iteration 40 | Network loss: 27.39
+(['505'],) ---> E1
+Iteration 50 | Network loss: 26.19
+(['gustave', 'penaranda', 'fernandez', 'guedes'],) ---> y1
+Iteration 60 | Network loss: 26.28
+(['2000276', '2000203', '2000186'],) ---> 332n9Q910a
+Iteration 70 | Network loss: 25.70
+(['39.678495', '33.356981'],) ---> 
+Iteration 80 | Network loss: 25.31
+(['0.3314666179'],) ---> 003eE160hn
+Iteration 90 | Network loss: 26.05
+(['F', 'PFCL', 'F'],) ---> b
+Iteration 100 | Network loss: 26.71
+(['0.024654693', '0.034546483', '0.060955357'],) ---> yK266t4ai2
+Iteration 110 | Network loss: 23.78
+(['306055', '348789'],) ---> r6.055f
+Iteration 120 | Network loss: 25.03
+(['979-667-0715', '724-806-7996', '410-545-9736'],) ---> 1eNp05
+Iteration 130 | Network loss: 24.96
+(['341', '167', '293', '49'],) ---> 2O_;
+Iteration 140 | Network loss: 26.27
+(['01429 838323', '01934 712266', '01204 468296', '0161 9736024'],) ---> 4-0632
+Iteration 150 | Network loss: 25.25
+(['154627.00', '59546.00'],) ---> 10101e
+Iteration 160 | Network loss: 23.82
+(['4750', '6635', '7400', '3670'],) ---> 14D
+Iteration 170 | Network loss: 24.62
+(['2013-05-31'],) ---> 
+Iteration 180 | Network loss: 25.45
+(['PF3D7_1413200', 'PF3D7_0816400', 'PF3D7_0917800', 'PF3D7_0108500'],) ---> 7d
+Iteration 190 | Network loss: 23.92
+(['11.9'],) ---> C080
+Iteration 200 | Network loss: 25.48
+(['20141215', '20141209'],) ---> RDA5!0.
+Iteration 210 | Network loss: 24.76
+(['52.5542'],) ---> P 
+Iteration 220 | Network loss: 23.53
+(['3655122', '125630', '1287187', '4600000'],) ---> HB30641
+Iteration 230 | Network loss: 23.45
+(['YL02030', 'YL02047', 'YL02401'],) ---> W-65032I
+Iteration 240 | Network loss: 23.64
+(['F', 'F', 'F'],) ---> Kp
+Iteration 250 | Network loss: 24.21
+(['M3 4EN', 'M1 5FW', 'M2 5PE', 'M11 3DL'],) ---> 58853neN
+Iteration 260 | Network loss: 23.83
+(['0.7'],) ---> L
+Iteration 270 | Network loss: 24.21
+(['40LDT49', '273LDT01', '20LDT69', '40LDT50'],) ---> 110;54
+Iteration 280 | Network loss: 23.84
+(['5', '6', '5'],) ---> 0
+Iteration 290 | Network loss: 22.95
+(['2013-04-29', '2013-08-06', '2014-02-05'],) ---> e3x0419216
+Iteration 300 | Network loss: 24.22
+(['2a', '00a'],) ---> 12
+Iteration 310 | Network loss: 22.26
+(['R044', 'C036'],) ---> 155
+Iteration 320 | Network loss: 22.70
+(['DIR-655', 'DIR-615', 'DIR-625'],) ---> 055713S 0
+Iteration 330 | Network loss: 22.91
+(['+00:00:00'],) ---> 510
+Iteration 340 | Network loss: 23.78
+(['2.8'],) ---> 35Vw
+Iteration 350 | Network loss: 22.95
+(['-96.981858', '-77.201791', '-71.86345', '-84.440783'],) ---> 1M20E1 .40
+Iteration 360 | Network loss: 23.76
+(['45.5647301353', '45.5652472533', '45.5648073622'],) ---> B37A568OP1
+Iteration 370 | Network loss: 22.18
+(['heat'],) ---> M3
+Iteration 380 | Network loss: 22.59
+(['Adam', 'Daniel', 'Cara', 'Emily'],) ---> 3W6
+Iteration 390 | Network loss: 22.11
+(['64.2', '28.4'],) ---> 23-7uu
+Iteration 400 | Network loss: 22.61
+(['nd'],) ---> Brdn~
+Iteration 410 | Network loss: 22.52
+(['01/10/2013', '01/04/1995'],) ---> 753T38715-
+Iteration 420 | Network loss: 21.24
+(['Medium', 'Good', 'Medium', 'Bad'],) ---> Silbm|
+Iteration 430 | Network loss: 22.13
+(['Nondemented', 'Converted'],) ---> W  e
+Iteration 440 | Network loss: 22.06
+(['10.8', '2.7'],) ---> L/03
+Iteration 450 | Network loss: 21.18
+(['2013-05-21'],) ---> 31.071L311
+Iteration 460 | Network loss: 20.42
+(['4595-1', '618-1'],) ---> 1/.811
+Iteration 470 | Network loss: 21.41
+(['UF', 'BF'],) ---> 3
+Iteration 480 | Network loss: 20.54
+(['133.1'],) ---> 92061
+Iteration 490 | Network loss: 20.62
+(['KIR', 'LBY', 'PLW'],) ---> UiO"
+Iteration 500 | Network loss: 20.86
+(['CO', 'CO'],) ---> A0
+Iteration 510 | Network loss: 19.74
+(['Acer24', 'Acer24'],) ---> 1 L06
+Iteration 520 | Network loss: 20.82
+(['KS', 'AR'],) ---> A5
+Iteration 530 | Network loss: 18.82
+(['50', '30'],) ---> V2
+Iteration 540 | Network loss: 20.24
+(['C093', 'C056'],) ---> FP.2
+Iteration 550 | Network loss: 19.74
+(['84.982'],) ---> 10/200B
+Iteration 560 | Network loss: 20.14
+(['0.0116882955', '-0.0005852904', '0.9815657602'],) ---> 1711286763
