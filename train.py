@@ -320,6 +320,7 @@ def addTask(task_idx):
 			for ps in partialSolutionsByAltWith.values():
 				partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 				onPartialSolution(partialAccepted, queueProposal, getRelated)
+			partialSolutionsByAltWith.clear()
 	l_running[0] = False
 
 	for w in workers:
