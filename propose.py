@@ -88,7 +88,7 @@ def getNetworkRegexes(net, current_trace, examples, maxNetworkEvals=None):
 			if not isCached: networkCache[examples]['all'].add(o)
 			r = pre.create(o, lookup=lookup)
 			# r is a valid regex
-			if not isCached: networkCache[examples]['valid'].append((r, count, group_idx))
+			if not isCached: networkCache[examples]['valid'].append((r, count))
 			for o_related in getRelatedRegexStrings(o):
 				r = pre.create(o_related, lookup=lookup)
 				yield (r, count, group_idx)
