@@ -353,7 +353,7 @@ def addTask(task_idx):
 		print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
 		print("\nBest candidates were:")
 		for p in sorted(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score, reverse=True)[:10]:
-			print(p.concept.str(accepted.trace, depth=3) + "\nScore:" + str(p.final_trace.score - M['trace'].score) + "\n")
+			print(p.concept.str(p.trace, depth=3) + "\nScore:" + str(p.final_trace.score - M['trace'].score) + "\n")
 		M['trace'] = accepted.final_trace
 		M['task_observations'][task_idx] = accepted.observations
 		M['task_concepts'][task_idx] = accepted.concept
