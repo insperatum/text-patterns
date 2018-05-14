@@ -265,11 +265,10 @@ def addTask(task_idx):
 
 	def addRelated(solution):
 		related = relatedProposalsDict[getProposalID(solution)]
+		if len(related)>0:
+			print("Add related proposal", solution.concept.str(solution.trace), "---->", ", ".join(p.concept.str(p.trace) for p in related))
 		for p in related:
-			print("Add related proposal", solution.concept.str(solution.trace), "---->", p.concept.str(p.trace))
 			queueProposal(p)
-		if len(related)==0:
-			print("No related proposals for", solution.concept.str(solution.trace))
 
 	n_workers = max(1, cpus-1)
 	q_counterexamples = manager.Queue()
