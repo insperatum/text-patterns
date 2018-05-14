@@ -286,7 +286,7 @@ def addTask(task_idx):
 
 	startTime = time.time()
 	partialSolutionsByAltWith = {}
-	while any(l_active) or not q_counterexamples.empty() or not q_partialSolutions.empty():
+	while any(l_active) or not q_proposals.empty() or not q_counterexamples.empty() or not q_partialSolutions.empty() or len(partialSolutionsByAltWith)>0:
 		if time.time() - startTime > args.timeout * 60:
 			print("Timeout!")
 			break
@@ -312,10 +312,9 @@ def addTask(task_idx):
 				partialSolution = q_partialSolutions.get(timeout=0.1)
 				if partialSolution.altWith not in partialSolutionsByAltWith: partialSolutionsByAltWith[partialSolution.altWith]=[]
 				partialSolutionsByAltWith[partialSolution.altWith].append(partialSolution)
-				anyRelated = addRelated(partialSolution)
 			except queue.Empty:
 				break
-		if len(partialSolutionsByAltWith)>0 and not anyRelated:
+		if len(partialSolutionsByAltWith)>0 and not any(l_active) and q_proposals.empty() and q_counterexamples.empty() and q_partialSolutions.empty():
 			print("Reading partial solutions...")
 			for ps in partialSolutionsByAltWith.values():
 				partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
