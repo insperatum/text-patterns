@@ -16,7 +16,7 @@ parser.add_argument('--file', type=str, default=None)
 parser.add_argument('--data_file', type=str, default="./data/csv_900.p")
 parser.add_argument('--model_file', type=str, default="./results/model.pt")
 parser.add_argument('--mode', type=str, default="data")
-parser.add_argument('--batch_size', type=int, default=300)
+parser.add_argument('--batch_size', type=int, default=200)
 parser.add_argument('--min_examples', type=int, default=1)
 parser.add_argument('--max_examples', type=int, default=1)
 parser.add_argument('--max_length', type=int, default=20) #maximum length of inputs or targets
@@ -90,6 +90,17 @@ def getBatch(batch_size, eval_data=None, M=None):
 	target = [x['target'] for x in instances]
 	return inputs, target
 
+def getClassificationBatch(batch_size, way, eval_data):
+	"""
+	Create a batch of classification instances, as tensors
+	"""
+	n_examples = random.randint(args.min_examples, args.max_examples)
+	instances = [getInstance(n_examples, eval_data=eval_data, M=M) for i in range(batch_size)]
+	inputs = [x['inputs'] for x in instances]
+	#target = [x['target'] for x in instances]
+	target = [instances[i-i%way]['target'] for i in range(len(instances))]
+	return inputs, target
+
 def networkStep():
 	global iteration
 	if args.mode == "data":
@@ -116,7 +127,7 @@ def train(iterations=20000, evalEvery=500):
 			with open("baselines/baseline_%s_%d_%d_%d-%d.pt" % (args.mode, args.hidden_size, args.embedding_size, args.min_examples, args.max_examples), "wb") as f:
 				torch.save((net, scores), f)
 
-def eval(name, eval_data):
+def eval_ll(name, eval_data):
 	print("\nCalculating", name, "error")
 	scores=[]
 	for i in range(100):
@@ -127,10 +138,28 @@ def eval(name, eval_data):
 	print("Score:", sum(scores)/len(scores))	
 	return sum(scores)/len(scores)
 
+def eval_classification(name, way, eval_data):
+	print("\nCalculating", way, "way", name, "classification")
+	accuracies=[]
+	for i in range(100):
+		if i%10==0: print(i,"/",100)
+		inputs, target = getClassificationBatch(args.batch_size - args.batch_size%way, way, eval_data)
+		scores = net.score(inputs, target).reshape([-1, way])
+		maxscore, maxidx = scores.max(dim=0)
+		accuracy = (maxidx==0).float().mean().item()
+		accuracies.append(accuracy)
+	print("Accuracy:", sum(accuracies)/len(accuracies))	
+	return sum(accuracies)/len(accuracies)
+
 def evalAll():
-	score_seen = eval("train_seen", train_seen)
-	score_unseen = eval("train_unseen", train_unseen)
-	score_test = eval("test", test_data)
+	accuracy_seen = eval_classification("train_seen", 10, train_seen)
+	accuracy_unseen = eval_classification("train_unseen", 10, train_unseen)
+	accuracy_test = eval_classification("test", 10, test_data)
+	print("Classification Accuracy:", "seen", accuracy_seen, "unseen", accuracy_unseen, "test", accuracy_test)
+
+	score_seen = eval_ll("train_seen", train_seen)
+	score_unseen = eval_ll("train_unseen", train_unseen)
+	score_test = eval_ll("test", test_data)
 	print("Scores:", "seen", score_seen, "unseen", score_unseen, "test", score_test)
 	return (score_seen, score_unseen, score_test)
 
