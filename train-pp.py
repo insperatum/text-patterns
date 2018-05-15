@@ -128,14 +128,15 @@ def train(iterations=20000, evalEvery=500):
 				torch.save((net, scores), f)
 
 def eval_ll(name, eval_data):
-	print("\nCalculating", name, "error")
+	print("\nCalculating", name, "ll")
 	scores=[]
 	for i in range(100):
 		if i%10==0: print(i,"/",100)
 		inputs, target = getBatch(args.batch_size, eval_data=eval_data)
-		score = net.score(inputs, target).mean().item()
+		target_len = [len(x)+1 for x in target] #+ stop symbol!
+		score = (net.score(inputs, target)/torch.Tensor(target_len)).mean().item()
 		scores.append(score)
-	print("Score:", sum(scores)/len(scores))	
+	print("Score:", sum(scores)/len(scores), "nats per character")	
 	return sum(scores)/len(scores)
 
 def eval_classification(name, way, eval_data):
