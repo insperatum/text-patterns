@@ -67,7 +67,7 @@ def getInstance(n_examples, eval_data=None, M=None):
 
 	while True:
 		if M:
-			r = M['trace'].model.sampleregex(M['trace'], conceptDist = args.helmholtz_dist)
+			r = M['trace'].model.sampleregex(M['trace'])
 			target = r.sample(M['trace'])
 			inputs = ([r.sample(M['trace']) for i in range(n_examples)],)
 
