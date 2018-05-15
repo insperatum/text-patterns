@@ -95,7 +95,7 @@ def getClassificationBatch(batch_size, way, eval_data):
 	Create a batch of classification instances, as tensors
 	"""
 	n_examples = random.randint(args.min_examples, args.max_examples)
-	instances = [getInstance(n_examples, eval_data=eval_data, M=M) for i in range(batch_size)]
+	instances = [getInstance(n_examples, eval_data=eval_data) for i in range(batch_size)]
 	inputs = [x['inputs'] for x in instances]
 	#target = [x['target'] for x in instances]
 	target = [instances[i-i%way]['target'] for i in range(len(instances))]
