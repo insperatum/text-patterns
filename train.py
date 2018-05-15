@@ -247,6 +247,7 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutio
 	#	})
 
 def addTask(task_idx):
+	addTaskStart = time.time()
 	print("\n" + "*"*40 + "\nAdding task %d (n=%d)" % (task_idx, len(data[task_idx])))
 	print("Task: " + ", ".join(list(set(data[task_idx]))))
 
@@ -353,7 +354,8 @@ def addTask(task_idx):
 		print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
 		print("\nBest candidates were:")
 		for p in sorted(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score, reverse=True)[:10]:
-			print(p.concept.str(p.trace, depth=3) + "\nScore:" + str(p.final_trace.score - M['trace'].score) + "\n")
+			print(p.concept.str(p.trace, depth=3) + "Score:" + str(p.final_trace.score - M['trace'].score))
+		print("addTask took", time.time()-addTaskStart, "seconds")
 		M['trace'] = accepted.final_trace
 		M['task_observations'][task_idx] = accepted.observations
 		M['task_concepts'][task_idx] = accepted.concept

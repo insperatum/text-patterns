@@ -1,0 +1,76 @@
+Namespace(batch_size=500, cell_type='LSTM', data_file='./data/csv_900.p', embedding_size=4, file=None, hidden_size=16, max_examples=1, max_length=15, min_examples=1, min_iterations=1000, n_examples=100, n_tasks=25, skip_tasks=0)
+Loading csv_900.p, ignoring data params.
+Created network
+/om/user/lbh/text-patterns/pinn/robustfill.py:109: UserWarning: invalid index of a 0-dim tensor. This will be an error in PyTorch 0.5. Use tensor.item() to convert a 0-dim tensor to a Python number
+  return score.data[0]
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -34.879174118041995
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -34.699826583862304
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -40.57933494567871
+Scores: seen -34.879174118041995 unseen -34.699826583862304 test -40.57933494567871
+Iteration 10 | Network loss: 33.99
+(['22.9'],) ---> <
+Iteration 20 | Network loss: 34.69
+(['82.4'],) ---> kq?}$V\
+
+Iteration 30 | Network loss: 34.79
+(['2013-03-30'],) ---> Bdcp";a.J{
+Iteration 40 | Network loss: 34.16
+(['33.633685'],) ---> E5Is$'9Xw
+Iteration 50 | Network loss: 33.39
+(['Lott'],) ---> 8VFu<)QRS,
+Iteration 60 | Network loss: 33.88
+(['12/05/2011'],) ---> ""eFI~tdj8
+Iteration 70 | Network loss: 33.21
+(['5482'],) ---> *Ck[c635<R
+Iteration 80 | Network loss: 31.63
+(['01/04/1990'],) ---> DnIB\+A`e3
+Iteration 90 | Network loss: 31.06
+(['388-4331'],) ---> 
+Iteration 100 | Network loss: 31.07
+(['OAS2_0032'],) ---> aoFENLI_ww
+Iteration 110 | Network loss: 29.67
+(['0844 4773783'],) ---> 7Gc2`3S627
+Iteration 120 | Network loss: 30.38
+(['NKA'],) ---> 2' 475",9.
+Iteration 130 | Network loss: 30.50
+(['10065'],) ---> 
+Iteration 140 | Network loss: 28.72
+(['?'],) ---> 6h7d
+?es4e
+slurmstepd: error: *** JOB 10877654 ON node049 CANCELLED AT 2018-05-14T16:30:56 ***

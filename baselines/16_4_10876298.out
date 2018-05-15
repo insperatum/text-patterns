@@ -4309,3 +4309,1339 @@ Iteration 15310 | Network loss: 15.48
 (['Coyote'],) ---> Clecice
 Iteration 15320 | Network loss: 15.42
 (['MFW3and5475'],) ---> GYvLIL
+Iteration 15330 | Network loss: 14.67
+(['TN'],) ---> TX 
+Iteration 15340 | Network loss: 14.47
+(['0212'],) ---> 7604
+Iteration 15350 | Network loss: 15.20
+(['2163'],) ---> 7179
+Iteration 15360 | Network loss: 15.11
+(['Fixed'],) ---> C
+Iteration 15370 | Network loss: 15.61
+(['n'],) ---> 13 IOU
+Iteration 15380 | Network loss: 14.80
+(['H'],) ---> Q_NN 
+Iteration 15390 | Network loss: 14.67
+(['3017838'],) ---> 9819100
+Iteration 15400 | Network loss: 15.22
+(['000077139756'],) ---> 0410376132
+Iteration 15410 | Network loss: 15.13
+(['3.14'],) ---> 0.83
+Iteration 15420 | Network loss: 14.57
+(['5276'],) ---> 4092
+Iteration 15430 | Network loss: 15.50
+(['3500'],) ---> 67208
+Iteration 15440 | Network loss: 15.59
+(['NA'],) ---> NA
+Iteration 15450 | Network loss: 14.38
+(['05/05/2015'],) ---> 94/01/601
+Iteration 15460 | Network loss: 15.27
+(['50 Western Ave'],) ---> 183
+Iteration 15470 | Network loss: 14.97
+(['tcp'],) ---> acx
+Iteration 15480 | Network loss: 15.28
+(['20140228'],) ---> 20170672
+Iteration 15490 | Network loss: 14.69
+(['0.0265696545'],) ---> 0.01289317
+Iteration 15500 | Network loss: 15.03
+(['DWL-700AP'],) ---> VDF000-2 0
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -15.26538932800293
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -15.302889280319214
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -24.05010118484497
+Scores: seen -15.26538932800293 unseen -15.302889280319214 test -24.05010118484497
+Iteration 15510 | Network loss: 15.38
+(['Cobb, Robert W'],) ---> Gaig
+Iteration 15520 | Network loss: 14.97
+(['209845'],) ---> 1509234
+Iteration 15530 | Network loss: 14.49
+(['183925'],) ---> 126656
+Iteration 15540 | Network loss: 16.23
+(['7728'],) ---> 17010
+Iteration 15550 | Network loss: 15.35
+(['889816'],) ---> 475-14100
+Iteration 15560 | Network loss: 14.86
+(['Investment'],) ---> Sratagen J
+Iteration 15570 | Network loss: 14.74
+(['FREEHOLD'],) ---> Uhchhuok
+Iteration 15580 | Network loss: 14.81
+(['12.04.2017'],) ---> 11.31.1365
+Iteration 15590 | Network loss: 14.31
+(['Investment'],) ---> LU Noirak
+Iteration 15600 | Network loss: 14.69
+(['-48.560699'],) ---> _/6002
+Iteration 15610 | Network loss: 15.94
+(['17.2'],) ---> 3,.84
+Iteration 15620 | Network loss: 14.98
+(['56.5014'],) ---> 36.4165
+Iteration 15630 | Network loss: 15.42
+(['24.81'],) ---> 58./01
+Iteration 15640 | Network loss: 15.09
+(['19760002918'],) ---> 151944-/00
+Iteration 15650 | Network loss: 15.24
+(['Scotland'],) ---> Doncuam
+Iteration 15660 | Network loss: 15.01
+(['A01'],) ---> NF2
+Iteration 15670 | Network loss: 15.62
+(['71.1'],) ---> 47.2
+Iteration 15680 | Network loss: 15.39
+(['FC812'],) ---> FTL11
+Iteration 15690 | Network loss: 15.62
+(['7.36'],) ---> 2.70
+Iteration 15700 | Network loss: 16.01
+(['Nigeria'],) ---> UnOgtee
+Iteration 15710 | Network loss: 15.65
+(['-48.43922'],) ---> -09.29430
+Iteration 15720 | Network loss: 14.74
+(['47137'],) ---> 181261
+Iteration 15730 | Network loss: 14.87
+(['03/07/2016'],) ---> 06/555/N7
+Iteration 15740 | Network loss: 14.94
+(['$2,133'],) ---> -
+Iteration 15750 | Network loss: 14.95
+(['Stopped'],) ---> Ranutedteg
+Iteration 15760 | Network loss: 15.68
+(['M11 2WJ'],) ---> C_/5018
+Iteration 15770 | Network loss: 14.44
+(['0.040162744'],) ---> 025.811109
+Iteration 15780 | Network loss: 15.40
+(['?'],) ---> 1.78106
+Iteration 15790 | Network loss: 14.92
+(['52544'],) ---> 37090
+Iteration 15800 | Network loss: 14.91
+(['2000207'],) ---> 6000980
+Iteration 15810 | Network loss: 15.15
+(['1182640'],) ---> 1017511
+Iteration 15820 | Network loss: 14.96
+(['-117.1696667'],) ---> -487.74547
+Iteration 15830 | Network loss: 14.69
+(['Anne McNair'],) ---> Nalx
+Iteration 15840 | Network loss: 16.09
+(['2672096'],) ---> 1219431.36
+Iteration 15850 | Network loss: 15.22
+(['86'],) ---> 801
+Iteration 15860 | Network loss: 14.86
+(['OAS2_0004_MR1'],) ---> OBRC05-BBR
+Iteration 15870 | Network loss: 14.77
+(['Q68'],) ---> F/0_11
+Iteration 15880 | Network loss: 15.44
+(['Adult'],) ---> Dlcoll
+Iteration 15890 | Network loss: 15.73
+(['1'],) ---> 26
+Iteration 15900 | Network loss: 14.87
+(['01/04/2002'],) ---> 91/41/828
+Iteration 15910 | Network loss: 15.70
+(['HG1 1PY'],) ---> VS3
+Iteration 15920 | Network loss: 14.56
+(['01/04/2013'],) ---> 00/20/8064
+Iteration 15930 | Network loss: 15.34
+(['HG5 9AA'],) ---> GNX
+Iteration 15940 | Network loss: 15.17
+(['YNSXT03.335A'],) ---> ISXM030415
+Iteration 15950 | Network loss: 14.58
+(['19640020190'],) ---> 1191000102
+Iteration 15960 | Network loss: 14.87
+(['91018720713'],) ---> 100019
+Iteration 15970 | Network loss: 14.47
+(['FREEHOLD'],) ---> NLOR TLET 
+Iteration 15980 | Network loss: 15.00
+(['Schoeman'],) ---> FaotedA
+Iteration 15990 | Network loss: 14.20
+(['positive'],) ---> norax
+Iteration 16000 | Network loss: 14.97
+(['10.07.2011'],) ---> 116.48787
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -15.211249237060548
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -15.298482847213744
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -24.001389980316162
+Scores: seen -15.211249237060548 unseen -15.298482847213744 test -24.001389980316162
+Iteration 16010 | Network loss: 15.41
+(['4.76'],) ---> 7.07
+Iteration 16020 | Network loss: 15.83
+(['a'],) ---> D 
+Iteration 16030 | Network loss: 15.15
+(['TGGTCGCT'],) ---> RDPRS:
+Iteration 16040 | Network loss: 15.21
+(['49'],) ---> 69
+Iteration 16050 | Network loss: 15.53
+(['Sehint'],) ---> Luiroh
+Iteration 16060 | Network loss: 14.38
+(['19'],) ---> 2
+Iteration 16070 | Network loss: 15.48
+(['1887'],) ---> 2582
+Iteration 16080 | Network loss: 14.33
+(['F'],) ---> 'e
+Iteration 16090 | Network loss: 15.76
+(['0.803024896'],) ---> 5
+Iteration 16100 | Network loss: 15.63
+(['2.7'],) ---> 6.3
+Iteration 16110 | Network loss: 15.55
+(['a2'],) ---> i6
+Iteration 16120 | Network loss: 14.56
+(['474.1791176'],) ---> 657.417187
+Iteration 16130 | Network loss: 15.22
+(['K56794'],) ---> '78214s
+Iteration 16140 | Network loss: 15.02
+(['43.586979'],) ---> 36.8.1000 
+Iteration 16150 | Network loss: 14.19
+(['277284.3668'],) ---> 426973.214
+Iteration 16160 | Network loss: 15.46
+(['male'],) ---> Molon Nalu
+Iteration 16170 | Network loss: 15.13
+(['1310208372589'],) ---> 5270-1/103
+Iteration 16180 | Network loss: 14.26
+(['NA'],) ---> NA3
+Iteration 16190 | Network loss: 16.03
+(['SE'],) ---> SA
+Iteration 16200 | Network loss: 14.57
+(['755'],) ---> 1000 17
+Iteration 16210 | Network loss: 16.06
+(['MP1'],) ---> GE4
+Iteration 16220 | Network loss: 15.52
+(['ACTCTTAC'],) ---> TMNAFAFIGS
+Iteration 16230 | Network loss: 15.93
+(['600'],) ---> 1
+Iteration 16240 | Network loss: 14.57
+(['0.69533'],) ---> 0.93049
+Iteration 16250 | Network loss: 15.01
+(['0'],) ---> 9
+Iteration 16260 | Network loss: 14.97
+(['15.7'],) ---> 2.1 3
+Iteration 16270 | Network loss: 14.76
+(['1628'],) ---> 420
+Iteration 16280 | Network loss: 14.97
+(['149'],) ---> 177
+Iteration 16290 | Network loss: 15.09
+(['1418'],) ---> 722
+Iteration 16300 | Network loss: 14.62
+(['GILZEN'],) ---> BacH
+Iteration 16310 | Network loss: 15.39
+(['Philadelphia'],) ---> NeyI Raod
+Iteration 16320 | Network loss: 14.49
+(['107.13'],) ---> 1983.7A
+Iteration 16330 | Network loss: 15.03
+(['18503'],) ---> 11960
+Iteration 16340 | Network loss: 15.17
+(['179.88'],) ---> 63.02 02
+Iteration 16350 | Network loss: 14.73
+(['075'],) ---> 059
+Iteration 16360 | Network loss: 15.03
+(['802216'],) ---> 84373N
+Iteration 16370 | Network loss: 15.24
+(['2179831'],) ---> 1008193
+Iteration 16380 | Network loss: 14.89
+(['TS9 6LL'],) ---> BT420
+Iteration 16390 | Network loss: 15.29
+(['4I5b'],) ---> 602
+Iteration 16400 | Network loss: 15.46
+(['186.3'],) ---> 6.88
+Iteration 16410 | Network loss: 14.93
+(['3GMXT04.3187'],) ---> 6RCSR5110W
+Iteration 16420 | Network loss: 14.91
+(['64900'],) ---> 643500
+Iteration 16430 | Network loss: 15.29
+(['8.680000'],) ---> 6.730000
+Iteration 16440 | Network loss: 15.66
+(['70403'],) ---> 20956,710
+Iteration 16450 | Network loss: 15.06
+(['10574'],) ---> 4550
+Iteration 16460 | Network loss: 15.69
+(['Song, Seung H'],) ---> Lit
+Iteration 16470 | Network loss: 15.21
+(['222599.58'],) ---> 375576.4 3
+Iteration 16480 | Network loss: 15.55
+(['2013-11-27'],) ---> 1083001-NN
+Iteration 16490 | Network loss: 15.67
+(['3.2'],) ---> 3.3
+Iteration 16500 | Network loss: 14.97
+(['76708'],) ---> 12112
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -15.206640195846557
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -15.164100704193116
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -24.027675914764405
+Scores: seen -15.206640195846557 unseen -15.164100704193116 test -24.027675914764405
+Iteration 16510 | Network loss: 14.85
+(['0-934477'],) ---> 0-4393782
+Iteration 16520 | Network loss: 14.69
+(['Monmouth'],) ---> Feg
+Iteration 16530 | Network loss: 15.10
+(['52.05'],) ---> 6.46
+Iteration 16540 | Network loss: 15.00
+(['dy'],) ---> sd
+Iteration 16550 | Network loss: 14.68
+(['33.5'],) ---> 5.9
+Iteration 16560 | Network loss: 14.54
+(['1/25/10'],) ---> 23/01/02
+Iteration 16570 | Network loss: 15.04
+(['0.86281'],) ---> 0.07531
+Iteration 16580 | Network loss: 15.19
+(['6GMXV02.8004'],) ---> 1DB3LE_96.
+Iteration 16590 | Network loss: 14.71
+(['490LDV05'],) ---> N3TYT06.0
+Iteration 16600 | Network loss: 15.27
+(['35124'],) ---> 13900
+Iteration 16610 | Network loss: 15.17
+(['13'],) ---> 30
+Iteration 16620 | Network loss: 14.53
+(['346566'],) ---> 4893165
+Iteration 16630 | Network loss: 15.53
+(['1/1/2012'],) ---> 8/127/160
+Iteration 16640 | Network loss: 15.23
+(['020 7228 1619'],) ---> 1495
+Iteration 16650 | Network loss: 15.57
+(['118.63'],) ---> 0
+Iteration 16660 | Network loss: 15.82
+(['Nwachukwu'],) ---> Masi Corio
+Iteration 16670 | Network loss: 15.00
+(['0.2'],) ---> 0.7
+Iteration 16680 | Network loss: 15.03
+(['bmw'],) ---> tuln
+Iteration 16690 | Network loss: 14.66
+(['10/12/09'],) ---> 03/02/95
+Iteration 16700 | Network loss: 15.66
+(['ISR'],) ---> ECG
+Iteration 16710 | Network loss: 15.76
+(['Thomas'],) ---> Antiol
+Iteration 16720 | Network loss: 14.80
+(['260.9'],) ---> 280.0
+Iteration 16730 | Network loss: 14.69
+(['M9 1JA'],) ---> M2A1%
+Iteration 16740 | Network loss: 14.93
+(['87.0'],) ---> 29
+Iteration 16750 | Network loss: 15.26
+(['2.54'],) ---> 7.78
+Iteration 16760 | Network loss: 14.72
+(['yes'],) ---> f.Tot
+Iteration 16770 | Network loss: 16.02
+(['9195'],) ---> 2202
+Iteration 16780 | Network loss: 14.90
+(['Wimbledon'],) ---> Erpapagege
+Iteration 16790 | Network loss: 14.28
+(['Midwest'],) ---> Lits
+Iteration 16800 | Network loss: 14.85
+(['1.97'],) ---> 0.5
+Iteration 16810 | Network loss: 14.29
+(['Clanton'],) ---> Furorce
+Iteration 16820 | Network loss: 14.79
+(['m'],) ---> t
+Iteration 16830 | Network loss: 15.35
+(['31410'],) ---> 37552
+Iteration 16840 | Network loss: 15.00
+(['52.53641'],) ---> 40
+Iteration 16850 | Network loss: 15.17
+(['L2'],) ---> G2
+Iteration 16860 | Network loss: 15.54
+(['944287'],) ---> 738191
+Iteration 16870 | Network loss: 15.27
+(['XFMXT03.02DC'],) ---> ZBXG017132
+Iteration 16880 | Network loss: 15.66
+(['Jason'],) ---> Asvircircr
+Iteration 16890 | Network loss: 15.20
+(['4.68'],) ---> 1.01
+Iteration 16900 | Network loss: 14.75
+(['77'],) ---> 13
+Iteration 16910 | Network loss: 14.31
+(['B76 1GL'],) ---> A-17
+Iteration 16920 | Network loss: 14.63
+(['P O BOX 130'],) ---> VChO cLOix
+Iteration 16930 | Network loss: 15.09
+(['$286805000'],) ---> $19150-5.-
+Iteration 16940 | Network loss: 14.80
+(['Market'],) ---> Cenhtourco
+Iteration 16950 | Network loss: 15.33
+(['7GMXB03.9142'],) ---> 3RNXB02
+Iteration 16960 | Network loss: 14.96
+(['1'],) ---> 2
+Iteration 16970 | Network loss: 15.28
+(['nat frequency'],) ---> rengguunnl
+Iteration 16980 | Network loss: 14.74
+(['14_TEN_00232'],) ---> 90T50-560
+Iteration 16990 | Network loss: 15.36
+(['Mop'],) ---> M,OurF
+Iteration 17000 | Network loss: 14.95
+(['Chisolm'],) ---> Muaset
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -15.08541114807129
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -15.143632459640504
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -23.97298273086548
+Scores: seen -15.08541114807129 unseen -15.143632459640504 test -23.97298273086548
+Iteration 17010 | Network loss: 15.32
+(['MP3'],) ---> GP1
+Iteration 17020 | Network loss: 14.63
+(['4'],) ---> 7
+Iteration 17030 | Network loss: 15.57
+(['-83.43997'],) ---> _751166
+Iteration 17040 | Network loss: 14.83
+(['1185075'],) ---> 1047943
+Iteration 17050 | Network loss: 13.99
+(['208078'],) ---> 30435
+Iteration 17060 | Network loss: 15.18
+(['53'],) ---> 13
+Iteration 17070 | Network loss: 15.04
+(['07921-2587'],) ---> 06002 7130
+Iteration 17080 | Network loss: 14.64
+(['18.000000'],) ---> 28,000000
+Iteration 17090 | Network loss: 14.91
+(['H'],) ---> P
+Iteration 17100 | Network loss: 14.89
+(['20140905'],) ---> 61431748
+Iteration 17110 | Network loss: 15.44
+(['12'],) ---> 11
+Iteration 17120 | Network loss: 14.69
+(['NA'],) ---> 327.4
+Iteration 17130 | Network loss: 14.55
+(['ATGCGCAT'],) ---> iGMCABWDH
+Iteration 17140 | Network loss: 15.10
+(['1.0037862109'],) ---> 0.00523032
+Iteration 17150 | Network loss: 14.89
+(['2.54'],) ---> 2.95
+Iteration 17160 | Network loss: 14.43
+(['1981-08-18'],) ---> 1231-06
+Iteration 17170 | Network loss: 14.45
+(['N16190000181'],) ---> Y-35440900
+Iteration 17180 | Network loss: 14.84
+(['89511'],) ---> 23057
+Iteration 17190 | Network loss: 15.10
+(['12/31/2015'],) ---> 14/02/5-3/
+Iteration 17200 | Network loss: 15.64
+(['DO'],) ---> TO 1.05
+Iteration 17210 | Network loss: 14.99
+(['6630785'],) ---> 5420889
+Iteration 17220 | Network loss: 15.04
+(['7FMXK05.46TR'],) ---> 2SB2L0592T
+Iteration 17230 | Network loss: 14.94
+(['0'],) ---> 2.1460,
+Iteration 17240 | Network loss: 15.09
+(['19640018097'],) ---> 25580_1432
+Iteration 17250 | Network loss: 15.18
+(['13500'],) ---> 04415
+Iteration 17260 | Network loss: 14.86
+(['K52779'],) ---> L30327
+Iteration 17270 | Network loss: 15.60
+(['300820'],) ---> 600389
+Iteration 17280 | Network loss: 15.59
+(['14.35'],) ---> 33.01
+Iteration 17290 | Network loss: 15.73
+(['95'],) ---> 89
+Iteration 17300 | Network loss: 15.04
+(['41.19'],) ---> 74.25
+Iteration 17310 | Network loss: 15.79
+(['110'],) ---> 100
+Iteration 17320 | Network loss: 14.92
+(['0.012827901'],) ---> 0.36295326
+Iteration 17330 | Network loss: 15.29
+(['South'],) ---> Coul
+Iteration 17340 | Network loss: 14.60
+(['4'],) ---> 4
+Iteration 17350 | Network loss: 15.18
+(['?'],) ---> ?
+Iteration 17360 | Network loss: 15.03
+(['0.00767913'],) ---> 0.25005205
+Iteration 17370 | Network loss: 15.20
+(['5.579'],) ---> 3.193
+Iteration 17380 | Network loss: 14.23
+(['24/11/2005'],) ---> 17/02/1041
+Iteration 17390 | Network loss: 15.45
+(['NA'],) ---> X50i
+Iteration 17400 | Network loss: 15.68
+(['4202'],) ---> 2702
+Iteration 17410 | Network loss: 15.44
+(['100'],) ---> 100
+Iteration 17420 | Network loss: 14.52
+(['3.5'],) ---> 0.4
+Iteration 17430 | Network loss: 14.75
+(['980-329-3605'],) ---> /602000101
+Iteration 17440 | Network loss: 15.55
+(['FLV19'],) ---> ME10-28
+Iteration 17450 | Network loss: 15.18
+(['online'],) ---> ennt
+Iteration 17460 | Network loss: 14.99
+(['Female'],) ---> Sranonpron
+Iteration 17470 | Network loss: 14.43
+(['BT'],) ---> AF
+Iteration 17480 | Network loss: 15.10
+(['1978.25'],) ---> 7676.37b.
+Iteration 17490 | Network loss: 15.06
+(['0.004971387'],) ---> 0.00177903
+Iteration 17500 | Network loss: 15.74
+(['4GMXE0260936'],) ---> 3R2NXO0733
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -15.00127586364746
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -15.139599237442017
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -24.131238174438476
+Scores: seen -15.00127586364746 unseen -15.139599237442017 test -24.131238174438476
+Iteration 17510 | Network loss: 15.11
+(['0'],) ---> 0
+Iteration 17520 | Network loss: 15.60
+(['BL'],) ---> LET
+Iteration 17530 | Network loss: 14.94
+(['MC'],) ---> MG
+Iteration 17540 | Network loss: 15.70
+(['NLYpD'],) ---> LURItAR
+Iteration 17550 | Network loss: 15.11
+(['Nondemented'],) ---> Penlaved
+Iteration 17560 | Network loss: 14.71
+(['Grocery'],) ---> Gce,x
+Iteration 17570 | Network loss: 15.37
+(['1/1/2011'],) ---> D4/05/:96
+Iteration 17580 | Network loss: 15.18
+(['Branch'],) ---> Corruset
+Iteration 17590 | Network loss: 15.19
+(['1733'],) ---> 2700
+Iteration 17600 | Network loss: 15.54
+(['2ND FLOOR'],) ---> BKNeAS_4A1
+Iteration 17610 | Network loss: 14.72
+(['143'],) ---> 120
+Iteration 17620 | Network loss: 14.63
+(['BERM'],) ---> CRT
+Iteration 17630 | Network loss: 15.10
+(['01/04/2014'],) ---> 0616/54/40
+Iteration 17640 | Network loss: 14.84
+(['4.74'],) ---> 3
+Iteration 17650 | Network loss: 14.84
+(['OAS2_0051_MR3'],) ---> EAOU0_8080
+Iteration 17660 | Network loss: 15.56
+(['-74.303339'],) ---> -13.132873
+Iteration 17670 | Network loss: 14.74
+(['OAS2_0143_MR3'],) ---> OAAC
+Iteration 17680 | Network loss: 14.68
+(['Fixed'],) ---> FhUeve
+Iteration 17690 | Network loss: 14.92
+(['337339'],) ---> 800107
+Iteration 17700 | Network loss: 15.02
+(['NA'],) ---> 299.1
+Iteration 17710 | Network loss: 14.56
+(['1.58'],) ---> 23.24095
+Iteration 17720 | Network loss: 14.67
+(['9600'],) ---> 23009
+Iteration 17730 | Network loss: 14.52
+(['5588'],) ---> 2218
+Iteration 17740 | Network loss: 14.68
+(['2CRXA0287H41'],) ---> 9RTXI26.0D
+Iteration 17750 | Network loss: 14.94
+(['01980 623893'],) ---> 09780
+Iteration 17760 | Network loss: 15.19
+(['400026'],) ---> 170034
+Iteration 17770 | Network loss: 14.98
+(['SAAB'],) ---> SOOD BEDEO
+Iteration 17780 | Network loss: 15.06
+(['380T2-16'],) ---> 302-X 00
+Iteration 17790 | Network loss: 15.23
+(['25/05/2011'],) ---> 02/73/3005
+Iteration 17800 | Network loss: 15.01
+(['40.058586'],) ---> 50.748536
+Iteration 17810 | Network loss: 15.03
+(['13.34'],) ---> 34.50
+Iteration 17820 | Network loss: 14.92
+(['B'],) ---> T
+Iteration 17830 | Network loss: 14.87
+(['ART'],) ---> UTRP
+Iteration 17840 | Network loss: 14.69
+(['0.27'],) ---> 0.41
+Iteration 17850 | Network loss: 15.94
+(['0.073615692'],) ---> 0.49979665
+Iteration 17860 | Network loss: 15.44
+(['10/28/2025'],) ---> 1/07/2001
+Iteration 17870 | Network loss: 14.95
+(['221.25'],) ---> 55.13
+Iteration 17880 | Network loss: 14.61
+(['0.244'],) ---> 0.829
+Iteration 17890 | Network loss: 15.03
+(['380963'],) ---> 610838
+Iteration 17900 | Network loss: 14.72
+(['1306'],) ---> 2007
+Iteration 17910 | Network loss: 15.27
+(['3007557'],) ---> 2015337
+Iteration 17920 | Network loss: 14.14
+(['tcp'],) ---> xcgad
+Iteration 17930 | Network loss: 15.27
+(['Branch'],) ---> Qoarut C,h
+Iteration 17940 | Network loss: 15.51
+(['VIS1642'],) ---> FOU301
+Iteration 17950 | Network loss: 14.99
+(['3135G0C76'],) ---> 3464T9070
+Iteration 17960 | Network loss: 14.16
+(['360213'],) ---> 2928372
+Iteration 17970 | Network loss: 15.06
+(['19'],) ---> 122d
+Iteration 17980 | Network loss: 15.40
+(['Wal-MartStore'],) ---> SontPahbOp
+Iteration 17990 | Network loss: 14.66
+(['47.064571'],) ---> 47.53211
+Iteration 18000 | Network loss: 15.08
+(['DCS-700L'],) ---> GNA6-56
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -14.947562198638916
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -14.997150115966797
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -24.00817180633545
+Scores: seen -14.947562198638916 unseen -14.997150115966797 test -24.00817180633545
+Iteration 18010 | Network loss: 15.08
+(['6DSXR0155A1A'],) ---> 3S2GYD7,70
+Iteration 18020 | Network loss: 15.88
+(['Gold'],) ---> Rely
+Iteration 18030 | Network loss: 15.26
+(['-75.641521'],) ---> 00.018634
+Iteration 18040 | Network loss: 15.25
+(['Boone'],) ---> Eut
+Iteration 18050 | Network loss: 14.67
+(['Gold'],) ---> Terongon
+Iteration 18060 | Network loss: 15.01
+(['Adult'],) ---> LecNiox
+Iteration 18070 | Network loss: 15.43
+(['ENG'],) ---> WJE-
+Iteration 18080 | Network loss: 15.41
+(['1283'],) ---> 7523
+Iteration 18090 | Network loss: 14.91
+(['259.67'],) ---> 258.22
+Iteration 18100 | Network loss: 14.43
+(['43'],) ---> 414
+Iteration 18110 | Network loss: 15.06
+(['389313'],) ---> 79874 212
+Iteration 18120 | Network loss: 14.56
+(['115751'],) ---> 187829
+Iteration 18130 | Network loss: 14.89
+(['74.54056263'],) ---> 15.7862801
+Iteration 18140 | Network loss: 14.96
+(['OAS2_0158'],) ---> OAE
+Iteration 18150 | Network loss: 15.72
+(['Q60'],) ---> C7.1
+Iteration 18160 | Network loss: 14.83
+(['01.09.2010'],) ---> 00.13.9030
+Iteration 18170 | Network loss: 15.09
+(['38'],) ---> 36
+Iteration 18180 | Network loss: 14.63
+(['19,484'],) ---> 19w
+Iteration 18190 | Network loss: 15.59
+(['3.92'],) ---> 2
+Iteration 18200 | Network loss: 14.84
+(['FL'],) ---> LA
+Iteration 18210 | Network loss: 14.62
+(['09.08.2016'],) ---> 104.64411
+Iteration 18220 | Network loss: 14.92
+(['2745699'],) ---> 1843810
+Iteration 18230 | Network loss: 14.76
+(['52500'],) ---> 28092
+Iteration 18240 | Network loss: 15.93
+(['NA'],) ---> NA
+Iteration 18250 | Network loss: 15.15
+(['5.00 NC  0.50'],) ---> 3.00
+Iteration 18260 | Network loss: 14.94
+(['65293'],) ---> 1122100
+Iteration 18270 | Network loss: 14.61
+(['2001-04-18'],) ---> 7020C-0-57
+Iteration 18280 | Network loss: 15.27
+(['a_qe'],) ---> mk_ W _'Ok
+Iteration 18290 | Network loss: 14.29
+(['XFMXT05.46BF'],) ---> 1F$4BM5002
+Iteration 18300 | Network loss: 14.67
+(['131'],) ---> 60
+Iteration 18310 | Network loss: 14.89
+(['340314'],) ---> 200090
+Iteration 18320 | Network loss: 15.07
+(['2013-10-22'],) ---> 2030-06--1
+Iteration 18330 | Network loss: 15.21
+(['Clinical'],) ---> Sanrarh.
+Iteration 18340 | Network loss: 14.84
+(['N01033700374'],) ---> 2-39232290
+Iteration 18350 | Network loss: 14.80
+(['101820605345'],) ---> 2018192125
+Iteration 18360 | Network loss: 15.27
+(['iii'],) ---> ieoea
+Iteration 18370 | Network loss: 14.91
+(['69'],) ---> 92.2
+Iteration 18380 | Network loss: 14.35
+(['77'],) ---> 27 .12
+Iteration 18390 | Network loss: 14.87
+(['SEA'],) ---> TEE
+Iteration 18400 | Network loss: 14.35
+(['NA'],) ---> 185.8887
+Iteration 18410 | Network loss: 14.65
+(['60007'],) ---> 943101
+Iteration 18420 | Network loss: 15.21
+(['NA'],) ---> P2 6ieu
+Iteration 18430 | Network loss: 15.11
+(['12'],) ---> 1.5
+Iteration 18440 | Network loss: 14.49
+(['DE1 1FR'],) ---> FH76a
+Iteration 18450 | Network loss: 14.09
+(['170.6'],) ---> 167.3
+Iteration 18460 | Network loss: 14.71
+(['recto-vaginal'],) ---> rekbrlen J
+Iteration 18470 | Network loss: 14.93
+(['10463'],) ---> 24470
+Iteration 18480 | Network loss: 15.11
+(['Supercenter'],) ---> Pancb Brla
+Iteration 18490 | Network loss: 15.15
+(['0.0770215063'],) ---> 0.02011242
+Iteration 18500 | Network loss: 15.67
+(['Nolan, Greg'],) ---> Neetie.zh
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -14.950321598052978
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -14.965640783309937
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -24.0879762840271
+Scores: seen -14.950321598052978 unseen -14.965640783309937 test -24.0879762840271
+Iteration 18510 | Network loss: 15.50
+(['Freehold'],) ---> Pelsioy
+Iteration 18520 | Network loss: 15.48
+(['Bin 5'],) ---> EYI NE
+Iteration 18530 | Network loss: 15.59
+(['No'],) ---> N7
+Iteration 18540 | Network loss: 15.58
+(['2005 to 2009'],) ---> 160Lea-985
+Iteration 18550 | Network loss: 15.02
+(['75'],) ---> 96.0
+Iteration 18560 | Network loss: 14.55
+(['0.427'],) ---> 6
+Iteration 18570 | Network loss: 14.73
+(['40'],) ---> 80
+Iteration 18580 | Network loss: 15.16
+(['YGMXA05.3184'],) ---> M'XD03407
+Iteration 18590 | Network loss: 14.25
+(['0.968'],) ---> :8.7
+Iteration 18600 | Network loss: 14.70
+(['COLDWATER'],) ---> B HOLG DCa
+Iteration 18610 | Network loss: 15.26
+(['?'],) ---> ?
+Iteration 18620 | Network loss: 15.38
+(['400'],) ---> 1134
+Iteration 18630 | Network loss: 15.00
+(['no'],) ---> u2
+Iteration 18640 | Network loss: 14.69
+(['01/07/2016'],) ---> 00/12/9021
+Iteration 18650 | Network loss: 14.98
+(['5600 W 16th St'],) ---> 32010
+Iteration 18660 | Network loss: 15.11
+(['3136G2RD1'],) ---> 2028T7000
+Iteration 18670 | Network loss: 15.65
+(['?'],) ---> n.5.828.8
+Iteration 18680 | Network loss: 14.36
+(['HG5 8LS'],) ---> CE69
+Iteration 18690 | Network loss: 15.39
+(['2.91'],) ---> 1.11
+Iteration 18700 | Network loss: 15.02
+(['490041'],) ---> 471113
+Iteration 18710 | Network loss: 15.25
+(['no'],) ---> no
+Iteration 18720 | Network loss: 14.35
+(['1CRXE0174G6L'],) ---> 1MFND97802
+Iteration 18730 | Network loss: 14.83
+(['Biggs'],) ---> Fe'oce7
+Iteration 18740 | Network loss: 14.63
+(['2715186'],) ---> 497599
+Iteration 18750 | Network loss: 14.47
+(['-73.112207'],) ---> -95.335761
+Iteration 18760 | Network loss: 14.80
+(['M1 2AP'],) ---> M3E:01
+Iteration 18770 | Network loss: 14.21
+(['25'],) ---> N-
+Iteration 18780 | Network loss: 15.10
+(['$110,622'],) ---> $264
+Iteration 18790 | Network loss: 14.69
+(['-'],) ---> 3.19
+Iteration 18800 | Network loss: 14.60
+(['7185187435'],) ---> /02600000-
+Iteration 18810 | Network loss: 14.71
+(['Demented'],) ---> Canyse
+Iteration 18820 | Network loss: 15.20
+(['API'],) ---> SAT
+Iteration 18830 | Network loss: 14.95
+(['04/04/2016'],) ---> 07/69/405
+Iteration 18840 | Network loss: 15.77
+(['ATTACCGG'],) ---> FTBTRDNTLJ
+Iteration 18850 | Network loss: 14.44
+(['1/11/10'],) ---> 4567/0/02
+Iteration 18860 | Network loss: 15.24
+(['7.582'],) ---> 0
+Iteration 18870 | Network loss: 14.72
+(['1427416.0'],) ---> 341997.09
+Iteration 18880 | Network loss: 14.89
+(['1874-11-21'],) ---> 1490-4100
+Iteration 18890 | Network loss: 14.59
+(['-3.1'],) ---> -6.4
+Iteration 18900 | Network loss: 14.98
+(['6.173'],) ---> 3.329
+Iteration 18910 | Network loss: 15.29
+(['-77.578003'],) ---> $74930071.
+Iteration 18920 | Network loss: 15.03
+(['CO'],) ---> OER
+Iteration 18930 | Network loss: 14.77
+(['34.33111106'],) ---> 1.58723546
+Iteration 18940 | Network loss: 15.40
+(['189923'],) ---> 71405
+Iteration 18950 | Network loss: 14.89
+(['336897'],) ---> 67576
+Iteration 18960 | Network loss: 15.12
+(['2065262000'],) ---> 2654529000
+Iteration 18970 | Network loss: 14.28
+(['257.600000'],) ---> 142
+Iteration 18980 | Network loss: 15.13
+(['9363482631'],) ---> 2071461860
+Iteration 18990 | Network loss: 15.18
+(['Stavanger'],) ---> Nesiy
+Iteration 19000 | Network loss: 14.00
+(['11221'],) ---> 26204
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -14.862713537216187
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -14.922378787994385
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -24.15321214675903
+Scores: seen -14.862713537216187 unseen -14.922378787994385 test -24.15321214675903
+Iteration 19010 | Network loss: 14.86
+(['5'],) ---> 250
+Iteration 19020 | Network loss: 15.05
+(['NA'],) ---> Lo
+Iteration 19030 | Network loss: 14.54
+(['Converted'],) ---> Rilintos
+Iteration 19040 | Network loss: 15.54
+(['12:24:11'],) ---> 03:70C0
+Iteration 19050 | Network loss: 14.25
+(['3187284181'],) ---> 827045415
+Iteration 19060 | Network loss: 14.99
+(['12'],) ---> 162
+Iteration 19070 | Network loss: 14.55
+(['YRRXR0200E96'],) ---> MFCH201-14
+Iteration 19080 | Network loss: 14.28
+(['171'],) ---> 52
+Iteration 19090 | Network loss: 15.07
+(['-0.514573157'],) ---> 0.0163165
+Iteration 19100 | Network loss: 14.74
+(['White Horse'],) ---> Mitoles
+Iteration 19110 | Network loss: 14.47
+(['R'],) ---> T
+Iteration 19120 | Network loss: 15.27
+(['$110,000'],) ---> $4576
+Iteration 19130 | Network loss: 15.17
+(['TSHAWYTSCHA'],) ---> ESAJ WNEV 
+Iteration 19140 | Network loss: 15.08
+(['IF3'],) ---> UF
+Iteration 19150 | Network loss: 14.38
+(['140.18'],) ---> 146.14
+Iteration 19160 | Network loss: 14.92
+(['H'],) ---> K
+Iteration 19170 | Network loss: 14.50
+(['280'],) ---> 24
+Iteration 19180 | Network loss: 15.60
+(['d'],) ---> v
+Iteration 19190 | Network loss: 14.54
+(['Country'],) ---> Reondaze.
+Iteration 19200 | Network loss: 14.61
+(['020 8673 1776'],) ---> 0100T.0030
+Iteration 19210 | Network loss: 14.80
+(['274300'],) ---> 147342
+Iteration 19220 | Network loss: 15.34
+(['30'],) ---> 17
+Iteration 19230 | Network loss: 14.27
+(['J'],) ---> O
+Iteration 19240 | Network loss: 15.54
+(['WIT'],) ---> ESD
+Iteration 19250 | Network loss: 14.96
+(['0.9941992541'],) ---> 0.05317722
+Iteration 19260 | Network loss: 14.78
+(['DP, chicken'],) ---> Tp.%LD
+Iteration 19270 | Network loss: 15.04
+(['GP2'],) ---> MQD
+Iteration 19280 | Network loss: 14.70
+(['830-D'],) ---> 4130
+Iteration 19290 | Network loss: 15.46
+(['4.10'],) ---> 2.43
+Iteration 19300 | Network loss: 14.24
+(['80.7'],) ---> 606.07
+Iteration 19310 | Network loss: 14.63
+(['S'],) ---> S
+Iteration 19320 | Network loss: 14.74
+(['M21 1AQ'],) ---> G3A25
+Iteration 19330 | Network loss: 14.85
+(['0.010725229'],) ---> 0.10534362
+Iteration 19340 | Network loss: 14.71
+(['$3000000000'],) ---> $n
+Iteration 19350 | Network loss: 14.79
+(['K55513'],) ---> M9
+Iteration 19360 | Network loss: 15.25
+(['Wal-MartStore'],) ---> Gantav
+Iteration 19370 | Network loss: 15.10
+(['BERM'],) ---> ROH -BepO
+Iteration 19380 | Network loss: 15.50
+(['0.461'],) ---> 0.158
+Iteration 19390 | Network loss: 14.79
+(['PF3D7_0826900'],) ---> oFX2 X21V0
+Iteration 19400 | Network loss: 15.10
+(['Country'],) ---> Le
+Iteration 19410 | Network loss: 14.62
+(['comfort'],) ---> ciscacu
+Iteration 19420 | Network loss: 15.04
+(['BF'],) ---> PA
+Iteration 19430 | Network loss: 14.88
+(['Mitsubishi'],) ---> Umini
+Iteration 19440 | Network loss: 14.20
+(['521379'],) ---> 14780 3N1
+Iteration 19450 | Network loss: 14.94
+(['Harrogate'],) ---> Barurgiod 
+Iteration 19460 | Network loss: 14.65
+(['PF3D7_1368000'],) ---> WUBG400138
+Iteration 19470 | Network loss: 14.56
+(['FL'],) ---> GC
+Iteration 19480 | Network loss: 14.78
+(['lamparter'],) ---> Mwahrota
+Iteration 19490 | Network loss: 14.73
+(['9182'],) ---> 2470
+Iteration 19500 | Network loss: 14.83
+(['0.003960573'],) ---> 0.28032934
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -14.827288475036621
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -14.93211835861206
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -24.13019941329956
+Scores: seen -14.827288475036621 unseen -14.93211835861206 test -24.13019941329956
+Iteration 19510 | Network loss: 16.03
+(['0'],) ---> 2
+Iteration 19520 | Network loss: 14.03
+(['Colony'],) ---> Trocad
+Iteration 19530 | Network loss: 14.02
+(['4916'],) ---> 1354
+Iteration 19540 | Network loss: 14.56
+(['088'],) ---> 153
+Iteration 19550 | Network loss: 14.26
+(['Benin'],) ---> Feidile
+Iteration 19560 | Network loss: 15.26
+(['686'],) ---> 159
+Iteration 19570 | Network loss: 15.13
+(['ui3'],) ---> y
+Iteration 19580 | Network loss: 14.59
+(['29'],) ---> 9
+Iteration 19590 | Network loss: 14.96
+(['4207.57'],) ---> 2555.73
+Iteration 19600 | Network loss: 14.98
+(['5.9'],) ---> 9.4
+Iteration 19610 | Network loss: 15.18
+(['DGPR'],) ---> AXF DK SJ
+Iteration 19620 | Network loss: 14.57
+(['7165145700'],) ---> 5018723416
+Iteration 19630 | Network loss: 14.79
+(['07_TEN_00115'],) ---> 240CHUC003
+Iteration 19640 | Network loss: 14.57
+(['36'],) ---> 13
+Iteration 19650 | Network loss: 15.72
+(['C'],) ---> I
+Iteration 19660 | Network loss: 15.89
+(['156.6'],) ---> 133.6
+Iteration 19670 | Network loss: 15.19
+(['10.580000'],) ---> 16.800300
+Iteration 19680 | Network loss: 13.65
+(['YL02051'],) ---> H2001016
+Iteration 19690 | Network loss: 15.39
+(['-74.005765'],) ---> -27.86271
+Iteration 19700 | Network loss: 15.23
+(['01.05.2015'],) ---> 00.164.835
+Iteration 19710 | Network loss: 14.89
+(['5.86485E-07'],) ---> 9.062582T1
+Iteration 19720 | Network loss: 14.78
+(['5318357.987'],) ---> 262906301.
+Iteration 19730 | Network loss: 14.09
+(['DL8 1BZ'],) ---> RAA7
+Iteration 19740 | Network loss: 15.12
+(['010090668891'],) ---> 0000010916
+Iteration 19750 | Network loss: 15.16
+(['2,467,377'],) ---> 1.05
+Iteration 19760 | Network loss: 14.04
+(['143.04'],) ---> 12
+Iteration 19770 | Network loss: 15.29
+(['XFMXT03.325C'],) ---> NBABV07913
+Iteration 19780 | Network loss: 15.06
+(['18.6'],) ---> 45.3z65993
+Iteration 19790 | Network loss: 14.86
+(['M'],) ---> M
+Iteration 19800 | Network loss: 14.15
+(['55.88'],) ---> 52.36
+Iteration 19810 | Network loss: 14.46
+(['nd'],) ---> 17741
+Iteration 19820 | Network loss: 14.78
+(['C089'],) ---> N10
+Iteration 19830 | Network loss: 14.46
+(['heat'],) ---> uolheh
+Iteration 19840 | Network loss: 14.45
+(['nd'],) ---> )-
+Iteration 19850 | Network loss: 13.34
+(['18.160000'],) ---> 10.410000
+Iteration 19860 | Network loss: 14.67
+(['210029'],) ---> 110460
+Iteration 19870 | Network loss: 15.31
+(['145860'],) ---> 118370
+Iteration 19880 | Network loss: 14.94
+(['+06:00:00'],) ---> $0-00V-0:0
+Iteration 19890 | Network loss: 14.65
+(['7'],) ---> 13
+Iteration 19900 | Network loss: 13.96
+(['9.825'],) ---> 36.138
+Iteration 19910 | Network loss: 13.87
+(['nd'],) ---> nd9
+Iteration 19920 | Network loss: 15.65
+(['US'],) ---> NO
+Iteration 19930 | Network loss: 14.17
+(['6/30/14'],) ---> 6/92/80
+Iteration 19940 | Network loss: 14.70
+(['326.5708483'],) ---> 595.219204
+Iteration 19950 | Network loss: 14.55
+(['0.2060199507'],) ---> 0.00021906
+Iteration 19960 | Network loss: 15.21
+(['rozo'],) ---> Yeirrs
+Iteration 19970 | Network loss: 14.36
+(['11.500000'],) ---> 09.100014
+Iteration 19980 | Network loss: 14.73
+(['PAL01064'],) ---> NL1p
+Iteration 19990 | Network loss: 14.84
+(['COOK'],) ---> fefulitIO
+Iteration 20000 | Network loss: 14.57
+(['4331.98917'],) ---> 54967.1459
+
+Calculating train_seen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -14.738355827331542
+
+Calculating train_unseen error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -14.946984720230102
+
+Calculating test error
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -24.273750801086425
+Scores: seen -14.738355827331542 unseen -14.946984720230102 test -24.273750801086425
