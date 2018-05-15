@@ -85,7 +85,7 @@ def getBatch(batch_size, eval_data=None, M=None):
 	Create a batch of problem instances, as tensors
 	"""
 	n_examples = random.randint(args.min_examples, args.max_examples)
-	instances = [getInstance(n_examples, eval_data) for i in range(batch_size)]
+	instances = [getInstance(n_examples, eval_data=eval_data, M=M) for i in range(batch_size)]
 	inputs = [x['inputs'] for x in instances]
 	target = [x['target'] for x in instances]
 	return inputs, target
