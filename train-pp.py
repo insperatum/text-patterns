@@ -113,7 +113,7 @@ def train(iterations=20000, evalEvery=500):
 
 		if iteration==1 or iteration % evalEvery == 0:
 			scores.append((iteration, evalAll()))
-			with open("baselines/baseline_%d_%d_%d-%d.pt" % (args.hidden_size, args.embedding_size, args.min_examples, args.max_examples), "wb") as f:
+			with open("baselines/baseline_%s_%d_%d_%d-%d.pt" % (args.mode, args.hidden_size, args.embedding_size, args.min_examples, args.max_examples), "wb") as f:
 				torch.save((net, scores), f)
 
 def eval(name, eval_data):
