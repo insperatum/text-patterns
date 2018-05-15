@@ -94,7 +94,7 @@ def networkStep():
 	global iteration
 	if args.mode == "data":
 		inputs, target = getBatch(args.batch_size, eval_data=train_seen)
-	if args.mode == "mdoel":
+	if args.mode == "model":
 		inputs, target = getBatch(args.batch_size, M=M)
 	network_score = net.optimiser_step(inputs, target)
 
