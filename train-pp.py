@@ -145,7 +145,7 @@ def eval_classification(name, way, eval_data):
 		if i%10==0: print(i,"/",100)
 		inputs, target = getClassificationBatch(args.batch_size - args.batch_size%way, way, eval_data)
 		scores = net.score(inputs, target).reshape([-1, way])
-		maxscore, maxidx = scores.max(dim=0)
+		maxscore, maxidx = scores.max(dim=1)
 		accuracy = (maxidx==0).float().mean().item()
 		accuracies.append(accuracy)
 	print("Accuracy:", sum(accuracies)/len(accuracies))	
