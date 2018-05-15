@@ -134,7 +134,7 @@ def eval_ll(name, eval_data):
 		if i%10==0: print(i,"/",100)
 		inputs, target = getBatch(args.batch_size, eval_data=eval_data)
 		target_len = [len(x)+1 for x in target] #+ stop symbol!
-		score = (net.score(inputs, target)/torch.Tensor(target_len)).mean().item()
+		score = (net.score(inputs, target).cpu()/torch.Tensor(target_len)).mean().item()
 		scores.append(score)
 	print("Score:", sum(scores)/len(scores), "nats per character")	
 	return sum(scores)/len(scores)
