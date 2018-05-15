@@ -40,8 +40,8 @@ if args.mode=="model":
 
 iteration=0
 data, group_idxs, test_data = loader.loadData(args.data_file, args.n_examples, args.n_tasks, args.max_length)
-train_seen = [X[:int(len(X)/2)] for X in data]
-train_unseen = [X[int(len(X)/2):] for X in data]
+#train_seen = [X[:int(len(X)/2)] for X in data]
+#train_unseen = [X[int(len(X)/2):] for X in data]
 
 use_cuda = torch.cuda.is_available()
 
@@ -104,7 +104,7 @@ def getClassificationBatch(batch_size, way, eval_data):
 def networkStep():
 	global iteration
 	if args.mode == "data":
-		inputs, target = getBatch(args.batch_size, eval_data=train_seen)
+		inputs, target = getBatch(args.batch_size, eval_data=data)
 	if args.mode == "model":
 		inputs, target = getBatch(args.batch_size, M=M)
 	network_score = net.optimiser_step(inputs, target)
@@ -152,16 +152,18 @@ def eval_classification(name, way, eval_data):
 	return sum(accuracies)/len(accuracies)
 
 def evalAll():
-	accuracy_seen = eval_classification("train_seen", 10, train_seen)
-	accuracy_unseen = eval_classification("train_unseen", 10, train_unseen)
+	#accuracy_seen = eval_classification("train_seen", 10, train_seen)
+	#accuracy_unseen = eval_classification("train_unseen", 10, train_unseen)
+	accuracy_train = eval_classification("train", 10, data)
 	accuracy_test = eval_classification("test", 10, test_data)
-	print("Classification Accuracy:", "seen", accuracy_seen, "unseen", accuracy_unseen, "test", accuracy_test)
+	print("Classification Accuracy:", "train", accuracy_train, "test", accuracy_test)
 
-	score_seen = eval_ll("train_seen", train_seen)
-	score_unseen = eval_ll("train_unseen", train_unseen)
+	#score_seen = eval_ll("train_seen", train_seen)
+	#score_unseen = eval_ll("train_unseen", train_unseen)
+	score_train = eval_ll("train", data)
 	score_test = eval_ll("test", test_data)
-	print("Scores:", "seen", score_seen, "unseen", score_unseen, "test", score_test)
-	return (score_seen, score_unseen, score_test)
+	print("Scores:", "train", score_train, "test", score_test)
+	return ((score_train, score_test), (accuracy_train, accuracy_test))
 
 if __name__ == "__main__":
 	if args.file is None:
