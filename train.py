@@ -350,7 +350,7 @@ def addTask(task_idx):
 			for (altWithID, ps) in partialSolutionsByAltWith.items():
 				if not any (getProposalID(x.altWith)==altWithID for x in l_partialProposals):
 					partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
-					print("Reading partial solutions(", altWithID, "):", list(getProposalID(x) for x in ps), "\nBest was:", getProposalID(partialAccepted))
+					print("Reading partial solutions(", altWithID, "):", list(x.concept.str(x.trace) + "=" + str(x.final_trace.score) for x in ps), "\nBest was:", getProposalID(partialAccepted))
 					onPartialSolution(partialAccepted, queueProposal, getRelated)
 					remove.append(altWithID)
 				else:
