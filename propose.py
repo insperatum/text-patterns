@@ -18,12 +18,20 @@ def proposal_strip(self):
 	return self._replace(final_trace=None, observations=None, valid=None)
 Proposal.strip = proposal_strip
 
+record=0
 def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1, eval_examples=None):
+	nonlocal record
 	assert(proposal.final_trace is None and proposal.observations is None and proposal.valid is None)
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
 		return proposal._replace(valid=False)
 
+	t0=time.time()
 	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, proposal.target_examples, task=task_idx, weight=likelihoodWeighting)
+	t1 = time.time()-time()
+	if t1-t0 > record and task_idx is None:
+		record=t1-t0
+		print("evalProposal", proposal.concept.str(proposal.trace), "took", t1-t0, "seconds")
+
 	if trace is None:
 		updated_proposal = proposal._replace(valid=False)
 		if onCounterexamples is not None:
@@ -125,23 +133,15 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		def getProposalID(proposal): #To avoid duplicate proposals
 			return proposal.concept.str(proposal.trace, depth=-1)
 		proposalIDs_so_far = []
-		record=0.05
 		def addProposal(trace, concept, add_to, related=()):
-			nonlocal record
 			def f(t,c,final):
 				return Proposal(depth, tuple(sorted(examples)), tuple(target_examples) if final else tuple(examples), current_trace, t, c, (), altWith, None, None, None)
-			_t0=time.time()
 			p = evalProposal(f(trace,concept,final=False), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(examples))
-			_t1=time.time()
 			if p.valid and getProposalID(p) not in proposalIDs_so_far:
 				relatedProposals = tuple(f(t,c,final=True) for (t,c) in related)
 				p = p._replace(related=relatedProposals,target_examples=tuple(target_examples))
 				proposalIDs_so_far.append(getProposalID(p))
 				add_to.append(p)
-			_t2=time.time()
-			if _t2-_t0>record:
-				record=_t2-_t0
-				print("<", concept.str(trace), "took", _t1-_t0, _t2-_t1)
 			return p if p.valid else None
 
 		addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), cur_proposals) #Exactly the examples
