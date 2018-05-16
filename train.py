@@ -362,15 +362,11 @@ def addTask(task_idx):
 
 		try:
 			pq_main.put(q_main.get(timeout=0.1))
-			print(">Got from q_main")
 			continue
 		except queue.Empty:
-			print(">Nothing in p_main. Checking pq_main?")
 			try:
 				queue_item = pq_main.get_nowait()
-				print(">got from pq_main")
 			except queue.Empty:
-				print(">nothing in pq_main")
 				continue
 	
 
@@ -387,7 +383,7 @@ def addTask(task_idx):
 			#if getProposalID(partialSolution.altWith) not in partialSolutionsByAltWith: partialSolutionsByAltWith[getProposalID(partialSolution.altWith)]=[]
 			#partialSolutionsByAltWith[getProposalID(partialSolution.altWith)].append(partialSolution)
 			addRelated(partialSolution)
-			onPartialSolution(partialSolution)
+			onPartialSolution(partialSolution, queueProposal, getRelated)
 		#if len(partialSolutionsByAltWith)>0 and not any(l_active):
 		#	#print("Reading partial solutions for:", list(partialSolutionsByAltWith.keys()))
 		#	#for ps in partialSolutionsByAltWith.values():
