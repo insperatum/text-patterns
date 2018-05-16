@@ -191,13 +191,13 @@ def onPartialSolution(partialSolution, queueProposal, getRelated):
 		ps = [1-p, p]))
 	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
 			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, (), partialSolution.altWith.altWith, None, None, None)
-	queueProposal(new_proposal)
+	queueProposal(new_proposal, highPriority=partialSolution.altWith.altWith is not None)
 
 	#ADD PY(X|Y)
 	trace, concept = trace.addPY(concept)
 	new_proposal = Proposal(partialSolution.depth, partialSolution.altWith.net_examples + partialSolution.net_examples,
 			partialSolution.altWith.target_examples, partialSolution.init_trace, trace, concept, (), partialSolution.altWith.altWith, None, None, None)
-	queueProposal(new_proposal)
+	queueProposal(new_proposal, highPriority=partialSolution.altWith.altWith is not None)
 
 	#Add related proposals for X 
 	#TODO: it's a bit silly to have to do this, we know it's going to fail, but then it'll generate the right traces for possibly better partialsolutions

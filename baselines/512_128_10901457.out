@@ -2234,3 +2234,162 @@ Iteration 7090 | Network loss: 8.52
 Iteration 7100 | Network loss: 8.65
 (['312384'],) ---> 1309331
 Iteration 7110 | Network loss: 7.77
+(['TCCGTGCG'],) ---> TCCTGCAA
+Iteration 7120 | Network loss: 9.80
+(['47'],) ---> 0
+Iteration 7130 | Network loss: 9.05
+(['56.6448'],) ---> 55.1256
+Iteration 7140 | Network loss: 9.42
+(['0.60124'],) ---> 0.79899
+Iteration 7150 | Network loss: 8.72
+(['IGT'],) ---> IGT
+Iteration 7160 | Network loss: 9.06
+(['T06'],) ---> A08
+Iteration 7170 | Network loss: 8.55
+(['875 Windham Rd'],) ---> 284 Oraid 
+Iteration 7180 | Network loss: 9.20
+(['115'],) ---> 204
+Iteration 7190 | Network loss: 8.40
+(['45'],) ---> 51
+Iteration 7200 | Network loss: 9.26
+(['Good'],) ---> Good
+Iteration 7210 | Network loss: 9.50
+(['1,730'],) ---> 2,074
+Iteration 7220 | Network loss: 9.40
+(['...'],) ---> 2.88
+Iteration 7230 | Network loss: 9.37
+(['2.472'],) ---> 2.6692
+Iteration 7240 | Network loss: 8.55
+(['139.000000'],) ---> 220.500000
+Iteration 7250 | Network loss: 8.26
+(['NEW PRAGUE'],) ---> NO DI LEN
+Iteration 7260 | Network loss: 9.27
+(['10/16/06'],) ---> 9/28/07
+Iteration 7270 | Network loss: 9.54
+(['259'],) ---> 883
+Iteration 7280 | Network loss: 8.10
+(['Village'],) ---> Market
+Iteration 7290 | Network loss: 9.00
+(['R'],) ---> R
+Iteration 7300 | Network loss: 8.91
+(['78230'],) ---> 76419
+Iteration 7310 | Network loss: 9.50
+(['West Midlands'],) ---> Scotland
+Iteration 7320 | Network loss: 8.73
+(['Hall'],) ---> Lban
+Iteration 7330 | Network loss: 8.18
+(['80195510153'],) ---> 9106008089
+Iteration 7340 | Network loss: 8.61
+(['30250'],) ---> 102800
+Iteration 7350 | Network loss: 9.54
+(['46.96162'],) ---> 47.041473
+Iteration 7360 | Network loss: 9.23
+(['36.9'],) ---> 46
+Iteration 7370 | Network loss: 8.93
+(['SRR3320231'],) ---> SRR3320720
+Iteration 7380 | Network loss: 9.32
+(['HH'],) ---> RF
+Iteration 7390 | Network loss: 9.11
+(['2.35'],) ---> 2.18
+Iteration 7400 | Network loss: 8.31
+(['nn'],) ---> nc
+Iteration 7410 | Network loss: 9.96
+(['8'],) ---> 9
+Iteration 7420 | Network loss: 8.86
+(['28/10/2013'],) ---> 11/06/2008
+Iteration 7430 | Network loss: 8.61
+(['1'],) ---> 2
+Iteration 7440 | Network loss: 9.54
+(['208958'],) ---> 2294
+Iteration 7450 | Network loss: 9.89
+(['1310208738955'],) ---> 1310208370
+Iteration 7460 | Network loss: 8.37
+(['Rockledge'],) ---> Manogtton
+Iteration 7470 | Network loss: 9.19
+(['?'],) ---> ?
+Iteration 7480 | Network loss: 8.05
+(['2073894'],) ---> 3007050
+Iteration 7490 | Network loss: 9.20
+(['?'],) ---> 3.98182
+Iteration 7500 | Network loss: 9.21
+(['76'],) ---> 83
+
+Calculating 10 way train classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.931499992609024
+
+Calculating 10 way test classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.7215000003576278
+Classification Accuracy: train 0.931499992609024 test 0.7215000003576278
+
+Calculating train ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -1.2286226308345796 nats per character
+
+Calculating test ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -2.3834464812278746 nats per character
+Scores: train -1.2286226308345796 test -2.3834464812278746
+Iteration 7510 | Network loss: 8.56
+(['-81.486515'],) ---> -84.423093
+Iteration 7520 | Network loss: 8.78
+(['172.56'],) ---> 69.82
+Iteration 7530 | Network loss: 9.90
+(['$3.00'],) ---> $0.25
+Iteration 7540 | Network loss: 9.40
+(['14.29'],) ---> 12.39
+Iteration 7550 | Network loss: 8.05
+(['24'],) ---> 462
+Iteration 7560 | Network loss: 9.33
+(['AXL'],) ---> BZI
+Iteration 7570 | Network loss: 9.02
+(['5623'],) ---> 1604
+Iteration 7580 | Network loss: 8.23
+(['32567'],) ---> 51042
+Iteration 7590 | Network loss: 9.43
+(['ACTAATAC'],) ---> ATGCAACC
+Iteration 7600 | Network loss: 9.19
+(['Leasehold'],) ---> Licence
+Iteration 7610 | Network loss: 9.38
+(['NA'],) ---> NA
+Iteration 7620 | Network loss: 9.78
+(['3'],) ---> 8
+Iteration 7630 | Network loss: 9.11
+(['20164'],) ---> 76804
