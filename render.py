@@ -135,7 +135,8 @@ def saveConcepts(M, filename, onlyIdxs=None):
 				pass
 			else:
 				color = "black"#"lightgrey" if isHidden[concept] else "black"
-				dot.edge(str(concept2.id), str(concept.id), color=color)
+				#dot.edge(str(concept2.id), str(concept.id), color=color)
+				dot.edge(str(concept.id), str(concept2.id), color=color)
 
 	dot.format = 'pdf'
 	dot.render(filename)  
