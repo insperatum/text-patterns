@@ -22,7 +22,9 @@ def html_escape(s):
 	#s = "".join(x if x in alphanumeric else "&#" + str(ord(x)) + ";" for x in s)
 	return s
 
-def saveConcepts(M, filename, onlyIdxs=None):
+def saveConcepts(M, filename, onlyIdxs=None, mode="both"):
+	assert(mode in ["samples", "observations", "both"])
+
 	print("Rendering to:%s"%filename)
 	trace = M['trace']
 	concepts = trace.allConcepts
@@ -54,14 +56,14 @@ def saveConcepts(M, filename, onlyIdxs=None):
 		
 		observations = concept.get_observations(trace)
 		counter = Counter(observations)	
-		#if len(counter)>5:
-		#	total = sum(counter.values())
-		#	sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=4)
-		#	obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations) + ["..."])
-		#elif len(counter)>0:
-		#	obs_str = ", ".join(list(s if s is not "" else "ε" for s in counter))
-		#else:
-		#	obs_str = "(no observations)"
+		if len(counter)>5:
+			total = sum(counter.values())
+			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=4)
+			obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations) + ["..."])
+		elif len(counter)>0:
+			obs_str = ", ".join(list(s if s is not "" else "ε" for s in counter))
+		else:
+			obs_str = "(no observations)"
 		
 		isRegex = type(concept) is RegexConcept
 		isParentRegex = (type(concept) is PYConcept) and (type(trace.getState(concept).baseConcept) is RegexConcept)
@@ -122,9 +124,9 @@ def saveConcepts(M, filename, onlyIdxs=None):
 			dot.node(str(concept.id), "<" 
 				+ name_prefix
 				+ content_prefix
-				#+ "<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>"
-				#+ "<br/><font point-size='%d'>"%size + html_escape(sample_str) + "</font>"
-				+ "<br/><font point-size='%d'>"%size + obs_sample_str + "</font>"
+				+ ("<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>" if mode=="observations" else "")
+				+ ("<br/><font point-size='%d'>"%size + html_escape(sample_str) + "</font>" if mode=="samples" else "")
+				+ ("<br/><font point-size='%d'>"%size + obs_sample_str + "</font>" if mode=="both" else "")
 				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
 		
