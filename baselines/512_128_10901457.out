@@ -1843,3 +1843,71 @@ Iteration 5950 | Network loss: 9.17
 (['1988-06-30'],) ---> 1973-10-11
 Iteration 5960 | Network loss: 9.15
 (['353-2630'],) ---> 401-4792
+Iteration 5970 | Network loss: 9.75
+(['McK15100'],) ---> HoggPass10
+Iteration 5980 | Network loss: 9.89
+(['M15 5RF'],) ---> MN 6AA
+Iteration 5990 | Network loss: 8.66
+(['People'],) ---> Refos
+Iteration 6000 | Network loss: 9.06
+(['MONTGOMERY'],) ---> GRINNTON
+
+Calculating 10 way train classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.9239999932050705
+
+Calculating 10 way test classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.7080000001192093
+Classification Accuracy: train 0.9239999932050705 test 0.7080000001192093
+
+Calculating train ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -1.263894999027252 nats per character
+
+Calculating test ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -2.3839027452468873 nats per character
+Scores: train -1.263894999027252 test -2.3839027452468873
+Iteration 6010 | Network loss: 9.24
+(['-88.51947556'],) ---> -88.921299
+Iteration 6020 | Network loss: 9.54
+(['3136G2HG5'],) ---> 3136G2R91
+Iteration 6030 | Network loss: 8.55
+(['Adult'],) ---> Dedorm

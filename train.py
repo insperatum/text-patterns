@@ -217,7 +217,7 @@ def cpu_worker(worker_idx, init_trace, l_proposals, l_partialProposals, q_counte
 			try:
 				proposal = l_partialProposals.pop(0)
 				assert(proposal.altWith is not None)
-			except queue.Empty:
+			except IndexError:
 				l_active[worker_idx] = False
 				continue
 
