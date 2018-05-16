@@ -12,12 +12,14 @@ trace = M['trace']
 def latexify(s):
 	return "\\verb|" + s + "|"
 
-print("\\begin{tabular}{r|" + " ".join("l"*nSamples) + "}")
-print("\\textbf{Reuses} & \\textbf{Samples}\\\\")
+print("\\begin{tabular}{l|" + " ".join("l"*nSamples) + "}")
+#print("&\\textbf{Reuses} & \\textbf{Samples}\\\\")
+print(" & Samples\\\\")
 print("\\hline")
 for c in sorted(trace.baseConcepts, key=lambda c: trace.baseConcept_nReferences.get(c,0), reverse=True)[:10]:
 	samples = [c.sample(trace) for _ in range(nSamples)]
-	print(trace.baseConcept_nReferences.get(c,0), "&", latexify(", ".join(samples)) + "\\\\")
+	#print(trace.baseConcept_nReferences.get(c,0), "&", latexify(", ".join(samples)) + "\\\\")
+	print("\\textbf{", c, "}", "&", latexify(", ".join(samples)) + "\\\\")
 print("\\end{tabular}")
 #print()
 #for model in models:
