@@ -327,8 +327,6 @@ def addTask(task_idx):
 		related = getRelated(proposal)
 		if len(related)>0:
 			print("Add related proposals", solution.concept.str(solution.trace), "---->", ", ".join(p.concept.str(p.trace) for p in related))
-		else:
-			print("No related proposals for", solution.concept.str(solution.trace))
 		for p in related:
 			queueProposal(p)
 
