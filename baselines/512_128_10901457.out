@@ -2470,3 +2470,76 @@ Iteration 8000 | Network loss: 9.00
 
 Calculating 10 way train classification
 0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.9344999951124191
+
+Calculating 10 way test classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.7239999985694885
+Classification Accuracy: train 0.9344999951124191 test 0.7239999985694885
+
+Calculating train ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -1.2137733817100524 nats per character
+
+Calculating test ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -2.36565438747406 nats per character
+Scores: train -1.2137733817100524 test -2.36565438747406
+Iteration 8010 | Network loss: 8.56
+(['N01064009073'],) ---> N010410102
+Iteration 8020 | Network loss: 8.56
+(['303644672'],) ---> 157596800
+Iteration 8030 | Network loss: 8.46
+(['ArtDatabanken'],) ---> ADMBH
+Iteration 8040 | Network loss: 8.84
+(['340147'],) ---> 116118
+Iteration 8050 | Network loss: 8.62
+(['07/16/07'],) ---> 06/12/12
+Iteration 8060 | Network loss: 7.86
+(['171'],) ---> 49
+Iteration 8070 | Network loss: 8.51
+(['In Motion'],) ---> In Motion
+Iteration 8080 | Network loss: 8.79
+(['RETAIL SALES'],) ---> DE CONS CO
+Iteration 8090 | Network loss: 10.16
+(['USG CORP'],) ---> BUBANAS CO
+Iteration 8100 | Network loss: 8.89
+(['11.99'],) ---> 14.76
+Iteration 8110 | Network loss: 8.42
+(['IF3'],) ---> CO
