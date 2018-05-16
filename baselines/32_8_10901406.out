@@ -6107,3 +6107,117 @@ Iteration 19690 | Network loss: 12.42
 (['...'],) ---> ..8
 Iteration 19700 | Network loss: 11.89
 (['NA'],) ---> NA
+Iteration 19710 | Network loss: 13.63
+(['437'],) ---> 744
+Iteration 19720 | Network loss: 11.80
+(['612'],) ---> 4194
+Iteration 19730 | Network loss: 11.71
+(['10/16/06'],) ---> 8/2/17
+Iteration 19740 | Network loss: 13.60
+(['true'],) ---> parpen
+Iteration 19750 | Network loss: 12.76
+(['LADYWOOD'],) ---> SGMRIA PAS
+Iteration 19760 | Network loss: 11.83
+(['5778'],) ---> 5166
+Iteration 19770 | Network loss: 12.69
+(['62.78'],) ---> 41.08
+Iteration 19780 | Network loss: 13.00
+(['Adult'],) ---> Hanzatriri
+Iteration 19790 | Network loss: 12.91
+(['M'],) ---> M
+Iteration 19800 | Network loss: 12.60
+(['37'],) ---> 48
+Iteration 19810 | Network loss: 12.95
+(['g'],) ---> b
+Iteration 19820 | Network loss: 11.95
+(['960'],) ---> 0
+Iteration 19830 | Network loss: 13.19
+(['NERKA'],) ---> 14NMEYVIFA
+Iteration 19840 | Network loss: 12.55
+(['BF'],) ---> BD
+Iteration 19850 | Network loss: 11.71
+(['18.48'],) ---> 13.45
+Iteration 19860 | Network loss: 12.08
+(['2098'],) ---> 1678
+Iteration 19870 | Network loss: 12.34
+(['[X948]'],) ---> [X0310PSK$
+Iteration 19880 | Network loss: 12.37
+(['26'],) ---> 09
+Iteration 19890 | Network loss: 11.84
+(['Bin 5'],) ---> Pein-1
+Iteration 19900 | Network loss: 12.74
+(['BR'],) ---> MC
+Iteration 19910 | Network loss: 11.90
+(['0.032634398'],) ---> 0.08888290
+Iteration 19920 | Network loss: 12.41
+(['732926'],) ---> 77929
+Iteration 19930 | Network loss: 12.37
+(['-82.47363'],) ---> -06.7803
+Iteration 19940 | Network loss: 13.16
+(['01.04.2015'],) ---> 01.01.2700
+Iteration 19950 | Network loss: 13.08
+(['32'],) ---> 25
+Iteration 19960 | Network loss: 12.87
+(['12_TEN_00433'],) ---> 17_AVV0022
+Iteration 19970 | Network loss: 11.75
+(['0'],) ---> 00
+Iteration 19980 | Network loss: 11.91
+(['NA'],) ---> 8
+Iteration 19990 | Network loss: 12.54
+(['FNK32'],) ---> FT490
+Iteration 20000 | Network loss: 12.71
+(['03.01.2017'],) ---> 15.18.D125
+
+Calculating 10 way train classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.8895000016689301
+
+Calculating 10 way test classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.6964999979734421
+Classification Accuracy: train 0.8895000016689301 test 0.6964999979734421
+
+Calculating train ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -1.6899541759490966 nats per character
+
+Calculating test ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -2.57418347120285 nats per character
+Scores: train -1.6899541759490966 test -2.57418347120285
