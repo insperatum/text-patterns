@@ -4235,3 +4235,61 @@ Iteration 13590 | Network loss: 7.67
 (['0.74992'],) ---> 0.84451
 Iteration 13600 | Network loss: 8.76
 (['0.0993310215'],) ---> 0.99153239
+Iteration 13610 | Network loss: 8.69
+(['06/30/15'],) ---> 06/30/15
+Iteration 13620 | Network loss: 8.39
+(['101011001823'],) ---> 1017120500
+Iteration 13630 | Network loss: 7.88
+(['plymouth'],) ---> doxford
+Iteration 13640 | Network loss: 8.19
+(['Italy'],) ---> England
+Iteration 13650 | Network loss: 8.65
+(['1310208876262'],) ---> 1310208373
+Iteration 13660 | Network loss: 8.83
+(['1055126754'],) ---> 2263646494
+Iteration 13670 | Network loss: 8.06
+(['572'],) ---> 239
+Iteration 13680 | Network loss: 7.82
+(['K56857'],) ---> K59667
+Iteration 13690 | Network loss: 8.35
+(['H313'],) ---> C086
+Iteration 13700 | Network loss: 8.51
+(['K46'],) ---> K47
+Iteration 13710 | Network loss: 8.08
+(['male'],) ---> female
+Iteration 13720 | Network loss: 8.41
+(['a3'],) ---> a4
+Iteration 13730 | Network loss: 8.20
+(['07840'],) ---> 08638-1252
+Iteration 13740 | Network loss: 8.12
+(['M4 2HU'],) ---> M2 4WW
+Iteration 13750 | Network loss: 8.20
+(['0.0082283007'],) ---> 0.06226853
+Iteration 13760 | Network loss: 8.58
+(['20141009'],) ---> 20140125
+Iteration 13770 | Network loss: 8.22
+(['BT15'],) ---> NG21
+Iteration 13780 | Network loss: 8.09
+(['76.923'],) ---> 76.934
+Iteration 13790 | Network loss: 7.73
+(['0.925999403'],) ---> 0.88996548
+Iteration 13800 | Network loss: 8.05
+(['API'],) ---> Notificaki
+Iteration 13810 | Network loss: 8.27
+(['0.081362033'],) ---> 0.32281660
+Iteration 13820 | Network loss: 7.76
+(['2MMYV04.0ML1'],) ---> 2CRXA0480J
+Iteration 13830 | Network loss: 8.50
+(['216.692'],) ---> 603.8
+Iteration 13840 | Network loss: 7.69
+(['-'],) ---> -
+Iteration 13850 | Network loss: 8.03
+(['51.07488'],) ---> 50.56363
+Iteration 13860 | Network loss: 8.70
+(['101815400240'],) ---> 1003034001
+Iteration 13870 | Network loss: 8.02
+(['01:25:03'],) ---> 01:39:11
+Iteration 13880 | Network loss: 7.61
+(['2014-02-05'],) ---> 2014-09-27
+Iteration 13890 | Network loss: 9.02
+(['74.37482357'],) ---> 76.7067184
