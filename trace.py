@@ -1,7 +1,6 @@
 import copy
 import math
 import random
-import time
 
 from collections import namedtuple, Counter
 import numpy as np
@@ -450,7 +449,6 @@ class RegexConcept(Concept):
 			)
 			new_trace._setState(self, newState)
 			out.append((new_trace, observation, numCharacters))
-		print("observe_partial got", len(numCharacters), "matches")
 		return out
 
 	def unobserve(self, trace, observation):
@@ -499,7 +497,6 @@ class RegexWrapper(pre.Pregex):
 			yield pre.PartialMatch(numCharacters=numCharacters, score=score, reported_score=0, continuation=None, state=new_regexState)
 
 
-timeRecord=0
 
 class Trace:
 	def __init__(self, model):
@@ -549,10 +546,6 @@ class Trace:
 		return observation.concept.unobserve(self.fork(), observation)
 
 	def observe_all(self, concept, values, max_n_counterexamples=None, task=None, weight=1):
-		global timeRecord
-		global nConsumeCalls
-		nConsumeCalls =0
-		t0=time.time()
 		observations = []
 		counterexamples = []
 		trace = self.fork()
@@ -566,12 +559,6 @@ class Trace:
 				observations.extend([new_observation]*n)
 				trace = new_trace
 
-		t1=time.time()
-		if t1-t0>timeRecord:
-			timeRecord=t1-t0
-			print("observe_all took", t1-t0, "seconds on", counter, concept.str(self))
-			print(nConsumeCalls, "calls to consume")
-			if timeRecord>1: raise Exception()
 		if len(counterexamples)>0:
 			p_valid = len(observations) / (len(observations) + sum(counter[x] for x in counterexamples))
 			return None, None, counterexamples, p_valid
