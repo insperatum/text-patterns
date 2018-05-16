@@ -49,7 +49,8 @@ def saveConcepts(M, filename, onlyIdxs=None, mode="samples"):
 		samples = [concept.sample(trace) for _ in range(1000)]
 		samples_counter = Counter(samples)
 		samples.sort(key=samples_counter.get)
-		sample_str = ", ".join(list(s if s is not "" else "ε" for s in samples[200:801:200]))
+		samples = list(set(samples[200:801:200]))
+		sample_str = ", ".join(list(s if s is not "" else "ε" for s in samples))
 		#tot=sum(samples_counter.values())
 		#best = sorted(samples_counter, key=lambda x:math.log(samples_counter.get(x)/tot)/len(x), reverse=True)[:4]
 		##unique_samples = set(samples)
