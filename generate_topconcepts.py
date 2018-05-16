@@ -25,7 +25,7 @@ for c in topConcepts:
 print("\\end{tabular}")
 
 bestChildren = [max((x for x in trace.baseConcepts if c in x.conceptsReferenced(trace)), key=lambda x: trace.baseConcept_nReferences.get(c,)) for c in topConcepts]
-render.saveConcepts(M, M['save_to']+"render_topconcepts.gv", onlyIdxs=[x.id for x in set(topConcepts + bestChildren)], mode="samples")
+render.saveConcepts(M, M['save_to']+"render_topconcepts.gv", onlyIdxs=[x.id for x in set(topConcepts + bestChildren)], mode="observations")
 #print()
 #for model in models:
 #	print(results[model])
