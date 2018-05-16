@@ -2735,3 +2735,149 @@ Iteration 8790 | Network loss: 8.97
 (['2.11'],) ---> 1.05
 Iteration 8800 | Network loss: 7.95
 (['$3500000000'],) ---> $64880000
+Iteration 8810 | Network loss: 8.89
+(['ALL'],) ---> A
+Iteration 8820 | Network loss: 8.39
+(['13.78'],) ---> 14.94
+Iteration 8830 | Network loss: 9.16
+(['34.875'],) ---> 34.543
+Iteration 8840 | Network loss: 8.60
+(['TRUE'],) ---> FALSE
+Iteration 8850 | Network loss: 9.59
+(['G'],) ---> D
+Iteration 8860 | Network loss: 8.72
+(['PAL04889'],) ---> PAL01119
+Iteration 8870 | Network loss: 8.93
+(['+00:00:00'],) ---> +00:00:00
+Iteration 8880 | Network loss: 8.41
+(['Burks'],) ---> Bellln
+Iteration 8890 | Network loss: 8.75
+(['18611'],) ---> 97801
+Iteration 8900 | Network loss: 9.18
+(['3'],) ---> 2
+Iteration 8910 | Network loss: 8.40
+(['40LDT32'],) ---> 590T2-04
+Iteration 8920 | Network loss: 8.85
+(['07/06/2016'],) ---> 28/04/2016
+Iteration 8930 | Network loss: 9.67
+(['NISSAN'],) ---> BARKERZ
+Iteration 8940 | Network loss: 8.63
+(['17.810000'],) ---> 13.100000
+Iteration 8950 | Network loss: 8.21
+(['570INT02'],) ---> 305T2001
+Iteration 8960 | Network loss: 8.70
+(['0.62'],) ---> 4.41
+Iteration 8970 | Network loss: 8.10
+(['3014698'],) ---> 3012643
+Iteration 8980 | Network loss: 8.33
+(['?'],) ---> ?
+Iteration 8990 | Network loss: 8.49
+(['YCRXE0101GCS'],) ---> YTYXE0135A
+Iteration 9000 | Network loss: 8.61
+(['control'],) ---> cut
+
+Calculating 10 way train classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.9334999948740006
+
+Calculating 10 way test classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.6979999989271164
+Classification Accuracy: train 0.9334999948740006 test 0.6979999989271164
+
+Calculating train ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -1.198059892654419 nats per character
+
+Calculating test ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -2.4164287304878234 nats per character
+Scores: train -1.198059892654419 test -2.4164287304878234
+Iteration 9010 | Network loss: 8.36
+(['up to 2004'],) ---> 2005 to 20
+Iteration 9020 | Network loss: 9.10
+(['9GDXV01.6005'],) ---> 9GMXT06.03
+Iteration 9030 | Network loss: 8.74
+(['6.73'],) ---> -
+Iteration 9040 | Network loss: 9.32
+(['0.1028816401'],) ---> 0.01512345
+Iteration 9050 | Network loss: 8.46
+(['15.2458'],) ---> 15.15249
+Iteration 9060 | Network loss: 8.42
+(['320'],) ---> 288
+Iteration 9070 | Network loss: 9.09
+(['3MBXV05.0UBI'],) ---> 3HNXV01.0A
+Iteration 9080 | Network loss: 8.65
+(['PO'],) ---> PO
+Iteration 9090 | Network loss: 8.78
+(['+00:01:00'],) ---> +01:00:00
+Iteration 9100 | Network loss: 9.07
+(['D'],) ---> B
+Iteration 9110 | Network loss: 8.87
+(['negative'],) ---> positive
+Iteration 9120 | Network loss: 8.40
+(['negative'],) ---> positive
+Iteration 9130 | Network loss: 8.74
+(['19770005824'],) ---> 1965002744
+Iteration 9140 | Network loss: 8.84
+(['428871680'],) ---> 427901876
+Iteration 9150 | Network loss: 9.36
+(['Salt Lake City'],) ---> Dabre Tama
+Iteration 9160 | Network loss: 8.91
+(['01/04/1990'],) ---> 01/04/1990
+Iteration 9170 | Network loss: 8.44
+(['Male'],) ---> Male
+Iteration 9180 | Network loss: 7.65
+(['OAS2_0090_MR3'],) ---> OAS2_0111_
+Iteration 9190 | Network loss: 9.58
+(['0'],) ---> 33806
+Iteration 9200 | Network loss: 9.06
+(['1162837'],) ---> 1553536
+Iteration 9210 | Network loss: 9.17
+(['0'],) ---> NA
+Iteration 9220 | Network loss: 9.43
+(['0'],) ---> 2000
+Iteration 9230 | Network loss: 8.01
+(['383914'],) ---> 388984
+Iteration 9240 | Network loss: 7.67
+(['NA'],) ---> NA
+Iteration 9250 | Network loss: 8.96
+(['YO7 1JF'],) ---> YO32 4AZ
+Iteration 9260 | Network loss: 8.50
+(['R'],) ---> L

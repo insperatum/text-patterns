@@ -344,7 +344,7 @@ def addTask(task_idx):
 			except queue.Empty:
 				break
 		if len(partialSolutionsByAltWith)>0 and not any(l_active):
-			print("Reading partial solutions...")
+			print("Reading partial solutions for:", list(partialSolutionsByAltWith.keys()))
 			#for ps in partialSolutionsByAltWith.values():
 			remove = []
 			for (altWithID, ps) in partialSolutionsByAltWith.items():
