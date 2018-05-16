@@ -206,16 +206,16 @@ def onPartialSolution(partialSolution, queueProposal, getRelated):
 	
 	
 
-def cpu_worker(worker_idx, init_trace, q_proposals, q_partialProposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
+def cpu_worker(worker_idx, init_trace, l_proposals, l_partialProposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
 	nEvaluated = 0
 
 	while l_running[0]:
 		try:
-			proposal = q_proposals.get(timeout=1)
+			proposal = l_proposals.pop(0)
 			assert(proposal.altWith is None)
-		except queue.Empty:
+		except IndexError:
 			try:
-				proposal = q_partialProposals.get(timeout=1)
+				proposal = l_partialProposals.pop(0)
 				assert(proposal.altWith is not None)
 			except queue.Empty:
 				l_active[worker_idx] = False
@@ -259,14 +259,16 @@ def addTask(task_idx):
 	# q_proposals = mp.Queue()
 	
 	manager = mp.Manager()
-	q_proposals = manager.Queue()
-	q_partialProposals = manager.Queue()
+	#q_proposals = manager.Queue()
+	#q_partialProposals = manager.Queue()
+	l_proposals = manager.list()
+	l_partialProposals = manager.list()
 	def getProposalID(proposal): #To avoid duplicate proposals
 		return (proposal.concept.str(proposal.trace, depth=-1),
 				getProposalID(proposal.altWith) if proposal.altWith is not None else None)
 	proposalIDs_so_far = []
 	relatedProposalsDict = {}
-	def queueProposal(proposal): #add to evaluation queue
+	def queueProposal(proposal, highPriority=False): #add to evaluation queue
 		proposal = proposal.strip()
 		proposalID = getProposalID(proposal)
 		relatedProposalsDict[proposalID] = proposal.related
@@ -274,9 +276,15 @@ def addTask(task_idx):
 		if proposalID not in proposalIDs_so_far:
 			proposalIDs_so_far.append(proposalID)
 			if proposal.altWith is None:
-				q_proposals.put(proposal)
+				if highPriority:
+					l_proposals.insert(0, proposal)
+				else:
+					l_proposals.append(proposal)
 			else:
-				q_partialProposals.put(proposal)
+				if highPriority:
+					l_partialProposals.insert(0, proposal)
+				else:
+					l_partialProposals.append(proposal)
 
 	def getRelated(proposal):
 		return relatedProposalsDict[getProposalID(proposal)]
@@ -300,7 +308,7 @@ def addTask(task_idx):
 	workers = []
 	def launchWorkers():
 		for worker_idx in range(n_workers):
-			worker = mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_partialProposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx]))
+			worker = mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], l_proposals, l_partialProposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx]))
 			workers.append(worker)
 			worker.start()
 
@@ -314,7 +322,7 @@ def addTask(task_idx):
 
 	startTime = time.time()
 	partialSolutionsByAltWith = {}
-	while any(l_active) or not q_proposals.empty() or not q_counterexamples.empty() or not q_partialSolutions.empty() or len(partialSolutionsByAltWith)>0:
+	while any(l_active) or len(l_proposals)>0 or len(l_partialProposals)>0 or not q_counterexamples.empty() or not q_partialSolutions.empty() or len(partialSolutionsByAltWith)>0:
 		if time.time() - startTime > args.timeout * 60:
 			print("Timeout!")
 			break
@@ -327,13 +335,6 @@ def addTask(task_idx):
 		except queue.Empty:
 			pass
 
-		#Counterexamples
-		try:
-			counterexample_args = q_counterexamples.get(timeout=0.1)
-			onCounterexamples(queueProposal, *counterexample_args)
-		except queue.Empty:
-			pass
-
 		#PartialSolutions
 		while True:
 			try:
@@ -342,12 +343,20 @@ def addTask(task_idx):
 				partialSolutionsByAltWith[partialSolution.altWith].append(partialSolution)
 			except queue.Empty:
 				break
-		if len(partialSolutionsByAltWith)>0 and not any(l_active) and q_proposals.empty() and q_counterexamples.empty() and q_partialSolutions.empty():
+		if len(partialSolutionsByAltWith)>0 and not any(l_active) and len(l_proposals)==0 and len(l_partialProposals)==0 and q_counterexamples.empty() and q_partialSolutions.empty():
 			print("Reading partial solutions...")
 			for ps in partialSolutionsByAltWith.values():
 				partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 				onPartialSolution(partialAccepted, queueProposal, getRelated)
 			partialSolutionsByAltWith.clear()
+
+		#Counterexamples
+		try:
+			counterexample_args = q_counterexamples.get(timeout=0.1)
+			onCounterexamples(queueProposal, *counterexample_args)
+		except queue.Empty:
+			pass
+
 	l_running[0] = False
 
 	for w in workers:
