@@ -34,7 +34,7 @@ args = parser.parse_args()
 print(args)
 assert(args.mode in ["data", "model", "both"])
 
-if args.mode=="model":
+if args.mode=="model" or args.mode=="both":
 	M = loader.load(args.model_file)
 
 iteration=0
