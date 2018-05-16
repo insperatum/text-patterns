@@ -33,7 +33,6 @@ def saveConcepts(M, filename, onlyIdxs=None, mode="samples"):
 	concepts = trace.allConcepts
 
 	dot = Digraph()
-	dot.graph_attr.update(ratio="1")
 	isHidden = {}
 	if onlyIdxs is not None:
 		for c in concepts:
