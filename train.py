@@ -206,15 +206,18 @@ def onPartialSolution(partialSolution, queueProposal, getRelated):
 	
 	
 
-def cpu_worker(worker_idx, init_trace, q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
+def cpu_worker(worker_idx, init_trace, q_proposals, q_partialProposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
 	nEvaluated = 0
 
 	while l_running[0]:
 		try:
 			proposal = q_proposals.get(timeout=1)
 		except queue.Empty:
-			l_active[worker_idx] = False
-			continue
+			try:
+				proposal = q_partialProposals.get(timeout=1)
+			except queue.Empty:
+				l_active[worker_idx] = False
+				continue
 
 		l_active[worker_idx] = True
 		start_time=time.time()
@@ -255,7 +258,7 @@ def addTask(task_idx):
 	
 	manager = mp.Manager()
 	q_proposals = manager.Queue()
-
+	q_partialProposals = manager.Queue()
 	def getProposalID(proposal): #To avoid duplicate proposals
 		return (proposal.concept.str(proposal.trace, depth=-1),
 				getProposalID(proposal.altWith) if proposal.altWith is not None else None)
@@ -268,7 +271,10 @@ def addTask(task_idx):
 		proposal = proposal._replace(related=())
 		if proposalID not in proposalIDs_so_far:
 			proposalIDs_so_far.append(proposalID)
-			q_proposals.put(proposal)
+			if proposal.altWith is None:
+				q_proposals.put(proposal)
+			else:
+				q_partialProposals.put(proposal)
 
 	def getRelated(proposal):
 		return relatedProposalsDict[getProposalID(proposal)]
@@ -292,7 +298,7 @@ def addTask(task_idx):
 	workers = []
 	def launchWorkers():
 		for worker_idx in range(n_workers):
-			worker = mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx]))
+			worker = mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], q_proposals, q_partialProposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx]))
 			workers.append(worker)
 			worker.start()
 

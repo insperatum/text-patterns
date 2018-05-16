@@ -19,8 +19,7 @@ parser.add_argument('--mode', type=str, default="data")
 parser.add_argument('--batch_size', type=int, default=200)
 parser.add_argument('--min_examples', type=int, default=1)
 parser.add_argument('--max_examples', type=int, default=1)
-parser.add_argument('--max_length', type=int, default=20) #maximum length of inputs or targets
-parser.add_argument('--min_iterations', type=int, default=1000) #minimum number of training iterations before next concept
+parser.add_argument('--max_length', type=int, default=15) #maximum length of inputs or targets
 
 parser.add_argument('--cell_type', type=str, default="LSTM")
 parser.add_argument('--hidden_size', type=int, default=512)
@@ -115,7 +114,7 @@ def networkStep():
 		print(inputs[0], "--->", "".join(net.sample(inputs)[0]))
 	return network_score
 
-def train(iterations=20000, evalEvery=500):
+def train(iterations=5000, evalEvery=500):
 	while True:
 		if iteration <= iterations:
 			networkStep()
