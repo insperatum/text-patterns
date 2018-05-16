@@ -570,7 +570,7 @@ class Trace:
 			timeRecord=t1-t0
 			print("observe_all took", t1-t0, "seconds on", counter, concept.str(self))
 			print(nConsumeCalls, "calls to consume")
-			if timeRecord>0.3: raise Exception()
+			if timeRecord>0.4: raise Exception()
 		if len(counterexamples)>0:
 			p_valid = len(observations) / (len(observations) + sum(counter[x] for x in counterexamples))
 			return None, None, counterexamples, p_valid
