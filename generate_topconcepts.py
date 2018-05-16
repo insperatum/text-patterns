@@ -24,8 +24,11 @@ for c in topConcepts:
 	print("\\textbf{\\#" + str(c.id) + "}", "&", latexify(", ".join(samples)) + "\\\\")
 print("\\end{tabular}")
 
-bestChildren = [max((x for x in trace.baseConcepts if c in x.conceptsReferenced(trace)), key=lambda x: trace.baseConcept_nReferences.get(c,)) for c in topConcepts]
-render.saveConcepts(M, M['save_to']+"render_topconcepts.gv", onlyIdxs=[x.id for x in set(topConcepts + bestChildren)], mode="observations")
+#bestChildren = [max((x for x in trace.baseConcepts if c in x.conceptsReferenced(trace)), key=lambda x: trace.baseConcept_nReferences.get(c,)) for c in topConcepts]
+useConcepts = set(topConcepts)#+bestChildren)
+render.saveConcepts(M, M['save_to']+"render_topconcepts.gv", onlyIdxs=[x.id for x in useConcepts], mode="observations")
+
+
 #print()
 #for model in models:
 #	print(results[model])
