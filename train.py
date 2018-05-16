@@ -246,9 +246,6 @@ def onPartialSolution(partialSolution, queueProposal, getRelated):
 def cpu_worker(worker_idx, init_trace, l_proposals, l_partialProposals, q_main, l_active, l_running, task_idx, task):
 	nEvaluated = 0
 
-	while True:
-		pass
-
 	while l_running[0]:
 		try:
 			proposal = l_proposals.pop(0)
