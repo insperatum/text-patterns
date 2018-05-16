@@ -27,7 +27,7 @@ def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None,
 
 	t0=time.time()
 	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, proposal.target_examples, task=task_idx, weight=likelihoodWeighting)
-	t1 = time.time()-time()
+	t1 = time.time()
 	if t1-t0 > record and task_idx is None:
 		record=t1-t0
 		print("evalProposal", proposal.concept.str(proposal.trace), "took", t1-t0, "seconds")
