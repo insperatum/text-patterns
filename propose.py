@@ -18,20 +18,12 @@ def proposal_strip(self):
 	return self._replace(final_trace=None, observations=None, valid=None)
 Proposal.strip = proposal_strip
 
-record=0
 def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1, eval_examples=None):
-	global record
 	assert(proposal.final_trace is None and proposal.observations is None and proposal.valid is None)
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
 		return proposal._replace(valid=False)
 
-	t0=time.time()
 	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, proposal.target_examples, task=task_idx, weight=likelihoodWeighting)
-	t1 = time.time()
-	if t1-t0 > record and task_idx is None:
-		record=t1-t0
-		print("evalProposal", proposal.concept.str(proposal.trace), "took", t1-t0, "seconds")
-
 	if trace is None:
 		updated_proposal = proposal._replace(valid=False)
 		if onCounterexamples is not None:

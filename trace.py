@@ -1,6 +1,7 @@
 import copy
 import math
 import random
+import time
 
 from collections import namedtuple, Counter
 import numpy as np
@@ -494,6 +495,8 @@ class RegexWrapper(pre.Pregex):
 			yield pre.PartialMatch(numCharacters=numCharacters, score=score, reported_score=0, continuation=None, state=new_regexState)
 
 
+timeRecord=0
+
 class Trace:
 	def __init__(self, model):
 		self.score = 0
@@ -542,6 +545,8 @@ class Trace:
 		return observation.concept.unobserve(self.fork(), observation)
 
 	def observe_all(self, concept, values, max_n_counterexamples=None, task=None, weight=1):
+		global timeRecord
+		t0=time.time()
 		observations = []
 		counterexamples = []
 		trace = self.fork()
@@ -554,6 +559,11 @@ class Trace:
 			else:
 				observations.extend([new_observation]*n)
 				trace = new_trace
+
+		t1=time.time()
+		if t1-t0>timeRecord:
+			timeRecord=t1-t0
+			print("observe_all took", t1-t0, "seconds on", counter, concept.str(self))
 		if len(counterexamples)>0:
 			p_valid = len(observations) / (len(observations) + sum(counter[x] for x in counterexamples))
 			return None, None, counterexamples, p_valid
