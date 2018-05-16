@@ -1,7 +1,7 @@
 import loader
 
 
-nSamples=10
+nSamples=6
 
 model = "results/model.pt"
 
