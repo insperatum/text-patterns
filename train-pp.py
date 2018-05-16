@@ -32,7 +32,7 @@ parser.add_argument('--n_examples', type=int, default=100)
 args = parser.parse_args()
 
 print(args)
-assert(args.mode in ["data", "model"])
+assert(args.mode in ["data", "model", "both"])
 
 if args.mode=="model":
 	M = loader.load(args.model_file)
@@ -102,9 +102,10 @@ def getClassificationBatch(batch_size, way, eval_data):
 
 def networkStep():
 	global iteration
-	if args.mode == "data":
+	r = random.random()
+	if args.mode == "data" or (args.mode=="both" and r<0.5):
 		inputs, target = getBatch(args.batch_size, eval_data=data)
-	if args.mode == "model":
+	if args.mode == "model" or (args.mode=="both" and r>=0.5):
 		inputs, target = getBatch(args.batch_size, M=M)
 	network_score = net.optimiser_step(inputs, target)
 
