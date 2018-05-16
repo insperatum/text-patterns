@@ -344,14 +344,13 @@ def addTask(task_idx):
 			except queue.Empty:
 				break
 		if len(partialSolutionsByAltWith)>0 and not any(l_active):
-			print("Reading partial solutions for:", list(partialSolutionsByAltWith.keys()))
+			#print("Reading partial solutions for:", list(partialSolutionsByAltWith.keys()))
 			#for ps in partialSolutionsByAltWith.values():
 			remove = []
 			for (altWithID, ps) in partialSolutionsByAltWith.items():
 				if not any (getProposalID(x.altWith)==altWithID for x in l_partialProposals):
-					print("Didnt find", altWithID, "in", list(getProposalID(x.altWith) for x in l_partialProposals))
-					print("Finding best of", list(getProposalID(x.altWith) for x in ps))
 					partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
+					print("Reading partial solutions(", altWithID, "):", list(getProposalID(x) for x in ps), "\nBest was:", getProposalID(partialAccepted))
 					onPartialSolution(partialAccepted, queueProposal, getRelated)
 					remove.append(altWithID)
 				else:

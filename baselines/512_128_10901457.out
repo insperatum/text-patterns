@@ -2881,3 +2881,109 @@ Iteration 9250 | Network loss: 8.96
 (['YO7 1JF'],) ---> YO32 4AZ
 Iteration 9260 | Network loss: 8.50
 (['R'],) ---> L
+Iteration 9270 | Network loss: 8.43
+(['45.5647297842'],) ---> 45.5647297
+Iteration 9280 | Network loss: 8.37
+(['6.35'],) ---> 5.5
+Iteration 9290 | Network loss: 8.86
+(['female'],) ---> female
+Iteration 9300 | Network loss: 8.09
+(['0.90762'],) ---> 0.63308
+Iteration 9310 | Network loss: 8.50
+(['76.70658588'],) ---> 74.3013741
+Iteration 9320 | Network loss: 7.76
+(['online'],) ---> online
+Iteration 9330 | Network loss: 8.69
+(['-'],) ---> 0.268
+Iteration 9340 | Network loss: 8.75
+(['1.7'],) ---> 4.4
+Iteration 9350 | Network loss: 9.82
+(['43.18'],) ---> 42.89
+Iteration 9360 | Network loss: 7.91
+(['949-252-8300'],) ---> 619-645-77
+Iteration 9370 | Network loss: 9.09
+(['DL6 3PY'],) ---> DL6 2PB
+Iteration 9380 | Network loss: 7.91
+(['passed rules'],) ---> passed rul
+Iteration 9390 | Network loss: 8.35
+(['4.6'],) ---> NA
+Iteration 9400 | Network loss: 8.15
+(['2/13/1996'],) ---> 11/22/1991
+Iteration 9410 | Network loss: 8.38
+(['F'],) ---> F
+Iteration 9420 | Network loss: 8.03
+(['R'],) ---> R
+Iteration 9430 | Network loss: 8.89
+(['-1.812965'],) ---> -0.794913
+Iteration 9440 | Network loss: 8.45
+(['CBS CORP'],) ---> BENKELL CI
+Iteration 9450 | Network loss: 8.61
+(['Colony'],) ---> Ireland
+Iteration 9460 | Network loss: 8.90
+(['286.4314772'],) ---> 0.65419675
+Iteration 9470 | Network loss: 9.31
+(['DP, chicken'],) ---> human
+Iteration 9480 | Network loss: 9.11
+(['-77.886495'],) ---> -79.534113
+Iteration 9490 | Network loss: 9.07
+(['1.909'],) ---> 1.355
+Iteration 9500 | Network loss: 7.97
+(['3136G2GS0'],) ---> 3135G0F62
+
+Calculating 10 way train classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.9329999935626984
+
+Calculating 10 way test classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.7069999977946282
+Classification Accuracy: train 0.9329999935626984 test 0.7069999977946282
+
+Calculating train ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -1.1974958550930024 nats per character
+
+Calculating test ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -2.3893196892738344 nats per character
+Scores: train -1.1974958550930024 test -2.3893196892738344
+Iteration 9510 | Network loss: 8.86
+(['O'],) ---> C
+Iteration 9520 | Network loss: 7.91
+(['paper'],) ---> pale
