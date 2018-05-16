@@ -5,7 +5,6 @@ from collections import Counter, namedtuple
 import pregex as pre
 
 import math
-import time
 
 import numpy as np
 import util
@@ -119,7 +118,6 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		examples = tuple(sorted(examples))
 		isCached = examples in networkCache
 
-		t0 = time.time()
 		cur_proposals = []
 		net_proposals = []
 		def getProposalID(proposal): #To avoid duplicate proposals
@@ -138,14 +136,12 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 
 		addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), cur_proposals) #Exactly the examples
 
-		t1 = time.time()
 		for c in current_trace.baseConcepts:
 			addProposal(current_trace.fork(), c, cur_proposals)
 			if "crp" in modes:
 				t,c = current_trace.addPY(c)
 				addProposal(t, c, cur_proposals)
 
-		t2 = time.time()
 		n_cur = math.ceil(nProposals/2)
 		n_net = math.floor(nProposals/2)
 		m_net = n_net * 5 
@@ -198,7 +194,6 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 				if group_idx>=m_net:
 					break
 
-		t3=time.time()
 		cur_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 		net_proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 		
@@ -207,12 +202,10 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		proposals = cur_proposals[:n_cur] + net_proposals[:n_net]
 		proposals.sort(key=lambda proposal: proposal.final_trace.score, reverse=True)
 
-		t4=time.time()
 
 		if not isCached and doPrint: print("Proposals (ll*%2.2f): " % likelihoodWeighting , ", ".join(examples), "--->", ", ".join(
 			("N:" if proposal in net_proposals else "") +
-			proposal.concept.str(proposal.trace) for proposal in proposals) + 
-			"\tTimes:", (t1-t0, t2-t1, t3-t2, t4-t3), flush=True)
+			proposal.concept.str(proposal.trace) for proposal in proposals), flush=True)
 
 		for p in proposals:
 			if tuple(sorted(examples)) == tuple(sorted(target_examples)):

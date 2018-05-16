@@ -331,7 +331,7 @@ def addTask(task_idx):
 		return relatedProposalsDict[getProposalID(proposal)]
 
 	def addRelated(solution):
-		related = getRelated(proposal)
+		related = getRelated(solution)
 		if len(related)>0:
 			print("Add related proposals", solution.concept.str(solution.trace), "---->", ", ".join(p.concept.str(p.trace) for p in related))
 		for p in related:
@@ -350,12 +350,10 @@ def addTask(task_idx):
 			workers.append(worker)
 			worker.start()
 
-	isFirst = True
-	for proposal in getProposals(M['net'] if not args.no_network else None, M['trace'], data[task_idx], nProposals=args.n_proposals, subsampleSize=(args.min_examples,args.max_examples)):
-		queueProposal(proposal)
-		if isFirst:
-			launchWorkers()
-			isFirst = False
+	init_proposals = getProposals(M['net'] if not args.no_network else None, M['trace'], data[task_idx], nProposals=args.n_proposals, subsampleSize=(args.min_examples,args.max_examples))
+	for i in range(args.n_proposals-1): queueInitial(q_main)
+	queueProposal(next(init_proposals))
+	launchWorkers()
 
 
 	startTime = time.time()
@@ -376,7 +374,14 @@ def addTask(task_idx):
 				continue
 	
 
-		assert(queue_item.type in ["solution", "partialSolution", "counterexamples"])
+		assert(queue_item.type in ["solution", "partialSolution", "counterexamples", "initial"])
+		#Initial Proposal
+		if queue_item.type == "initial":
+			try:
+				queueProposal(next(init_proposals))
+			except StopIteration:
+				pass
+
 		#Solutions
 		if queue_item.type == "solution":
 			solution = queue_item.value
