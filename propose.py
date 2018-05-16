@@ -107,7 +107,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 				list(counter.keys()),
 				size=min(num_examples, len(counter)),
 				p=np.array(list(counter.values()))/sum(counter.values()),
-				replace=True))
+				replace=False))
 			for proposal in getProposals(net, current_trace, target_examples, sampled_examples, depth, modes, int(nProposals/nSubsamples), likelihoodWeighting, subsampleSize=None):
 				proposal_string = proposal.concept.str(proposal.trace, depth=-1)
 				if proposal_string not in proposal_strings_sofar:
