@@ -125,7 +125,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		def getProposalID(proposal): #To avoid duplicate proposals
 			return proposal.concept.str(proposal.trace, depth=-1)
 		proposalIDs_so_far = []
-		record=0
+		record=0.05
 		def addProposal(trace, concept, add_to, related=()):
 			nonlocal record
 			def f(t,c,final):
