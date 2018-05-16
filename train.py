@@ -339,7 +339,7 @@ def addTask(task_idx):
 		while True:
 			try:
 				partialSolution = q_partialSolutions.get(timeout=0.1)
-				if partialSolution.altWith not in partialSolutionsByAltWith: partialSolutionsByAltWith[getProposalID(partialSolution.altWith)]=[]
+				if getProposalID(partialSolution.altWith) not in partialSolutionsByAltWith: partialSolutionsByAltWith[getProposalID(partialSolution.altWith)]=[]
 				partialSolutionsByAltWith[getProposalID(partialSolution.altWith)].append(partialSolution)
 			except queue.Empty:
 				break
@@ -357,7 +357,7 @@ def addTask(task_idx):
 				else:
 					print("still waiting...")
 			for altWithID in remove: del partialSolutionsByAltWith[altWithID]
-
+			
 		#Counterexamples
 		try:
 			counterexample_args = q_counterexamples.get(timeout=0.1)
