@@ -140,7 +140,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 				add_to.append(p)
 			_t2=time.time()
 			if _t2-_t0>record:
-				record=_t2-_t1
+				record=_t2-_t0
 				print("<", concept.str(trace), "took", _t1-_t0, _t2-_t1)
 			return p if p.valid else None
 
