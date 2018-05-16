@@ -110,7 +110,7 @@ def saveConcepts(M, filename, onlyIdxs=None, mode="samples"):
 		if isRegex and concept.id != 0:
 			content_prefix = "<font point-size='%d'>: "%(int(size*1.5)) + html_escape(concept.str(trace, depth=1, include_self=False)) + "</font>"
 		else:
-			content_prefix = "<font point-size='%'>: "%(int(size*1.5)) + "(" + concept.str(trace, depth=1, include_self=False)) + ")</font>"
+			content_prefix = "<font point-size='%'>: "%(int(size*1.5)) + "(" + concept.str(trace, depth=1, include_self=False) + ")</font>"
 
 		nTaskReferences = trace.baseConcept_nTaskReferences.get(concept, 0)
 		nConceptReferences = trace.baseConcept_nReferences.get(concept, 0)
