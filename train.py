@@ -346,11 +346,13 @@ def addTask(task_idx):
 		if len(partialSolutionsByAltWith)>0 and not any(l_active):
 			print("Reading partial solutions...")
 			#for ps in partialSolutionsByAltWith.values():
+			remove = []
 			for (altWithID, ps) in partialSolutionsByAltWith.items():
 				if not any (x.altWith is not None and getProposalID(x.altWith)==altWithID for x in list(l_partialProposals)):
 					partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 					onPartialSolution(partialAccepted, queueProposal, getRelated)
-				del partialSolutionsByAltWith[altWithID]
+					remove.append(altWithID)
+			for altWithID in remove: del partialSolutionsByAltWith[altWithID]
 
 		#Counterexamples
 		try:

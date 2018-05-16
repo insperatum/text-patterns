@@ -2153,3 +2153,75 @@ Iteration 6960 | Network loss: 9.08
 (['6.900000'],) ---> 9.290000
 Iteration 6970 | Network loss: 9.11
 (['online'],) ---> paper
+Iteration 6980 | Network loss: 8.38
+(['60'],) ---> 41
+Iteration 6990 | Network loss: 8.74
+(['1190887'],) ---> 1298211
+Iteration 7000 | Network loss: 8.71
+(['15:57:44'],) ---> 11:15:36
+
+Calculating 10 way train classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.9314999949932098
+
+Calculating 10 way test classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.7184999990463257
+Classification Accuracy: train 0.9314999949932098 test 0.7184999990463257
+
+Calculating train ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -1.2391017544269562 nats per character
+
+Calculating test ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -2.376869821548462 nats per character
+Scores: train -1.2391017544269562 test -2.376869821548462
+Iteration 7010 | Network loss: 9.10
+(['+00:00:00'],) ---> +00:00:00
+Iteration 7020 | Network loss: 8.90
+(['08816-1081'],) ---> 07733-2456
+Iteration 7030 | Network loss: 9.23
+(['-6'],) ---> 7
+Iteration 7040 | Network loss: 8.64
+(['384012'],) ---> 385121
+Iteration 7050 | Network loss: 9.39
+(['19999.92'],) ---> 280000
+Iteration 7060 | Network loss: 9.55
+(['DP, chicken'],) ---> DP, chicke
