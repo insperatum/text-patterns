@@ -9,16 +9,19 @@ from graphviz import Digraph
 
 from trace import RegexConcept, PYConcept
 import html
+import cgi
 import numpy as np
 
 import string
 alphanumeric = string.ascii_letters + string.digits
 
 def html_escape(s):
-	s = html.escape(html.escape(s))	
+	s = cgi.escape(cgi.escape(s))
+
 	#s = s.replace("&amp;lt;", "&lt;").replace("&amp;gt;", "&gt;")
 	s = s.replace("\t", "\\t")
 	s = s.replace("[", "&#91;").replace("]", "&#93;")
+
 	#s = "".join(x if x in alphanumeric else "&#" + str(ord(x)) + ";" for x in s)
 	return s
 
@@ -43,16 +46,19 @@ def saveConcepts(M, filename, onlyIdxs=None, mode="both"):
 				toAdd.append(c2)
 
 	for concept in concepts:
-		samples_counter = Counter([concept.sample(trace) for _ in range(25)])
-		tot=sum(samples_counter.values())
-		best = sorted(samples_counter, key=lambda x:math.log(samples_counter.get(x)/tot)/len(x), reverse=True)[:4]
-		#unique_samples = set(samples)
-		#many_samples = [concept.sample(trace) for _ in range(500)]
-			
-		if len(samples_counter)>len(best):
-			sample_str = ", ".join(list(s if s is not "" else "ε" for s in best) + ["..."])
-		else:
-			sample_str = ", ".join(list(s if s is not "" else "ε" for s in best))
+		samples = [concept.sample(trace) for _ in range(1000)]
+		samples_counter = Counter(samples)
+		samples.sort(key=samples_counter.get)
+		sample_str = ", ".join(list(s if s is not "" else "ε" for s in samples[200:801:200]))
+		#tot=sum(samples_counter.values())
+		#best = sorted(samples_counter, key=lambda x:math.log(samples_counter.get(x)/tot)/len(x), reverse=True)[:4]
+		##unique_samples = set(samples)
+		##many_samples = [concept.sample(trace) for _ in range(500)]
+		#	
+		#if len(samples_counter)>len(best):
+		#	sample_str = ", ".join(list(s if s is not "" else "ε" for s in best) + ["..."])
+		#else:
+		#	sample_str = ", ".join(list(s if s is not "" else "ε" for s in best))
 		
 		observations = concept.get_observations(trace)
 		counter = Counter(observations)	
