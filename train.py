@@ -348,7 +348,8 @@ def addTask(task_idx):
 			#for ps in partialSolutionsByAltWith.values():
 			remove = []
 			for (altWithID, ps) in partialSolutionsByAltWith.items():
-				if not any (x.altWith is not None and getProposalID(x.altWith)==altWithID for x in list(l_partialProposals)):
+				if not any (getProposalID(x.altWith)==altWithID for x in l_partialProposals):
+					print("Didnt find", altWithID, "in", list(getProposalID(x.altWith) for x in l_partialProposals))
 					partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 					onPartialSolution(partialAccepted, queueProposal, getRelated)
 					remove.append(altWithID)

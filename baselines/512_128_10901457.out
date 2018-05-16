@@ -2393,3 +2393,80 @@ Iteration 7620 | Network loss: 9.78
 (['3'],) ---> 8
 Iteration 7630 | Network loss: 9.11
 (['20164'],) ---> 76804
+Iteration 7640 | Network loss: 9.07
+(['7017972221'],) ---> 7167566724
+Iteration 7650 | Network loss: 9.02
+(['010023057609'],) ---> 0100906602
+Iteration 7660 | Network loss: 9.56
+(['310058'],) ---> 172051
+Iteration 7670 | Network loss: 9.09
+(['0.0831482415'],) ---> 0.23505644
+Iteration 7680 | Network loss: 8.90
+(['YCRXR0101G1A'],) ---> YSTXR0100M
+Iteration 7690 | Network loss: 8.71
+(['passed rules'],) ---> passed rul
+Iteration 7700 | Network loss: 7.75
+(['01/04/1990'],) ---> 01/06/2005
+Iteration 7710 | Network loss: 8.85
+(['733036.1846'],) ---> 738775.096
+Iteration 7720 | Network loss: 9.12
+(['0.068457802'],) ---> 0.00292566
+Iteration 7730 | Network loss: 8.41
+(['353'],) ---> 122
+Iteration 7740 | Network loss: 9.65
+(['0.245'],) ---> 0.15
+Iteration 7750 | Network loss: 8.90
+(['01.04.2015'],) ---> 01.04.2016
+Iteration 7760 | Network loss: 8.02
+(['B6 6EH'],) ---> B33 4QZ
+Iteration 7770 | Network loss: 7.99
+(['4/5/10'],) ---> 1/18/10
+Iteration 7780 | Network loss: 8.99
+(["k'i"],) ---> q'i
+Iteration 7790 | Network loss: 8.44
+(['OAS2_0040'],) ---> OAS2_0115
+Iteration 7800 | Network loss: 9.27
+(['619-645-7711'],) ---> 949-252-83
+Iteration 7810 | Network loss: 8.96
+(['?'],) ---> ?
+Iteration 7820 | Network loss: 8.40
+(['31/07/2011'],) ---> 12/02/2011
+Iteration 7830 | Network loss: 9.73
+(['687745275'],) ---> 662647417
+Iteration 7840 | Network loss: 8.90
+(['2014-07-17'],) ---> 2014-02-29
+Iteration 7850 | Network loss: 8.60
+(['248'],) ---> 356
+Iteration 7860 | Network loss: 8.16
+(['Farm'],) ---> Mason
+Iteration 7870 | Network loss: 8.79
+(['130.56'],) ---> 85.57
+Iteration 7880 | Network loss: 8.67
+(['9.200000'],) ---> 10.000000
+Iteration 7890 | Network loss: 9.25
+(['619-645-7711'],) ---> 619-664-62
+Iteration 7900 | Network loss: 8.83
+(['2TYXE0190AF0'],) ---> 2CRXE0101G
+Iteration 7910 | Network loss: 9.44
+(['pardo'],) ---> oldsmobile
+Iteration 7920 | Network loss: 9.35
+(["q'e"],) ---> k'e
+Iteration 7930 | Network loss: 9.23
+(['8/20/09'],) ---> 7/29/09
+Iteration 7940 | Network loss: 8.84
+(['MO'],) ---> AV
+Iteration 7950 | Network loss: 8.53
+(['FALSE'],) ---> TRUE
+Iteration 7960 | Network loss: 9.05
+(['386780'],) ---> 383940.09
+Iteration 7970 | Network loss: 8.42
+(['DGS'],) ---> LNS
+Iteration 7980 | Network loss: 9.18
+(['-77.45580972'],) ---> -97.693463
+Iteration 7990 | Network loss: 9.37
+(['99615'],) ---> 65815
+Iteration 8000 | Network loss: 9.00
+(['4GMXR0133910'],) ---> 4BMXR0130E
+
+Calculating 10 way train classification
+0 / 100
