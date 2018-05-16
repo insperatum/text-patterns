@@ -67,7 +67,7 @@ def saveConcepts(M, filename, onlyIdxs=None, mode="samples"):
 			observations.sort(key = counter.get, reverse=True)
 			minIdx = int(math.floor(len(observations)/5))
 			maxIdx = int(math.ceil(len(observations)*4/5))
-			step = math.max(1,int(math.floor(len(observations)/5)))
+			step = max(1,int(math.floor(len(observations)/5)))
 			sampled_observations = list(set(observations[minIdx:maxIdx:step])) 
 			obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations))
 		#if len(counter)>5:
@@ -177,4 +177,4 @@ def saveTrainingError(M, filename):
 	# plt.ylim(ymin=0, ymax=25)
 	plt.xlabel('Iteration')
 	plt.ylabel('NLL')
-	plt.savefig(filename)
+	Plt.savefig(filename)
