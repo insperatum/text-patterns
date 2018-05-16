@@ -12,7 +12,7 @@ trace = M['trace']
 def latexify(s):
 	return "\\verb|" + s + "|"
 
-print("\\begin{tabular}{" + " ".split("l"*nSamples) + "}")
+print("\\begin{tabular}{" + " ".join("l"*nSamples) + "}")
 for c in sorted(trace.baseConcepts, key=lambda c: trace.baseConcept_nReferences.get(c,0), reverse=True)[:10]:
 	samples = [c.sample(trace) for _ in range(nSamples)]
 	print(latexify(", ".join(samples)) + "\\\\")
