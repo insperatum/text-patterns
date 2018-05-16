@@ -184,6 +184,10 @@ def queueCounterexamples(q_main, counterexample_args):
 		priority = (2, float("inf"), random.random())
 	q_main.put(QueueItem(priority, "counterexamples", counterexample_args))
 
+def queueInitial(q_main):
+	priority = (2, 0, random.random())
+	q_main.put(QueueItem(priority, "initial", None))
+
 def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
 	if p_valid>0.5 and proposal.depth<args.counterexample_depth:
 		counterexample_threshold = args.counterexample_threshold if proposal.depth==0 or args.counterexample_threshold2 is None else args.counterexample_threshold2
