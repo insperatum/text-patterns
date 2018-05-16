@@ -25,7 +25,7 @@ def html_escape(s):
 	#s = "".join(x if x in alphanumeric else "&#" + str(ord(x)) + ";" for x in s)
 	return s
 
-def saveConcepts(M, filename, onlyIdxs=None, mode="both"):
+def saveConcepts(M, filename, onlyIdxs=None, mode="samples"):
 	assert(mode in ["samples", "observations", "both"])
 
 	print("Rendering to:%s"%filename)
