@@ -8,6 +8,8 @@ import queue
 import string
 import time
 
+from collections import namedtuple
+
 import numpy as np
 from scipy import stats
 import torch.multiprocessing as mp
@@ -151,6 +153,37 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 
 
 # ----------- Solve a task ------------------
+#q_main: (priority, type, value)
+#priority: (priority-type, guess at (negative) final score)
+#priority-type: 0=guaranteed solution, known score,
+#               1=guaranteed solution, unknown score (either from found partial solution, or from taking counterexamples to a solution that definitely works)
+# 				2=unknown
+#type: "solution", "partialSolution", "counterexample"
+#value: ...
+QueueItem = namedtuple("QueueItem", ["priority", "type", "element"])
+
+def queueSolution(q_main, solution):
+	priority = (0, -solution.final_trace.score)
+	q_main.put(QueueItem(priority, "solution", solution))
+
+def queuePartialSolution(q_main, partialSolution):
+	if partialSolution.altWith.altWith is None:
+		priority = (1, float("inf"))
+	else:
+		priority = (2, float("inf"))
+	q_main.put(QueueItem(priority, "partialSolution", partialSolution))
+
+def queueCounterexamples(q_main, counterexample_args):
+	(proposal, counterexamples, p_valid, kinkscore) = counterexample_args
+	if kinkscore is not None:
+		if proposal.altWith is None:
+			priority = (1, -proposal.final_trace.score)
+		else:
+			priority = (2, float("inf"))
+	else:
+		priority = (2, float("inf"))
+	q_main.put(QueueItem(priority, "counterexamples", counterexample_args))
+
 def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
 	if p_valid>0.5 and proposal.depth<args.counterexample_depth:
 		counterexample_threshold = args.counterexample_threshold if proposal.depth==0 or args.counterexample_threshold2 is None else args.counterexample_threshold2
@@ -206,7 +239,7 @@ def onPartialSolution(partialSolution, queueProposal, getRelated):
 	
 	
 
-def cpu_worker(worker_idx, init_trace, l_proposals, l_partialProposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, task):
+def cpu_worker(worker_idx, init_trace, l_proposals, l_partialProposals, q_main, l_active, l_running, task_idx, task):
 	nEvaluated = 0
 
 	while l_running[0]:
@@ -223,14 +256,15 @@ def cpu_worker(worker_idx, init_trace, l_proposals, l_partialProposals, q_counte
 
 		l_active[worker_idx] = True
 		start_time=time.time()
-		solution = evalProposal(proposal, onCounterexamples=lambda *args: q_counterexamples.put(args), doPrint=False, task_idx=task_idx)
+		solution = evalProposal(proposal, onCounterexamples=lambda *args: queueCounterexamples(q_main, args), doPrint=False, task_idx=task_idx)
 		took = time.time()-start_time
 
 		if proposal.altWith is None:
 			nEvaluated += 1
 			if solution.valid:
 				#solutions.append(solution)
-				q_solutions.put(solution)
+				#q_solutions.put(solution)
+				queueSolution(q_main, solution)
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Score: %3.3f"%(solution.final_trace.score - init_trace.score), "(prior %3.3f + likelihood %3.3f):"%(solution.trace.score - init_trace.score, solution.final_trace.score - solution.trace.score), proposal.concept.str(proposal.trace), flush=True)
 				if tuple(solution.target_examples) != tuple(task):
 					print("INCORRECT TARGET EXAMPLES??", solution.concept.str(solution.trace), solution.target_examples)
@@ -240,7 +274,7 @@ def cpu_worker(worker_idx, init_trace, l_proposals, l_partialProposals, q_counte
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed:", proposal.concept.str(proposal.trace), flush=True)
 		else:
 			if solution.valid:
-				q_partialSolutions.put(solution)
+				queuePartialSolution(q_main, solution)
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Got partial solution", proposal.concept.str(proposal.trace), flush=True)
 			else:
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed partial solution", proposal.concept.str(proposal.trace), flush=True)
@@ -299,16 +333,15 @@ def addTask(task_idx):
 			queueProposal(p)
 
 	n_workers = max(1, cpus-1)
-	q_counterexamples = manager.Queue()
-	q_solutions = manager.Queue()
+	q_main = manager.Queue()
+	pq_main = queue.PriorityQueue()
 	solutions = []
-	q_partialSolutions = manager.Queue()
 	l_active = manager.list([True for _ in range(n_workers)])
 	l_running = manager.list([True])
 	workers = []
 	def launchWorkers():
 		for worker_idx in range(n_workers):
-			worker = mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], l_proposals, l_partialProposals, q_counterexamples, q_solutions, q_partialSolutions, l_active, l_running, task_idx, data[task_idx]))
+			worker = mp.Process(target=cpu_worker, args=(worker_idx, M['trace'], l_proposals, l_partialProposals, q_main, l_active, l_running, task_idx, data[task_idx]))
 			workers.append(worker)
 			worker.start()
 
@@ -321,49 +354,52 @@ def addTask(task_idx):
 
 
 	startTime = time.time()
-	partialSolutionsByAltWith = {}
-	while any(l_active) or len(l_proposals)>0 or len(l_partialProposals)>0 or not q_counterexamples.empty() or not q_partialSolutions.empty() or len(partialSolutionsByAltWith)>0:
+	#partialSolutionsByAltWith = {}
+	while any(l_active) or len(l_proposals)>0 or len(l_partialProposals)>0 or not q_main.empty():# or len(partialSolutionsByAltWith)>0:
 		if time.time() - startTime > args.timeout * 60:
 			print("Timeout!")
 			break
 
-		#Solutions
 		try:
-			solution = q_solutions.get(timeout=0.1)
+			pq_main.put(q_main.get(timeout=0.1))
+			continue
+		except queue.Empty:
+			try:
+				queue_item = pq_main.get_nowait()
+			except queue.Empty:
+				continue
+		
+		assert(queue_item.type in ["solution", "partialSolution", "counterexamples"])
+		#Solutions
+		if queue_item.type == "solution":
+			solution = queue_item.value
 			solutions.append(solution)
 			addRelated(solution)
-		except queue.Empty:
-			pass
 
 		#PartialSolutions
-		while True:
-			try:
-				partialSolution = q_partialSolutions.get(timeout=0.1)
-				if getProposalID(partialSolution.altWith) not in partialSolutionsByAltWith: partialSolutionsByAltWith[getProposalID(partialSolution.altWith)]=[]
-				partialSolutionsByAltWith[getProposalID(partialSolution.altWith)].append(partialSolution)
-			except queue.Empty:
-				break
-		if len(partialSolutionsByAltWith)>0 and not any(l_active):
-			#print("Reading partial solutions for:", list(partialSolutionsByAltWith.keys()))
-			#for ps in partialSolutionsByAltWith.values():
-			remove = []
-			for (altWithID, ps) in partialSolutionsByAltWith.items():
-				if not any (getProposalID(x.altWith)==altWithID for x in l_partialProposals):
-					partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
-					print("Reading partial solutions(", altWithID, "):", list(x.concept.str(x.trace) + "=" + str(x.final_trace.score) for x in ps), "\nBest was:", getProposalID(partialAccepted))
-					addRelated(partialAccepted)
-					onPartialSolution(partialAccepted, queueProposal, getRelated)
-					remove.append(altWithID)
-				else:
-					print("still waiting...")
-			for altWithID in remove: del partialSolutionsByAltWith[altWithID]
-			
+		if queue_item.type == "partialSolution":
+			partialSolution = queue_item.value 
+			#if getProposalID(partialSolution.altWith) not in partialSolutionsByAltWith: partialSolutionsByAltWith[getProposalID(partialSolution.altWith)]=[]
+			#partialSolutionsByAltWith[getProposalID(partialSolution.altWith)].append(partialSolution)
+			addRelated(partialSolution)
+			onPartialSolution(partialSolution)
+		#if len(partialSolutionsByAltWith)>0 and not any(l_active):
+		#	#print("Reading partial solutions for:", list(partialSolutionsByAltWith.keys()))
+		#	#for ps in partialSolutionsByAltWith.values():
+		#	remove = []
+		#	for (altWithID, ps) in partialSolutionsByAltWith.items():
+		#		if not any (getProposalID(x.altWith)==altWithID for x in l_partialProposals):
+		#			partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
+		#			print("Reading partial solutions(", altWithID, "):", list(x.concept.str(x.trace) + "=" + str(x.final_trace.score) for x in ps), "\nBest was:", getProposalID(partialAccepted))
+		#			addRelated(partialAccepted)
+		#			onPartialSolution(partialAccepted, queueProposal, getRelated)
+		#			remove.append(altWithID)
+		#	for altWithID in remove: del partialSolutionsByAltWith[altWithID]
+
 		#Counterexamples
-		try:
-			counterexample_args = q_counterexamples.get(timeout=0.1)
+		if queue_item.type == "counterexamples":
+			counterexample_args = queue_item.value 
 			onCounterexamples(queueProposal, *counterexample_args)
-		except queue.Empty:
-			pass
 
 	l_running[0] = False
 
