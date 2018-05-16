@@ -3,6 +3,7 @@ import loader
 import render
 
 nSamples=6
+topN=12
 
 model = "results/model.pt"
 
@@ -13,7 +14,7 @@ trace = M['trace']
 def latexify(s):
 	return "\\verb|" + s + "|"
 
-topConcepts = sorted(trace.baseConcepts, key=lambda c: trace.baseConcept_nReferences.get(c,0), reverse=True)[:10]
+topConcepts = sorted(trace.baseConcepts, key=lambda c: trace.baseConcept_nReferences.get(c,0), reverse=True)[:topN]
 print("\\begin{tabular}{l|" + " ".join("l"*nSamples) + "}")
 #print("&\\textbf{Reuses} & \\textbf{Samples}\\\\")
 print(" & Samples\\\\")
