@@ -20,7 +20,7 @@ Proposal.strip = proposal_strip
 
 record=0
 def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None, likelihoodWeighting=1, eval_examples=None):
-	nonlocal record
+	global record
 	assert(proposal.final_trace is None and proposal.observations is None and proposal.valid is None)
 	if proposal.trace.score == float("-inf"): #Zero probability under prior
 		return proposal._replace(valid=False)
