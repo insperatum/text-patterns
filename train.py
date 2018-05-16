@@ -290,7 +290,7 @@ def addTask(task_idx):
 		return relatedProposalsDict[getProposalID(proposal)]
 
 	def addRelated(solution):
-		related = relatedProposalsDict[getProposalID(solution)]
+		related = getRelated(proposal)
 		if len(related)>0:
 			print("Add related proposals", solution.concept.str(solution.trace), "---->", ", ".join(p.concept.str(p.trace) for p in related))
 		else:
@@ -351,6 +351,7 @@ def addTask(task_idx):
 				if not any (getProposalID(x.altWith)==altWithID for x in l_partialProposals):
 					partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 					print("Reading partial solutions(", altWithID, "):", list(x.concept.str(x.trace) + "=" + str(x.final_trace.score) for x in ps), "\nBest was:", getProposalID(partialAccepted))
+					addRelated(partialSolution)
 					onPartialSolution(partialAccepted, queueProposal, getRelated)
 					remove.append(altWithID)
 				else:
