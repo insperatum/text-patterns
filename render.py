@@ -63,12 +63,19 @@ def saveConcepts(M, filename, onlyIdxs=None, mode="samples"):
 		
 		observations = concept.get_observations(trace)
 		counter = Counter(observations)	
-		if len(counter)>5:
-			total = sum(counter.values())
-			sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=4)
-			obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations) + ["..."])
-		elif len(counter)>0:
-			obs_str = ", ".join(list(s if s is not "" else "ε" for s in counter))
+		if len(counter) > 0:
+			observations.sort(key = counter.get, reverse=True)
+			minIdx = int(math.floor(len(observations/5)))
+			maxIdx = int(math.ceil(len(observations*4/5)))
+			step = int(math.floor(len(observations/5)))
+			sampled_observations = list(set(observations[minIdx:maxIdx:step])) 
+			obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations))
+		#if len(counter)>5:
+		#	total = sum(counter.values())
+		#	sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=4)
+		#	obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations) + ["..."])
+		#elif len(counter)>0:
+		#	obs_str = ", ".join(list(s if s is not "" else "ε" for s in counter))
 		else:
 			obs_str = "(no observations)"
 		
