@@ -1,7 +1,7 @@
 import loader
 
 
-nSamples=3
+nSamples=10
 
 model = "results/model.pt"
 
@@ -12,7 +12,7 @@ trace = M['trace']
 def latexify(s):
 	return "\\verb|" + s + "|"
 
-for c in sorted(trace.baseConcepts, key=lambda c: trace.baseConcept_nReferences.get(c,0), reverse=True):
+for c in sorted(trace.baseConcepts, key=lambda c: trace.baseConcept_nReferences.get(c,0), reverse=True)[:10]:
 	samples = [c.sample(trace) for _ in range(nSamples)]
 	print(latexify(", ".join(samples)) + "\\")
 
