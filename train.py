@@ -368,7 +368,9 @@ def addTask(task_idx):
 				queue_item = pq_main.get_nowait()
 			except queue.Empty:
 				continue
-		
+	
+		print(">Got queue item:", queue_item)
+
 		assert(queue_item.type in ["solution", "partialSolution", "counterexamples"])
 		#Solutions
 		if queue_item.type == "solution":
