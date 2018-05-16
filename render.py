@@ -65,9 +65,9 @@ def saveConcepts(M, filename, onlyIdxs=None, mode="samples"):
 		counter = Counter(observations)	
 		if len(counter) > 0:
 			observations.sort(key = counter.get, reverse=True)
-			minIdx = int(math.floor(len(observations/5)))
-			maxIdx = int(math.ceil(len(observations*4/5)))
-			step = int(math.floor(len(observations/5)))
+			minIdx = int(math.floor(len(observations)/5))
+			maxIdx = int(math.ceil(len(observations)*4/5))
+			step = int(math.floor(len(observations)/5))
 			sampled_observations = list(set(observations[minIdx:maxIdx:step])) 
 			obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations))
 		#if len(counter)>5:
