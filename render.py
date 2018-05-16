@@ -177,4 +177,4 @@ def saveTrainingError(M, filename):
 	# plt.ylim(ymin=0, ymax=25)
 	plt.xlabel('Iteration')
 	plt.ylabel('NLL')
-	Plt.savefig(filename)
+	plt.savefig(filename)
