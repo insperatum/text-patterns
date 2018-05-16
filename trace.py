@@ -468,6 +468,7 @@ class RegexConcept(Concept):
 		return trace
 
 
+nConsumeCalls=0
 class RegexWrapper(pre.Pregex):
 	def __init__(self, concept):
 		self.concept = concept
@@ -486,12 +487,15 @@ class RegexWrapper(pre.Pregex):
 		return self.concept.sample(trace)
 
 	def consume(self, string, regexState):
+		global nConsumeCalls
+		nConsumeCalls += 1
 		initScore = regexState.trace.score
 		for new_trace, observation, numCharacters in regexState.trace.observe_partial(self.concept, string, n=regexState.n):
 			new_trace = new_trace.fork()
 			score = (new_trace.score - initScore)/regexState.n #Score per match
 			new_regexState = regexState._replace(trace=new_trace, observations=regexState.observations + (observation,))
 			yield pre.PartialMatch(numCharacters=numCharacters, score=score, reported_score=0, continuation=None, state=new_regexState)
+
 
 
 class Trace:
@@ -554,6 +558,7 @@ class Trace:
 			else:
 				observations.extend([new_observation]*n)
 				trace = new_trace
+
 		if len(counterexamples)>0:
 			p_valid = len(observations) / (len(observations) + sum(counter[x] for x in counterexamples))
 			return None, None, counterexamples, p_valid

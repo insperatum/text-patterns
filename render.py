@@ -9,20 +9,25 @@ from graphviz import Digraph
 
 from trace import RegexConcept, PYConcept
 import html
+import cgi
 import numpy as np
 
 import string
 alphanumeric = string.ascii_letters + string.digits
 
 def html_escape(s):
-	s = html.escape(html.escape(s))	
+	s = cgi.escape(cgi.escape(s))
+
 	#s = s.replace("&amp;lt;", "&lt;").replace("&amp;gt;", "&gt;")
 	s = s.replace("\t", "\\t")
 	s = s.replace("[", "&#91;").replace("]", "&#93;")
+
 	#s = "".join(x if x in alphanumeric else "&#" + str(ord(x)) + ";" for x in s)
 	return s
 
-def saveConcepts(M, filename, onlyIdxs=None):
+def saveConcepts(M, filename, onlyIdxs=None, mode="samples"):
+	assert(mode in ["samples", "observations", "both"])
+
 	print("Rendering to:%s"%filename)
 	trace = M['trace']
 	concepts = trace.allConcepts
@@ -41,27 +46,38 @@ def saveConcepts(M, filename, onlyIdxs=None):
 				toAdd.append(c2)
 
 	for concept in concepts:
-		samples_counter = Counter([concept.sample(trace) for _ in range(25)])
-		tot=sum(samples_counter.values())
-		best = sorted(samples_counter, key=lambda x:math.log(samples_counter.get(x)/tot)/len(x), reverse=True)[:4]
-		#unique_samples = set(samples)
-		#many_samples = [concept.sample(trace) for _ in range(500)]
-			
-		if len(samples_counter)>len(best):
-			sample_str = ", ".join(list(s if s is not "" else "ε" for s in best) + ["..."])
-		else:
-			sample_str = ", ".join(list(s if s is not "" else "ε" for s in best))
+		samples = [concept.sample(trace) for _ in range(1000)]
+		samples_counter = Counter(samples)
+		samples.sort(key=samples_counter.get, reverse=True)
+		samples = list(set(samples[200:801:200]))
+		sample_str = ", ".join(list(s if s is not "" else "ε" for s in samples))
+		#tot=sum(samples_counter.values())
+		#best = sorted(samples_counter, key=lambda x:math.log(samples_counter.get(x)/tot)/len(x), reverse=True)[:4]
+		##unique_samples = set(samples)
+		##many_samples = [concept.sample(trace) for _ in range(500)]
+		#	
+		#if len(samples_counter)>len(best):
+		#	sample_str = ", ".join(list(s if s is not "" else "ε" for s in best) + ["..."])
+		#else:
+		#	sample_str = ", ".join(list(s if s is not "" else "ε" for s in best))
 		
 		observations = concept.get_observations(trace)
 		counter = Counter(observations)	
+		if len(counter) > 0:
+			observations.sort(key = counter.get, reverse=True)
+			minIdx = int(math.floor(len(observations)/5))
+			maxIdx = int(math.ceil(len(observations)*4/5))
+			step = max(1,int(math.floor(len(observations)/5)))
+			sampled_observations = list(set(observations[minIdx:maxIdx:step])) 
+			obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations))
 		#if len(counter)>5:
 		#	total = sum(counter.values())
 		#	sampled_observations = np.random.choice(list(counter.keys()), p=[x/total for x in counter.values()], replace=False, size=4)
 		#	obs_str = ", ".join(list(s if s is not "" else "ε" for s in sampled_observations) + ["..."])
 		#elif len(counter)>0:
 		#	obs_str = ", ".join(list(s if s is not "" else "ε" for s in counter))
-		#else:
-		#	obs_str = "(no observations)"
+		else:
+			obs_str = "(no observations)"
 		
 		isRegex = type(concept) is RegexConcept
 		isParentRegex = (type(concept) is PYConcept) and (type(trace.getState(concept).baseConcept) is RegexConcept)
@@ -94,14 +110,17 @@ def saveConcepts(M, filename, onlyIdxs=None):
 
 	
 		if concept.id==0:
-			name_prefix = "<font point-size='%d'><u><b>Alphabet</b></u></font>" % int(size*1.2)
+			name_prefix = "<font point-size='%d'><u><b>Σ</b></u></font>" % int(size*1.2)
 		else:
 			name_prefix = "<font point-size='%d'><u><b>"%(int(size*1.5)) + html_escape(concept.str(trace, depth=0)) + "</b></u></font>"
 
-		if isRegex and concept.id != 0:
-			content_prefix = "<font point-size='%d'>: "%(int(size*1.5)) + html_escape(concept.str(trace, depth=1, include_self=False)) + "</font>"
+		if isRegex:
+			if concept.id != 0:
+				content_prefix = "<font point-size='%d'>: "%(int(size*1.5)) + html_escape(concept.str(trace, depth=1, include_self=False)) + "</font>"
+			else:
+				content_prefix = ""
 		else:
-			content_prefix = ""
+			content_prefix = "<font point-size='%d'>: "%(int(size*1.5)) + "(" + concept.str(trace, depth=1, include_self=False) + ")</font>"
 
 		nTaskReferences = trace.baseConcept_nTaskReferences.get(concept, 0)
 		nConceptReferences = trace.baseConcept_nReferences.get(concept, 0)
@@ -122,9 +141,9 @@ def saveConcepts(M, filename, onlyIdxs=None):
 			dot.node(str(concept.id), "<" 
 				+ name_prefix
 				+ content_prefix
-				#+ "<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>"
-				#+ "<br/><font point-size='%d'>"%size + html_escape(sample_str) + "</font>"
-				+ "<br/><font point-size='%d'>"%size + obs_sample_str + "</font>"
+				+ ("<br/><font point-size='%d'>"%size + html_escape(obs_str) + "</font>" if mode=="observations" else "")
+				+ ("<br/><font point-size='%d'>"%size + html_escape(sample_str) + "</font>" if mode=="samples" else "")
+				+ ("<br/><font point-size='%d'>"%size + obs_sample_str + "</font>" if mode=="both" else "")
 				#+ ("" if nTaskReferences<2 else "<br/><font point-size='%d'>"%size + "(" + ("1 task" if nTaskReferences==1 else "%d tasks" % nTaskReferences) + ")" + "</font>")
 				+ ">", color=color, style=style, width='0.5')
 		
