@@ -17,7 +17,7 @@ args = parser.parse_args()
 print("Loading", args.model)
 M = loader.load(args.model)
 
-if 'net' in M:
+if 'net' in M and M['net'] is not None:
 	if torch.cuda.is_available(): M['net'].cuda()
 	net = M['net']
 
