@@ -339,16 +339,18 @@ def addTask(task_idx):
 		while True:
 			try:
 				partialSolution = q_partialSolutions.get(timeout=0.1)
-				if partialSolution.altWith not in partialSolutionsByAltWith: partialSolutionsByAltWith[partialSolution.altWith]=[]
-				partialSolutionsByAltWith[partialSolution.altWith].append(partialSolution)
+				if partialSolution.altWith not in partialSolutionsByAltWith: partialSolutionsByAltWith[getProposalID(partialSolution.altWith)]=[]
+				partialSolutionsByAltWith[getProposalID(partialSolution.altWith)].append(partialSolution)
 			except queue.Empty:
 				break
-		if len(partialSolutionsByAltWith)>0 and not any(l_active) and len(l_proposals)==0 and len(l_partialProposals)==0 and q_counterexamples.empty() and q_partialSolutions.empty():
+		if len(partialSolutionsByAltWith)>0 and not any(l_active):
 			print("Reading partial solutions...")
-			for ps in partialSolutionsByAltWith.values():
-				partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
-				onPartialSolution(partialAccepted, queueProposal, getRelated)
-			partialSolutionsByAltWith.clear()
+			#for ps in partialSolutionsByAltWith.values():
+			for (altWithID, ps) in partialSolutionsByAltWith.items():
+				if not any (x.altWith is not None and getProposalID(x.altWith)==altWithID for x in list(l_partialProposals)):
+					partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
+					onPartialSolution(partialAccepted, queueProposal, getRelated)
+				del partialSolutionsByAltWith[altWithID]
 
 		#Counterexamples
 		try:
