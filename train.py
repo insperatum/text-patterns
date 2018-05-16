@@ -352,6 +352,8 @@ def addTask(task_idx):
 					partialAccepted = max(ps, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 					onPartialSolution(partialAccepted, queueProposal, getRelated)
 					remove.append(altWithID)
+				else:
+					print("still waiting...")
 			for altWithID in remove: del partialSolutionsByAltWith[altWithID]
 
 		#Counterexamples

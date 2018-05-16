@@ -2225,3 +2225,12 @@ Iteration 7050 | Network loss: 9.39
 (['19999.92'],) ---> 280000
 Iteration 7060 | Network loss: 9.55
 (['DP, chicken'],) ---> DP, chicke
+Iteration 7070 | Network loss: 8.86
+(['NA'],) ---> NA
+Iteration 7080 | Network loss: 8.81
+(['127.23'],) ---> 7.46
+Iteration 7090 | Network loss: 8.52
+(['0.722991695'],) ---> 1.28582869
+Iteration 7100 | Network loss: 8.65
+(['312384'],) ---> 1309331
+Iteration 7110 | Network loss: 7.77
