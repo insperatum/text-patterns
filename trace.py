@@ -469,6 +469,7 @@ class RegexConcept(Concept):
 		return trace
 
 
+nConsumeCalls=0
 class RegexWrapper(pre.Pregex):
 	def __init__(self, concept):
 		self.concept = concept
@@ -487,6 +488,8 @@ class RegexWrapper(pre.Pregex):
 		return self.concept.sample(trace)
 
 	def consume(self, string, regexState):
+		global nConsumeCalls
+		nConsumeCalls += 1
 		initScore = regexState.trace.score
 		for new_trace, observation, numCharacters in regexState.trace.observe_partial(self.concept, string, n=regexState.n):
 			new_trace = new_trace.fork()
@@ -546,6 +549,8 @@ class Trace:
 
 	def observe_all(self, concept, values, max_n_counterexamples=None, task=None, weight=1):
 		global timeRecord
+		global nConsumeCalls
+		nConsumeCalls =0
 		t0=time.time()
 		observations = []
 		counterexamples = []
@@ -564,6 +569,7 @@ class Trace:
 		if t1-t0>timeRecord:
 			timeRecord=t1-t0
 			print("observe_all took", t1-t0, "seconds on", counter, concept.str(self))
+			print(nConsumeCalls, "calls to consume")
 		if len(counterexamples)>0:
 			p_valid = len(observations) / (len(observations) + sum(counter[x] for x in counterexamples))
 			return None, None, counterexamples, p_valid
