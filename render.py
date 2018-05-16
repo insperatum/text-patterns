@@ -48,7 +48,7 @@ def saveConcepts(M, filename, onlyIdxs=None, mode="samples"):
 	for concept in concepts:
 		samples = [concept.sample(trace) for _ in range(1000)]
 		samples_counter = Counter(samples)
-		samples.sort(key=samples_counter.get)
+		samples.sort(key=samples_counter.get, reverse=True)
 		samples = list(set(samples[200:801:200]))
 		sample_str = ", ".join(list(s if s is not "" else "ε" for s in samples))
 		#tot=sum(samples_counter.values())
