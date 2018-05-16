@@ -353,6 +353,7 @@ def addTask(task_idx):
 
 	startTime = time.time()
 	#partialSolutionsByAltWith = {}
+	bestPartialSolutionByAltWith = {}
 	while any(l_active) or len(l_proposals)>0 or len(l_partialProposals)>0 or not q_main.empty() or not pq_main.empty():# or len(partialSolutionsByAltWith)>0:
 		if time.time() - startTime > args.timeout * 60:
 			print("Timeout!")
@@ -380,8 +381,11 @@ def addTask(task_idx):
 			partialSolution = queue_item.value 
 			#if getProposalID(partialSolution.altWith) not in partialSolutionsByAltWith: partialSolutionsByAltWith[getProposalID(partialSolution.altWith)]=[]
 			#partialSolutionsByAltWith[getProposalID(partialSolution.altWith)].append(partialSolution)
-			addRelated(partialSolution)
-			onPartialSolution(partialSolution, queueProposal, getRelated)
+			altWithID = getProposalID(partialSolution.altWith)
+			if altWithID not in bestPartialSolutionByAltWith or partialSolution.final_trace.score > bestPartialSolutionByAltWith[altWithID].final_trace.score:
+				bestPartialSolutionByAltWith[altWithID] = partialSolution
+				addRelated(partialSolution)
+				onPartialSolution(partialSolution, queueProposal, getRelated)
 		#if len(partialSolutionsByAltWith)>0 and not any(l_active):
 		#	#print("Reading partial solutions for:", list(partialSolutionsByAltWith.keys()))
 		#	#for ps in partialSolutionsByAltWith.values():
