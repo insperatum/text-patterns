@@ -125,15 +125,23 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		def getProposalID(proposal): #To avoid duplicate proposals
 			return proposal.concept.str(proposal.trace, depth=-1)
 		proposalIDs_so_far = []
+		record=0
 		def addProposal(trace, concept, add_to, related=()):
+			nonlocal record
 			def f(t,c,final):
 				return Proposal(depth, tuple(sorted(examples)), tuple(target_examples) if final else tuple(examples), current_trace, t, c, (), altWith, None, None, None)
+			_t0=time.time()
 			p = evalProposal(f(trace,concept,final=False), likelihoodWeighting=likelihoodWeighting * len(target_examples)/len(examples))
+			_t1=time.time()
 			if p.valid and getProposalID(p) not in proposalIDs_so_far:
 				relatedProposals = tuple(f(t,c,final=True) for (t,c) in related)
 				p = p._replace(related=relatedProposals,target_examples=tuple(target_examples))
 				proposalIDs_so_far.append(getProposalID(p))
 				add_to.append(p)
+			_t2=time.time()
+			if _t2-_t0>record:
+				record=_t2-_t1
+				print("<", concept.str(trace), "took", _t1-_t0, _t2-_t1)
 			return p if p.valid else None
 
 		addProposal(*current_trace.addregex(pre.String(examples[0]) if len(set(examples))==1 else pre.Alt([pre.String(x) for x in set(examples)])), cur_proposals) #Exactly the examples
@@ -212,7 +220,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 		if not isCached and doPrint: print("Proposals (ll*%2.2f): " % likelihoodWeighting , ", ".join(examples), "--->", ", ".join(
 			("N:" if proposal in net_proposals else "") +
 			proposal.concept.str(proposal.trace) for proposal in proposals) + 
-			"Times:", (t1-t0, t2-t1, t3-t2, t4-t3), flush=True)
+			"\tTimes:", (t1-t0, t2-t1, t3-t2, t4-t3), flush=True)
 
 		for p in proposals:
 			if tuple(sorted(examples)) == tuple(sorted(target_examples)):
