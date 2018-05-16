@@ -154,7 +154,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 
 # ----------- Solve a task ------------------
 #q_main: (priority, type, value)
-#priority: (priority-type, guess at (negative) final score)
+#priority: (priority-type, guess at (negative) final score, rand)
 #priority-type: 0=guaranteed solution, known score,
 #               1=guaranteed solution, unknown score (either from found partial solution, or from taking counterexamples to a solution that definitely works)
 # 				2=unknown
@@ -163,25 +163,25 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 QueueItem = namedtuple("QueueItem", ["priority", "type", "element"])
 
 def queueSolution(q_main, solution):
-	priority = (0, -solution.final_trace.score)
+	priority = (0, -solution.final_trace.score, random.random())
 	q_main.put(QueueItem(priority, "solution", solution))
 
 def queuePartialSolution(q_main, partialSolution):
 	if partialSolution.altWith.altWith is None:
-		priority = (1, float("inf"))
+		priority = (1, float("inf"), random.random())
 	else:
-		priority = (2, float("inf"))
+		priority = (2, float("inf"), random.random())
 	q_main.put(QueueItem(priority, "partialSolution", partialSolution))
 
 def queueCounterexamples(q_main, counterexample_args):
 	(proposal, counterexamples, p_valid, kinkscore) = counterexample_args
 	if kinkscore is not None:
 		if proposal.altWith is None:
-			priority = (1, -proposal.final_trace.score)
+			priority = (1, -proposal.final_trace.score, random.random())
 		else:
-			priority = (2, float("inf"))
+			priority = (2, float("inf"), random.random())
 	else:
-		priority = (2, float("inf"))
+		priority = (2, float("inf"), random.random())
 	q_main.put(QueueItem(priority, "counterexamples", counterexample_args))
 
 def onCounterexamples(queueProposal, proposal, counterexamples, p_valid, kinkscore=None):
