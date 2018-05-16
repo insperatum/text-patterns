@@ -212,9 +212,11 @@ def cpu_worker(worker_idx, init_trace, q_proposals, q_partialProposals, q_counte
 	while l_running[0]:
 		try:
 			proposal = q_proposals.get(timeout=1)
+			assert(proposal.altWith is None)
 		except queue.Empty:
 			try:
 				proposal = q_partialProposals.get(timeout=1)
+				assert(proposal.altWith is not None)
 			except queue.Empty:
 				l_active[worker_idx] = False
 				continue
