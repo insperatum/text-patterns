@@ -450,6 +450,7 @@ class RegexConcept(Concept):
 			)
 			new_trace._setState(self, newState)
 			out.append((new_trace, observation, numCharacters))
+		print("observe_partial got", len(numCharacters), "matches")
 		return out
 
 	def unobserve(self, trace, observation):
