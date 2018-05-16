@@ -13,7 +13,7 @@ def latexify(s):
 	return "\\verb|" + s + "|"
 
 print("\\begin{tabular}{r|" + " ".join("l"*nSamples) + "}")
-print("\\textbf{\\# Times referenced}&\\\\")
+print("\\textbf{\\# Reuses} & \\textbf{Samples}\\\\")
 print("\\hline")
 for c in sorted(trace.baseConcepts, key=lambda c: trace.baseConcept_nReferences.get(c,0), reverse=True)[:10]:
 	samples = [c.sample(trace) for _ in range(nSamples)]
