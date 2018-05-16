@@ -16,10 +16,12 @@ args = parser.parse_args()
 
 print("Loading", args.model)
 M = loader.load(args.model)
-if torch.cuda.is_available(): M['net'].cuda()
+
+if 'net' in M and M['net'] is not None:
+	if torch.cuda.is_available(): M['net'].cuda()
+	net = M['net']
 
 data, group_idxs, test_data = loader.loadData(M['args'].data_file, M['args'].n_examples, M['args'].n_tasks, M['args'].max_length)
 
-net = M['net']
 trace = M['trace']
 model = trace.model

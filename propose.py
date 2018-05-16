@@ -24,11 +24,12 @@ def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None,
 
 	trace, observations, counterexamples, p_valid = proposal.trace.observe_all(proposal.concept, proposal.target_examples, task=task_idx, weight=likelihoodWeighting)
 	if trace is None:
+		updated_proposal = proposal._replace(valid=False)
 		if onCounterexamples is not None:
 			if doPrint: print(proposal.concept.str(proposal.trace), "failed on", counterexamples, flush=True)
 			onCounterexamples(proposal, counterexamples, p_valid, None)
-		return proposal._replace(valid=False)
 	else:
+		updated_proposal = proposal._replace(final_trace=trace, observations=observations, valid=True)
 		if onCounterexamples is not None:
 			scores = []
 
@@ -44,11 +45,11 @@ def evalProposal(proposal, onCounterexamples=None, doPrint=False, task_idx=None,
 
 				outliers = [example for (example, zscore) in zip(examples_reordered, zscores) if zscore <= kinkval]
 				p_valid = 1-len(outliers)/len(examples_reordered)
-				onCounterexamples(proposal, outliers, p_valid, kinkscore)
+				onCounterexamples(updated_proposal, outliers, p_valid, kinkscore)
 
 		if doPrint: print(proposal.concept.str(proposal.trace), "got score: %3.3f" % trace.score, "of which observation: %3.3f" % (trace.score-proposal.trace.score), flush=True)
-		return proposal._replace(final_trace=trace, observations=observations, valid=True)
-
+	
+	return updated_proposal
 networkCache = {} #for a set of examples, what are 'valid' regexes, and 'all' found outputs, so far 
 
 
@@ -106,7 +107,7 @@ def getProposals(net, current_trace, target_examples, net_examples=None, depth=0
 				list(counter.keys()),
 				size=min(num_examples, len(counter)),
 				p=np.array(list(counter.values()))/sum(counter.values()),
-				replace=True))
+				replace=False))
 			for proposal in getProposals(net, current_trace, target_examples, sampled_examples, depth, modes, int(nProposals/nSubsamples), likelihoodWeighting, subsampleSize=None):
 				proposal_string = proposal.concept.str(proposal.trace, depth=-1)
 				if proposal_string not in proposal_strings_sofar:
