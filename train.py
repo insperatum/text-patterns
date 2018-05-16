@@ -160,7 +160,7 @@ def train(toConvergence=False, iterations=None, saveEvery=500):
 # 				2=unknown
 #type: "solution", "partialSolution", "counterexample"
 #value: ...
-QueueItem = namedtuple("QueueItem", ["priority", "type", "element"])
+QueueItem = namedtuple("QueueItem", ["priority", "type", "value"])
 
 def queueSolution(q_main, solution):
 	priority = (0, -solution.final_trace.score, random.random())
