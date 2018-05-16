@@ -277,7 +277,7 @@ def cpu_worker(worker_idx, init_trace, l_proposals, l_partialProposals, q_main, 
 				queuePartialSolution(q_main, solution)
 				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Got partial solution", proposal.concept.str(proposal.trace), flush=True)
 			else:
-				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed partial solution", proposal.concept.str(proposal.trace), flush=True)
+				print("(Worker %d, %2.2fs)"%(worker_idx, took), "Failed partial", proposal.concept.str(proposal.trace), flush=True)
 		
 	#q_solutions.put(
 	#	{"nEvaluated": nEvaluated,
@@ -413,8 +413,12 @@ def addTask(task_idx):
 		accepted = max(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score)
 		print("Accepted proposal: " + accepted.concept.str(accepted.trace) + "\nScore:" + str(accepted.final_trace.score - M['trace'].score) + "\n")
 		print("\nBest candidates were:")
-		for p in sorted(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score, reverse=True)[:10]:
-			print(p.concept.str(p.trace, depth=3) + "Score:" + str(p.final_trace.score - M['trace'].score))
+		for solution in sorted(solutions, key=lambda evaluatedProposal: evaluatedProposal.final_trace.score, reverse=True)[:10]:
+			print(solution.concept.str(solution.trace, depth=3) + 
+				"Score: %3.3f"%(solution.final_trace.score - M['trace'].score),
+				"(prior %3.3f + likelihood %3.3f):"%(
+					solution.trace.score - M['trace'].score,
+					solution.final_trace.score - solution.trace.score))
 		print("addTask took", time.time()-addTaskStart, "seconds")
 		M['trace'] = accepted.final_trace
 		M['task_observations'][task_idx] = accepted.observations
