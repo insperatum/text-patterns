@@ -355,7 +355,7 @@ def addTask(task_idx):
 
 	startTime = time.time()
 	#partialSolutionsByAltWith = {}
-	while any(l_active) or len(l_proposals)>0 or len(l_partialProposals)>0 or not q_main.empty():# or len(partialSolutionsByAltWith)>0:
+	while any(l_active) or len(l_proposals)>0 or len(l_partialProposals)>0 or not q_main.empty() or not pq_main.empty():# or len(partialSolutionsByAltWith)>0:
 		if time.time() - startTime > args.timeout * 60:
 			print("Timeout!")
 			break
