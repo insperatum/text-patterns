@@ -6009,3 +6009,54 @@ Iteration 19480 | Network loss: 9.36
 Iteration 19490 | Network loss: 9.11
 (['MTN GROUP LTD'],) ---> CONSULLAY
 Iteration 19500 | Network loss: 9.43
+(['68'],) ---> 86
+
+Calculating 10 way train classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.9259999924898148
+
+Calculating 10 way test classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.7069999980926513
+Classification Accuracy: train 0.9259999924898148 test 0.7069999980926513
+
+Calculating train ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -1.2848437798023224 nats per character
+
+Calculating test ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100

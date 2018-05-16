@@ -6159,3 +6159,56 @@ Iteration 19960 | Network loss: 11.13
 Iteration 19970 | Network loss: 10.35
 (['passed rules'],) ---> passed rul
 Iteration 19980 | Network loss: 10.73
+(['N'],) ---> N
+Iteration 19990 | Network loss: 11.40
+(['440156'],) ---> 268979.84
+Iteration 20000 | Network loss: 11.28
+(['030101'],) ---> 120053
+
+Calculating 10 way train classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.914999994635582
+
+Calculating 10 way test classification
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Accuracy: 0.7070000025629998
+Classification Accuracy: train 0.914999994635582 test 0.7070000025629998
+
+Calculating train ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -1.4518954527378083 nats per character
+
+Calculating test ll
+0 / 100
+10 / 100
+20 / 100
+30 / 100
+40 / 100
+50 / 100

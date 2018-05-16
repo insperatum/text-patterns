@@ -3744,3 +3744,30 @@ Calculating test ll
 0 / 100
 10 / 100
 20 / 100
+30 / 100
+40 / 100
+50 / 100
+60 / 100
+70 / 100
+80 / 100
+90 / 100
+Score: -2.410459883213043 nats per character
+Scores: train -1.228427267074585 test -2.410459883213043
+Iteration 12010 | Network loss: 8.78
+(['241'],) ---> 755
+Iteration 12020 | Network loss: 8.70
+(['305LDV06'],) ---> 570LDV16
+Iteration 12030 | Network loss: 8.88
+(['41'],) ---> 48
+Iteration 12040 | Network loss: 9.15
+(['44.1'],) ---> 6.39
+Iteration 12050 | Network loss: 8.16
+(['89.5'],) ---> 231.
+Iteration 12060 | Network loss: 8.72
+(['600T2-05'],) ---> 600T2-02
+Iteration 12070 | Network loss: 7.84
+(['EGJAN11A'],) ---> AMS-A6-141
+Iteration 12080 | Network loss: 8.80
+(['47'],) ---> 56
+Iteration 12090 | Network loss: 9.05
+(['1560'],) ---> 1709

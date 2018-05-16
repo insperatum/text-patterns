@@ -6063,3 +6063,47 @@ Calculating test ll
 50 / 100
 60 / 100
 70 / 100
+80 / 100
+90 / 100
+Score: -2.5570235586166383 nats per character
+Scores: train -1.6872649312019348 test -2.5570235586166383
+Iteration 19510 | Network loss: 13.53
+(['nd'],) ---> 157
+Iteration 19520 | Network loss: 12.94
+(['Motion Alarm'],) ---> Morih Gid
+Iteration 19530 | Network loss: 11.81
+(['2825'],) ---> 3489
+Iteration 19540 | Network loss: 13.24
+(['Larson'],) ---> Parsfergas
+Iteration 19550 | Network loss: 12.07
+(['6.7'],) ---> 2.44
+Iteration 19560 | Network loss: 13.31
+(['1HNXR0099AAK'],) ---> 1GMXT01.10
+Iteration 19570 | Network loss: 13.38
+(['Certified'],) ---> Chebricers
+Iteration 19580 | Network loss: 13.47
+(['N22190000350'],) ---> A196956000
+Iteration 19590 | Network loss: 12.47
+(['s17'],) ---> s29
+Iteration 19600 | Network loss: 13.99
+(['2GMXA06.0188'],) ---> 3THXV01.6F
+Iteration 19610 | Network loss: 12.50
+(['NA'],) ---> 8309
+Iteration 19620 | Network loss: 13.83
+(['13/04/2007'],) ---> 05/00/2001
+Iteration 19630 | Network loss: 12.49
+(['-15.54'],) ---> -0
+Iteration 19640 | Network loss: 13.19
+(['5725'],) ---> 5187
+Iteration 19650 | Network loss: 13.82
+(['94021270783'],) ---> 4090107630
+Iteration 19660 | Network loss: 12.40
+(['SE'],) ---> Ci
+Iteration 19670 | Network loss: 12.24
+(['0.0098596849'],) ---> 0.00101711
+Iteration 19680 | Network loss: 13.16
+(['Stuart'],) ---> Harriclewl
+Iteration 19690 | Network loss: 12.42
+(['...'],) ---> ..8
+Iteration 19700 | Network loss: 11.89
+(['NA'],) ---> NA

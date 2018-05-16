@@ -5,5 +5,5 @@
 /scratch.py
 /*.pt
 *.swp
-/baselines/*.pt
+/baselines
 /*.out
