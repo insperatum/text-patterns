@@ -260,7 +260,11 @@ def cpu_worker(worker_idx, init_trace, l_proposals, l_partialProposals, q_main, 
 
 		l_active[worker_idx] = True
 		start_time=time.time()
-		solution = evalProposal(proposal, onCounterexamples=lambda *args: queueCounterexamples(q_main, args), doPrint=False, task_idx=task_idx)
+		def handle_counterexamples(*args):
+			proposal, counterexamples, p_valid, kinkscore = args
+			print(proposal.concept.str(proposal.trace), "counterexamples:", list(set(counterexamples))[:5], flush=True)
+			queueCounterexamples(q_main, args)
+		solution = evalProposal(proposal, onCounterexamples=handle_counterexamples, doPrint=False, task_idx=task_idx)
 		took = time.time()-start_time
 
 		if proposal.altWith is None:
