@@ -14,7 +14,7 @@ init_dir=$(pwd)
 
 git checkout --quiet -B working || exit
 git pull --no-edit --quiet origin working || exit
-git add -A || exit
+git add -u || exit
 git commit --quiet --allow-empty -m "Experiment $name" || exit
 git push --quiet origin working || exit
 
